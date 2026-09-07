@@ -1,8 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <g fill="none" stroke="#C9A44A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="48" y="54" width="28" height="92" rx="8"/>
-    <rect x="86" y="70" width="28" height="62" rx="8"/>
-    <rect x="124" y="54" width="28" height="92" rx="8"/>
-    <line x1="93" y1="97" x2="107" y2="97"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Noirly Flow mark">
+  <title>Noirly Flow — monochrome</title>
+  <!-- Default tint for standalone use. Delete this rule to inherit color from the parent. -->
+  <style>svg { color: #C9A44A; }</style>
+  <defs>
+    <!-- Clears a gap in the tracks wherever the flow crosses them, so the two
+         shapes stay legible in a single colour. Gap = (110 - 70) / 2 = 20px. -->
+    <mask id="nfm-cut">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="M196 654 C 300 654, 300 494, 512 494 S 724 334, 828 334"
+            fill="none" stroke="#000" stroke-width="110" stroke-linecap="round"/>
+    </mask>
+  </defs>
+  <!-- Board tracks, drawn as outlines -->
+  <g mask="url(#nfm-cut)" fill="none" stroke="currentColor" stroke-width="14">
+    <rect x="239" y="259" width="138" height="506" rx="69"/>
+    <rect x="443" y="259" width="138" height="506" rx="69"/>
+    <rect x="647" y="259" width="138" height="506" rx="69"/>
   </g>
+  <!-- The flow -->
+  <path d="M196 654 C 300 654, 300 494, 512 494 S 724 334, 828 334"
+        fill="none" stroke="currentColor" stroke-width="70" stroke-linecap="round"/>
 </svg>

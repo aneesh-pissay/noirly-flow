@@ -14,6 +14,17 @@ import { FLOW_LOGO_URL } from "@/src/lib/brand";
 const ACCENT = "var(--accent)";
 const KNOCKOUT = "var(--brand-knockout, var(--bg))";
 
+const PAINT_SERVERS = new Set([
+  "mask",
+  "clippath",
+  "pattern",
+  "lineargradient",
+  "radialgradient",
+  "filter",
+  "marker",
+  "symbol",
+]);
+
 function isNone(value: string | null | undefined): boolean {
   return value === "none" || value === "transparent";
 }
@@ -28,6 +39,18 @@ function fillOf(el: Element): string | null {
   return normaliseColour(
     el.getAttribute("fill") ?? el.getAttribute("style")?.match(/fill:\s*([^;]+)/i)?.[1],
   );
+}
+
+/** Luminance masks / clipPaths must keep their #fff/#000 paint. */
+function isPaintServerDescendant(el: Element): boolean {
+  let node: Element | null = el.parentElement;
+  while (node) {
+    const tag = node.tagName.toLowerCase();
+    if (PAINT_SERVERS.has(tag)) return true;
+    if (tag === "svg") return false;
+    node = node.parentElement;
+  }
+  return false;
 }
 
 function isCanvasRect(el: Element, svg: Element): boolean {
@@ -53,10 +76,12 @@ function themeSvgMarkup(raw: string): string | null {
   if (svg.tagName.toLowerCase() !== "svg") return null;
   if (doc.querySelector("parsererror")) return null;
 
-  svg.querySelectorAll("script,style,foreignObject,image,use").forEach((el) => el.remove());
+  svg.querySelectorAll("script,style,foreignObject,image,use,metadata").forEach((el) => el.remove());
   svg.querySelectorAll("*").forEach((el) => {
     for (const attr of [...el.attributes]) {
-      if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
+      if (/^on/i.test(attr.name) || /^xmlns:c2pa$/i.test(attr.name)) {
+        el.removeAttribute(attr.name);
+      }
     }
   });
 
@@ -69,16 +94,19 @@ function themeSvgMarkup(raw: string): string | null {
 
   const shapes = svg.querySelectorAll("g,path,circle,ellipse,polygon,polyline,rect,line");
   shapes.forEach((el) => {
+    if (isPaintServerDescendant(el)) return;
+
     el.removeAttribute("class");
     el.removeAttribute("style");
 
-    const fill = fillOf(el);
+    const fillAttr = el.getAttribute("fill");
+    const fill = normaliseColour(fillAttr);
     const stroke = normaliseColour(el.getAttribute("stroke"));
 
-    if (fill) {
-      el.setAttribute("fill", fill === canvasFill ? KNOCKOUT : ACCENT);
-    } else {
-      el.setAttribute("fill", "none");
+    // Only rewrite an explicit fill. Unset fill stays unset so children can
+    // inherit from a tinted <g fill="currentColor">.
+    if (fillAttr !== null) {
+      el.setAttribute("fill", fill ? (fill === canvasFill ? KNOCKOUT : ACCENT) : "none");
     }
 
     if (stroke) el.setAttribute("stroke", ACCENT);
