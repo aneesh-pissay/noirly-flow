@@ -19,7 +19,7 @@ export default async function LoginPage({
 
   return (
     <AuthShell
-      logo={<BrandMark className="h-14 w-14 brand-mark--on-surface" />}
+      logo={<BrandMark className="size-14 brand-mark--on-surface md:size-16" />}
       title="Sign in to Flow"
       lead="Email, Google and verification are handled by Noirly Identity. No separate password to remember."
       footer={
