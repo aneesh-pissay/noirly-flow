@@ -45,6 +45,15 @@ function slugify(input: string): string {
   return base || "workspace";
 }
 
+/** MongoDB duplicate-key error: a unique index rejected the write. */
+function isDuplicateKeyError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { code?: unknown }).code === 11000
+  );
+}
+
 async function ensurePersonalWorkspace(
   user: FlowUserDocument,
 ): Promise<{
@@ -52,41 +61,46 @@ async function ensurePersonalWorkspace(
   projectId: string | null;
   projectName: string | null;
 }> {
-  const existingMembership = await WorkspaceMembership.findOne({
-    userId: user._id,
-    role: "owner",
-  }).lean();
+  const findPersonal = () =>
+    Workspace.findOne({ ownerUserId: user._id, kind: "personal" });
 
-  if (existingMembership) {
-    const workspace = await Workspace.findOne({
-      _id: existingMembership.workspaceId,
-      kind: "personal",
-    });
-    if (workspace) {
-      // Hot path: do not look up the default project on every nav hop.
-      // Callers that need it can load projects via the workspace API.
-      return {
-        workspace,
-        projectId: null,
-        projectName: null,
-      };
+  const existing = await findPersonal();
+  if (existing) {
+    // Hot path: do not look up the default project on every nav hop.
+    // Callers that need it can load projects via the workspace API.
+    return { workspace: existing, projectId: null, projectName: null };
+  }
+
+  // First login. Concurrent first requests all get here; the unique
+  // "one_personal_workspace_per_owner" index lets exactly one create succeed,
+  // and the rest adopt the winner's workspace instead of making their own.
+  const slugBase = slugify(`${user.displayName}-personal`);
+  let workspace: WorkspaceDocument;
+  for (let attempt = 0; ; attempt += 1) {
+    let slug = slugBase;
+    let n = 0;
+    while (await Workspace.exists({ slug })) {
+      n += 1;
+      slug = `${slugBase}-${n}`;
+    }
+
+    try {
+      workspace = await Workspace.create({
+        kind: "personal",
+        name: "Personal",
+        slug,
+        ownerUserId: user._id,
+      });
+      break;
+    } catch (error) {
+      if (!isDuplicateKeyError(error) || attempt >= 5) throw error;
+      const winner = await findPersonal();
+      if (winner) {
+        return { workspace: winner, projectId: null, projectName: null };
+      }
+      // Otherwise another user took the slug in the meantime — rescan.
     }
   }
-
-  const slugBase = slugify(`${user.displayName}-personal`);
-  let slug = slugBase;
-  let n = 0;
-  while (await Workspace.exists({ slug })) {
-    n += 1;
-    slug = `${slugBase}-${n}`;
-  }
-
-  const workspace = await Workspace.create({
-    kind: "personal",
-    name: "Personal",
-    slug,
-    ownerUserId: user._id,
-  });
 
   await WorkspaceMembership.create({
     workspaceId: workspace._id,
@@ -153,13 +167,21 @@ export async function ensureFlowAccount(
     let user = await FlowUser.findOne({ identitySub: sessionUser.id });
 
     if (!user) {
-      user = await FlowUser.create({
-        identitySub: sessionUser.id,
-        email,
-        displayName,
-        avatarUrl,
-        emailVerified,
-      });
+      try {
+        user = await FlowUser.create({
+          identitySub: sessionUser.id,
+          email,
+          displayName,
+          avatarUrl,
+          emailVerified,
+        });
+      } catch (error) {
+        // A concurrent first request created the account a moment earlier
+        // (unique identitySub). Use it rather than failing with a 500.
+        if (!isDuplicateKeyError(error)) throw error;
+        user = await FlowUser.findOne({ identitySub: sessionUser.id });
+        if (!user) throw error;
+      }
     } else {
       const needsUpdate =
         user.email !== email ||

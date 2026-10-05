@@ -14,3 +14,4 @@ export {
   ActivityEvent,
   type ActivityEventDocument,
 } from "./ActivityEvent";
+export { RevokedSession, type RevokedSessionDocument } from "./RevokedSession";

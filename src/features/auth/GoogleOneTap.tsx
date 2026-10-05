@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type CredentialResponse = { credential?: string };
 
@@ -65,6 +65,7 @@ export function ProductGoogleOneTap({
   const buttonRef = useRef<HTMLDivElement>(null);
   const callbackRef = useRef(onCredential);
   callbackRef.current = onCredential;
+  const [available, setAvailable] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +75,7 @@ export function ProductGoogleOneTap({
         if (cancelled || !data.google || !data.googleClientId) return;
         const accounts = await loadGsi();
         if (cancelled) return;
+        setAvailable(true);
         const nonce =
           typeof crypto !== "undefined" && "randomUUID" in crypto
             ? crypto.randomUUID()
@@ -112,8 +114,10 @@ export function ProductGoogleOneTap({
     };
   }, [identityUrl]);
 
+  // Hidden until Identity reports Google is configured and GSI has loaded,
+  // so an unconfigured Google IdP leaves no empty slot or stray label.
   return (
-    <div className="flex flex-col gap-2">
+    <div className={available ? "flex flex-col gap-2" : "hidden"}>
       <div ref={buttonRef} className="flex min-h-10 w-full justify-center" />
       <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-[var(--muted-foreground)]">
         Google One Tap · pick any account
