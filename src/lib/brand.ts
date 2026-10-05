@@ -1,4 +1,5 @@
-/** The Flow mark, held in R2 alongside the other Noirly project logos. */
-export const FLOW_LOGO_URL =
-  process.env.NEXT_PUBLIC_FLOW_LOGO_URL ??
-  "https://pub-112024e5133947e8a97049270342aaf6.r2.dev/portfolio/logos/1788015968212-432da2f4-noirly-flow-final.svg";
+/**
+ * The Flow mark. Served from this app (public/brand-mark.svg) so the logo is
+ * versioned with the code — the copy in R2 is the old design.
+ */
+export const FLOW_LOGO_URL = process.env.NEXT_PUBLIC_FLOW_LOGO_URL ?? "/brand-mark.svg";

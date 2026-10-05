@@ -19,6 +19,7 @@ import { CommandPalette } from "@/src/features/command-palette/CommandPalette";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
 import { useOptimisticPath } from "@/src/components/NavLink";
 import { ThemeControls } from "@/src/components/ThemeControls";
+import { BrandMark } from "@/src/components/BrandMark";
 import { api } from "@/src/lib/api-client";
 import { qk } from "@/src/core/sync/query-keys";
 import { useUIStore, readLastWorkspaceId } from "@/src/stores/ui-store";
@@ -105,11 +106,7 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
         sidebar={{
           brand: (
             <SidebarBrand
-              logo={
-                <span className="font-mono text-xs font-bold tracking-[0.08em]">
-                  NF
-                </span>
-              }
+              logo={<BrandMark className="h-5 w-5" />}
               title="Noirly Flow"
               subtitle="Workspace"
             />
