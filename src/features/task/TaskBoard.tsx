@@ -22,7 +22,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { BoardColumn, Task } from "@/src/core/sync/types";
 import {
   buildReorderMoves,
@@ -71,12 +71,21 @@ export function TaskBoard({
     groupTasksByColumn(tasks, boardColumns),
   );
   const [activeId, setActiveId] = useState<string | null>(null);
-  const draggingRef = useRef(false);
+  const [dragging, setDragging] = useState(false);
 
-  useEffect(() => {
-    if (draggingRef.current) return;
+  // Regroup when tasks or columns change, but not mid-drag. Ending a drag
+  // always regroups, so changes that arrived during it (new tasks, real
+  // column ids replacing placeholders) are never lost.
+  const [synced, setSynced] = useState({ tasks, boardColumns, dragging });
+  if (dragging !== synced.dragging && dragging) {
+    setSynced({ tasks, boardColumns, dragging });
+  } else if (
+    !dragging &&
+    (synced.dragging || synced.tasks !== tasks || synced.boardColumns !== boardColumns)
+  ) {
+    setSynced({ tasks, boardColumns, dragging });
     setGroups(groupTasksByColumn(tasks, boardColumns));
-  }, [tasks, boardColumns]);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -99,7 +108,7 @@ export function TaskBoard({
 
   function handleDragStart(event: DragStartEvent) {
     if (!canWrite) return;
-    draggingRef.current = true;
+    setDragging(true);
     setActiveId(String(event.active.id));
   }
 
@@ -123,7 +132,7 @@ export function TaskBoard({
   }
 
   function handleDragCancel() {
-    draggingRef.current = false;
+    setDragging(false);
     setActiveId(null);
     setGroups(groupTasksByColumn(tasks, boardColumns));
   }
@@ -132,11 +141,11 @@ export function TaskBoard({
     const { active, over } = event;
     setActiveId(null);
     if (!canWrite) {
-      draggingRef.current = false;
+      setDragging(false);
       return;
     }
     if (!over) {
-      draggingRef.current = false;
+      setDragging(false);
       setGroups(groupTasksByColumn(tasks, boardColumns));
       return;
     }
@@ -165,7 +174,7 @@ export function TaskBoard({
 
     const to = findContainer(next, activeTaskId);
     if (!from || !to) {
-      draggingRef.current = false;
+      setDragging(false);
       return;
     }
 
@@ -176,13 +185,13 @@ export function TaskBoard({
         (next[columnId] ?? []).map((task) => task.id).join(),
     );
     if (unchanged) {
-      draggingRef.current = false;
+      setDragging(false);
       return;
     }
 
     const moves = buildReorderMoves(next, boardColumns, affected);
     if (moves.length === 0) {
-      draggingRef.current = false;
+      setDragging(false);
       return;
     }
 
@@ -191,7 +200,7 @@ export function TaskBoard({
     } catch {
       setGroups(previous);
     } finally {
-      draggingRef.current = false;
+      setDragging(false);
     }
   }
 

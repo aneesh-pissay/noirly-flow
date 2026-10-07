@@ -634,6 +634,10 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
         <TaskCalendar tasks={tasks} onOpenTask={openTask} />
       ) : !projectId ? (
         <p className="text-sm text-[var(--foreground)]">No project available for board.</p>
+      ) : projectQuery.isPending ? (
+        // Columns decide where cards go; placeholder columns swapped for the
+        // real ones mid-drag would drop the card nowhere.
+        <p className="text-sm text-[var(--muted-foreground)]">Loading board…</p>
       ) : (
         <TaskBoard
           projectId={projectId}
