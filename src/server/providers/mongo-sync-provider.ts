@@ -404,7 +404,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
               .sort({ position: 1 })
               .lean();
             columnId = first?._id ?? null;
-            if (first?.statusMapped) {
+            // Adopt the column's status only when none was asked for: a status
+            // with no column (canceled) must not silently become "todo".
+            if (!input.status && first?.statusMapped) {
               status = first.statusMapped as TaskStatus;
             }
           }

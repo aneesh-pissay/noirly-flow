@@ -29,15 +29,9 @@ export function WorkspaceShell({
     });
   }, [queryClient, workspaceId, workspaceQuery.data]);
 
-  if (workspaceQuery.isPending) {
-    // Wait for the membership check: rendering children with a guessed role
-    // would show editing controls to someone who has been removed.
-    return (
-      <PageContainer size="sm">
-        <p className="text-sm text-[var(--muted-foreground)]">Loading workspace…</p>
-      </PageContainer>
-    );
-  }
+  // Until the membership check answers, render read-only: children load in
+  // parallel, but someone who was removed never sees editing controls.
+  const role = workspaceQuery.data?.workspace.role ?? "viewer";
 
   if (workspaceQuery.isError) {
     return (
@@ -54,7 +48,7 @@ export function WorkspaceShell({
   }
 
   return (
-    <WorkspaceRoleProvider role={workspaceQuery.data.workspace.role}>
+    <WorkspaceRoleProvider role={role}>
       <div className="flex h-full min-h-0 flex-1 flex-col lg:flex-row">
         <aside className="shrink-0 border-b border-[var(--hairline)] bg-[var(--surface-2)]/40 lg:w-56 lg:border-b-0 lg:border-r">
           <div className="px-4 py-4 sm:px-6 lg:max-h-full lg:overflow-y-auto lg:py-5">
