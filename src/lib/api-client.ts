@@ -11,6 +11,17 @@ import type { MemberRole } from "@/src/core/models/enums";
 
 type ApiErrorBody = { error?: string; message?: string };
 
+/** A non-2xx API response; `status` lets callers tell 4xx from network errors. */
+export class ApiRequestError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -22,7 +33,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   const data = (await response.json().catch(() => ({}))) as T & ApiErrorBody;
   if (!response.ok) {
-    throw new Error(data.message || data.error || "Request failed");
+    throw new ApiRequestError(response.status, data.message || data.error || "Request failed");
   }
   return data;
 }
@@ -257,5 +268,15 @@ export const api = {
     return request<{ items: ActivityEvent[]; nextCursor?: string }>(
       `/api/workspaces/${workspaceId}/activity${qs ? `?${qs}` : ""}`,
     );
+  },
+  async exportActivityCsv(workspaceId: string) {
+    const response = await fetch(`/api/workspaces/${workspaceId}/activity/export`);
+    if (!response.ok) {
+      const data = (await response.json().catch(() => ({}))) as ApiErrorBody;
+      throw new ApiRequestError(response.status, data.message || data.error || "Export failed");
+    }
+    const disposition = response.headers.get("content-disposition") ?? "";
+    const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? null;
+    return { blob: await response.blob(), filename };
   },
 };

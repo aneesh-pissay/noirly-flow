@@ -7,6 +7,7 @@ import { FaviconTheme } from "@/src/components/FaviconTheme";
 import { ThemeProvider } from "@/src/components/ThemeProvider";
 import { FlowRealtimeProvider } from "@/src/features/realtime/FlowRealtimeProvider";
 import { SavingIndicator } from "@/src/components/SavingIndicator";
+import { ApiRequestError } from "@/src/lib/api-client";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [client] = useState(
@@ -16,6 +17,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
           queries: {
             staleTime: 60_000,
             refetchOnWindowFocus: false,
+            // A 4xx (forbidden, not found, invalid) will not change on retry;
+            // only retry network and server errors.
+            retry: (failureCount, error) =>
+              !(error instanceof ApiRequestError && error.status < 500) && failureCount < 3,
           },
         },
       }),

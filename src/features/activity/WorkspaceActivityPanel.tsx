@@ -4,7 +4,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@noirly-dev/ui";
 import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
-import { activityToCsv } from "@/src/features/activity/format";
 import { api } from "@/src/lib/api-client";
 import { qk } from "@/src/core/sync/query-keys";
 
@@ -25,28 +24,18 @@ export function WorkspaceActivityPanel({
   });
 
   const exportMutation = useMutation({
-    mutationFn: async () => {
-      const members = membersQuery.data?.members ?? [];
-      const events = [];
-      let cursor: string | undefined;
-      for (let page = 0; page < 50; page += 1) {
-        const result = await api.listActivity(workspaceId, { cursor });
-        events.push(...result.items);
-        if (!result.nextCursor) break;
-        cursor = result.nextCursor;
-      }
-      return activityToCsv(events, members);
-    },
-    onSuccess: (csv) => {
+    mutationFn: () => api.exportActivityCsv(workspaceId),
+    onSuccess: ({ blob, filename }) => {
       setError(null);
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       const stamp = new Date().toISOString().slice(0, 10);
       anchor.href = url;
-      anchor.download = `${workspaceName.toLowerCase().replace(/\s+/g, "-")}-activity-${stamp}.csv`;
+      anchor.download =
+        filename ?? `${workspaceName.toLowerCase().replace(/\s+/g, "-")}-activity-${stamp}.csv`;
       anchor.click();
-      URL.revokeObjectURL(url);
+      // Revoking synchronously can cancel the download in some browsers.
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     },
     onError: (err: Error) => setError(err.message),
   });
@@ -62,7 +51,7 @@ export function WorkspaceActivityPanel({
           variant="secondary"
           size="sm"
           onClick={() => exportMutation.mutate()}
-          disabled={exportMutation.isPending || membersQuery.isLoading}
+          disabled={exportMutation.isPending}
         >
           {exportMutation.isPending ? "Exporting…" : "Export CSV"}
         </Button>

@@ -37,6 +37,6 @@ export async function searchWorkspaceContent(userId: string, rawQuery: string) {
   });
 }
 
-function escapeRegex(value: string) {
+export function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

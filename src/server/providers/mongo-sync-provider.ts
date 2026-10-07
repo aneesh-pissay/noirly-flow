@@ -36,6 +36,7 @@ import {
 } from "@/src/server/mappers";
 import { ApiError } from "@/src/server/api/http";
 import { idsEqual, recordActivity } from "@/src/server/activity";
+import { escapeRegex } from "@/src/server/search";
 
 type ProviderContext = {
   userId: string;
@@ -361,7 +362,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           };
         }
         if (query.search?.trim()) {
-          filter.title = { $regex: query.search.trim(), $options: "i" };
+          filter.title = { $regex: escapeRegex(query.search.trim()), $options: "i" };
         }
 
         const tasks = await TaskModel.find(filter)

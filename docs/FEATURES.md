@@ -147,7 +147,7 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Activity verbs | `task.created`, `task.updated`, `task.assigned`, `task.deleted`, `comment.created` |
 | Task activity | Inside the drawer |
 | Workspace activity | Infinite “Load more” on `/w/.../activity` |
-| CSV export | Workspace activity download |
+| CSV export | Whole workspace log built server-side in one request (`GET /api/workspaces/[workspaceId]/activity/export`) |
 
 **Not in product yet:** edit / delete comments, mentions, notifications, email.
 
@@ -238,6 +238,7 @@ Requires `NEXT_PUBLIC_REALTIME_WS_URL` (and matching server JWT config).
 | PATCH, DELETE | `/api/workspaces/[workspaceId]/members/[userId]` |
 | POST | `/api/workspaces/[workspaceId]/invites` |
 | GET | `/api/workspaces/[workspaceId]/activity` |
+| GET | `/api/workspaces/[workspaceId]/activity/export` (CSV) |
 | GET | `/api/projects/[projectId]` |
 | POST | `/api/projects/[projectId]/reorder` |
 | GET, PATCH, DELETE | `/api/tasks/[taskId]` |

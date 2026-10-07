@@ -120,6 +120,29 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
             </tr>
           </thead>
           <tbody>
+            {membersQuery.isPending || membersQuery.isError ? (
+              <tr>
+                <td
+                  colSpan={canManage ? 3 : 2}
+                  className="px-4 py-3 text-sm text-[var(--muted-foreground)]"
+                >
+                  {membersQuery.isPending ? (
+                    "Loading members…"
+                  ) : (
+                    <span role="alert">
+                      Could not load members.{" "}
+                      <button
+                        type="button"
+                        onClick={() => void membersQuery.refetch()}
+                        className="text-[var(--foreground)] hover:underline"
+                      >
+                        Try again
+                      </button>
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ) : null}
             {members.map((member) => (
               <tr
                 key={member.userId}

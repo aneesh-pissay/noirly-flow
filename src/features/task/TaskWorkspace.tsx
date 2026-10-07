@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RealtimeClientContext } from "@noirly-dev/realtime-client/react";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { qk } from "@/src/core/sync/query-keys";
 import { api } from "@/src/lib/api-client";
 import type { Tag, Task } from "@/src/core/sync/types";
@@ -66,7 +67,15 @@ type Props = {
 
 export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
   const queryClient = useQueryClient();
-  const [drawerTaskId, setDrawerTaskId] = useState<string | null>(null);
+  // useSearchParams follows router.push (command palette), pushState
+  // (writeTaskParam) and back/forward, so a changed ?task= opens the drawer.
+  const urlTaskId = useSearchParams().get("task");
+  const [drawerTaskId, setDrawerTaskId] = useState<string | null>(urlTaskId);
+  const [seenUrlTaskId, setSeenUrlTaskId] = useState(urlTaskId);
+  if (urlTaskId !== seenUrlTaskId) {
+    setSeenUrlTaskId(urlTaskId);
+    setDrawerTaskId(urlTaskId);
+  }
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("none");
   const [dueDate, setDueDate] = useState("");
@@ -86,17 +95,6 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     const timer = window.setTimeout(() => setSearch(searchInput.trim()), 250);
     return () => window.clearTimeout(timer);
   }, [searchInput]);
-
-  useEffect(() => {
-    function syncFromUrl() {
-      setDrawerTaskId(
-        new URLSearchParams(window.location.search).get("task"),
-      );
-    }
-    syncFromUrl();
-    window.addEventListener("popstate", syncFromUrl);
-    return () => window.removeEventListener("popstate", syncFromUrl);
-  }, []);
 
   const canWrite = useCan("task.write");
   const isInbox = !projectId;

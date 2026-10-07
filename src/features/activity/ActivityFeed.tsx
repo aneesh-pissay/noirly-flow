@@ -33,6 +33,10 @@ export function ActivityFeed({ workspaceId, taskId, members }: Props) {
       </p>
       {activityQuery.isLoading ? (
         <p className="text-xs text-[var(--muted-foreground)]">Loading activity…</p>
+      ) : activityQuery.isError && items.length === 0 ? (
+        <p className="text-xs text-[var(--muted-foreground)]" role="alert">
+          Could not load activity.
+        </p>
       ) : items.length === 0 ? (
         <p className="text-xs text-[var(--muted-foreground)]">No activity yet.</p>
       ) : (
@@ -52,6 +56,11 @@ export function ActivityFeed({ workspaceId, taskId, members }: Props) {
           ))}
         </ol>
       )}
+      {activityQuery.isFetchNextPageError ? (
+        <p className="mt-3 text-xs text-[var(--muted-foreground)]" role="alert">
+          Could not load more activity.
+        </p>
+      ) : null}
       {activityQuery.hasNextPage ? (
         <button
           type="button"
@@ -59,7 +68,11 @@ export function ActivityFeed({ workspaceId, taskId, members }: Props) {
           disabled={activityQuery.isFetchingNextPage}
           className="mt-3 text-xs text-[var(--foreground)] hover:underline disabled:opacity-50"
         >
-          {activityQuery.isFetchingNextPage ? "Loading…" : "Load more"}
+          {activityQuery.isFetchingNextPage
+            ? "Loading…"
+            : activityQuery.isFetchNextPageError
+              ? "Try again"
+              : "Load more"}
         </button>
       ) : null}
     </section>
