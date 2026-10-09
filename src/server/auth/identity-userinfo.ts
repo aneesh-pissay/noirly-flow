@@ -22,7 +22,7 @@ function tokenKey(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-function identityIssuer(): string {
+export function identityIssuer(): string {
   return (
     process.env.AUTH_NOIRLY_ISSUER ??
     process.env.NEXT_PUBLIC_IDENTITY_URL ??
