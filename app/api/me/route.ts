@@ -2,6 +2,7 @@ import { getSyncProvider, jsonError, jsonOk, ApiError } from "@/src/server/api/h
 import { updateMeBodySchema } from "@/src/server/api/schemas";
 import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser } from "@/src/server/models";
+import { deleteFlowAccountData } from "@/src/server/users/delete-account";
 import { resolveFlowDisplayName } from "@/src/server/users/display-name";
 import type { FlowProfile } from "@/src/core/sync/types";
 
@@ -95,6 +96,21 @@ export async function PATCH(request: Request) {
         profile: nextProfile,
       },
     });
+  } catch (error) {
+    return jsonError(error);
+  }
+}
+
+/**
+ * Deletes the caller's Flow data (the app's "Delete account" calls this before
+ * deleting the Noirly account itself). See src/server/users/delete-account.ts
+ * for what is removed and what stays with shared workspaces.
+ */
+export async function DELETE() {
+  try {
+    const { ctx } = await getSyncProvider();
+    const summary = await withDb(() => deleteFlowAccountData(ctx.identitySub));
+    return jsonOk({ ok: true, ...summary });
   } catch (error) {
     return jsonError(error);
   }
