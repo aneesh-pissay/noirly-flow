@@ -144,3 +144,13 @@ export const updateMeBodySchema = z.object({
     bio: optionalText(280),
   }),
 });
+
+export const createReportBodySchema = z
+  .object({
+    targetType: z.enum(["comment", "task", "user"]),
+    targetId: z.string().min(1).max(64),
+    workspaceId: z.string().min(1).max(64).optional(),
+    reason: z.enum(["spam", "harassment", "hate", "sexual", "violence", "self_harm", "illegal", "other"]),
+    details: z.string().trim().max(1000).nullable().optional(),
+  })
+  .strict();

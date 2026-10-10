@@ -15,3 +15,4 @@ export {
   type ActivityEventDocument,
 } from "./ActivityEvent";
 export { RevokedSession, type RevokedSessionDocument } from "./RevokedSession";
+export { Report, type ReportDocument } from "./Report";

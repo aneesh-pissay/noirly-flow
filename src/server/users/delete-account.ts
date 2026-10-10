@@ -5,6 +5,7 @@ import {
   Comment,
   FlowUser,
   Project,
+  Report,
   Tag,
   Task,
   Workspace,
@@ -38,6 +39,7 @@ async function purgeWorkspace(workspaceId: Types.ObjectId): Promise<void> {
     Tag.deleteMany({ workspaceId }),
     Comment.deleteMany({ workspaceId }),
     ActivityEvent.deleteMany({ workspaceId }),
+    Report.deleteMany({ workspaceId }),
     WorkspaceInvite.deleteMany({ workspaceId }),
     WorkspaceMembership.deleteMany({ workspaceId }),
   ]);
@@ -99,6 +101,8 @@ export async function deleteFlowAccountData(identitySub: string): Promise<FlowDe
     Comment.deleteMany({ authorId: userId }),
     ActivityEvent.deleteMany({ actorId: userId }),
     WorkspaceInvite.deleteMany({ createdById: userId }),
+    // Reports they filed, and reports about them or their content.
+    Report.deleteMany({ $or: [{ reporterId: userId }, { targetUserId: userId }] }),
     Task.updateMany({ assigneeIds: userId }, { $pull: { assigneeIds: userId } }),
   ]);
   await FlowUser.deleteOne({ _id: userId });
