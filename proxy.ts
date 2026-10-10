@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 export const proxy = auth((request) => {
   const { pathname } = request.nextUrl;
   const isLanding = pathname === "/";
+  // Readable without an account, signed in or not (Google Play links to the privacy policy).
+  const isPublicPage = pathname === "/privacy";
   const isLogin = pathname === "/login";
   const isLoginPopup =
     pathname === "/login/popup" || pathname === "/login/popup-complete";
@@ -14,6 +16,7 @@ export const proxy = auth((request) => {
   if (
     !request.auth &&
     !isLanding &&
+    !isPublicPage &&
     !isLogin &&
     !isLoginPopup &&
     !isAuthApi &&
