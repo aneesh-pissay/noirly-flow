@@ -1,9 +1,10 @@
 import "server-only";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { QueryFilter } from "mongoose";
 import nodemailer from "nodemailer";
 import { withDb } from "@/src/server/db/mongodb";
-import { FlowUser, Task, WorkspaceMembership } from "@/src/server/models";
+import { FlowUser, Task, WorkspaceMembership, type TaskDocument } from "@/src/server/models";
 
 const indiaDay = (date: Date) => new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
@@ -16,8 +17,8 @@ export async function deliverTaskEmails(taskId?: string, reminders = false) {
     const now = new Date();
     const today = indiaDay(now);
     const cutoff = new Date(`${today}T00:00:00+05:30`);
-    const active = { deletedAt: null, status: { $nin: ["done", "canceled"] } };
-    const cursor = Task.find({
+    const active: QueryFilter<TaskDocument> = { deletedAt: null, status: { $nin: ["done", "canceled"] } };
+    const taskFilter: QueryFilter<TaskDocument> = {
       deletedAt: null,
       ...(taskId ? { _id: taskId } : {}),
       $or: [
@@ -25,7 +26,8 @@ export async function deliverTaskEmails(taskId?: string, reminders = false) {
         { status: "done", "completionDeliveries.pending": true },
         ...(reminders ? [{ ...active, dueAt: { $ne: null, $lt: cutoff }, "assigneeIds.0": { $exists: true } }] : []),
       ],
-    }).sort({ emailCheckedAt: 1, _id: 1 }).lean().cursor();
+    };
+    const cursor = Task.find(taskFilter).sort({ emailCheckedAt: 1, _id: 1 }).lean().cursor();
     let attempted = 0;
     let delivered = 0;
     let more = false;
@@ -51,7 +53,7 @@ export async function deliverTaskEmails(taskId?: string, reminders = false) {
           const lease = new Date(Date.now() + 300_000);
           const field = job.completion ? "completionDeliveries" : "emailDeliveries";
           const pendingField = job.completion ? "pending" : "assignmentPending";
-          const eligible = job.completion
+          const eligible: QueryFilter<TaskDocument> = job.completion
             ? { deletedAt: null, status: "done", $or: [{ createdById: job.userId }, { assigneeIds: job.userId }] }
             : { ...active, assigneeIds: job.userId };
           const claim = await Task.updateOne({
