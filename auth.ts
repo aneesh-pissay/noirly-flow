@@ -3,6 +3,11 @@ import NextAuth from "next-auth";
 import { isSessionRevoked, revokeSession } from "@/src/server/auth/revoked-sessions";
 
 const issuer = process.env.AUTH_NOIRLY_ISSUER ?? "http://localhost:3000";
+if (process.env.NODE_ENV === "production") {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret || Buffer.byteLength(secret) < 32 || new Set(secret).size < 10 || /change.?me|replace.?me|example|your.?secret/i.test(secret)) throw new Error("AUTH_SECRET must be a unique random secret of at least 32 bytes");
+  if (!issuer.startsWith("https://")) throw new Error("AUTH_NOIRLY_ISSUER must use HTTPS in production");
+}
 
 /**
  * Localhost cookies are not port-scoped. Sibling Noirly apps (Ledger, Pulse, …)

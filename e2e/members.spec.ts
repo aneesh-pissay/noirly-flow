@@ -5,7 +5,7 @@ import type { Page } from "@playwright/test";
 /** Owner generates an invite link for a role on the Members page. */
 async function generateInvite(owner: Page, team: Team, role: "admin" | "member" | "viewer") {
   await owner.goto(`/w/${team.workspace.id}/members`);
-  await owner.locator("select", { has: owner.locator('option[value="viewer"]') }).first().selectOption(role);
+  await owner.getByLabel("Role for invite link").selectOption(role);
   await owner.getByRole("button", { name: "Generate link" }).click();
   const url = await owner.locator("input[readonly]").inputValue();
   expect(url).toMatch(/\/invite\/[\w-]+$/);
@@ -92,5 +92,42 @@ test.describe("invites and roles", () => {
     expect([403, 404]).toContain(tasks.status());
     await owner.context().close();
     await outsider.context().close();
+  });
+});
+
+test.describe("workspace creator", () => {
+  test("another owner can't change the creator's role or remove them", async ({ page, team, browser }) => {
+    const invitePath = await generateInvite(page, team, "admin");
+    const other = await pageAs(browser, "member");
+    await other.goto(invitePath);
+    await expect(other).toHaveURL(new RegExp(`/w/${team.workspace.id}`));
+
+    // The creator makes them a full owner.
+    const { members } = (await (await page.request.get(`/api/workspaces/${team.workspace.id}/members`)).json()) as {
+      members: Array<{ userId: string; email: string; isCreator: boolean }>;
+    };
+    const creator = members.find((m) => m.email === USERS.owner.email)!;
+    const otherId = members.find((m) => m.email === USERS.member.email)!.userId;
+    expect(creator.isCreator).toBe(true);
+    const promoted = await page.request.patch(`/api/workspaces/${team.workspace.id}/members/${otherId}`, { data: { role: "owner" } });
+    expect(promoted.status()).toBe(200);
+
+    // Even as an owner, they can't demote or remove the creator…
+    const demote = await other.request.patch(`/api/workspaces/${team.workspace.id}/members/${creator.userId}`, { data: { role: "viewer" } });
+    expect(demote.status()).toBe(403);
+    const remove = await other.request.delete(`/api/workspaces/${team.workspace.id}/members/${creator.userId}`);
+    expect(remove.status()).toBe(403);
+
+    // …and the Members page shows the creator's role as fixed.
+    await other.goto(`/w/${team.workspace.id}/members`);
+    const row = other.locator("tr", { hasText: USERS.owner.email });
+    await expect(row.getByText("Creator", { exact: true })).toBeVisible();
+    await expect(row.locator("select")).toHaveCount(0);
+    await expect(row.getByRole("button", { name: "Remove" })).toHaveCount(0);
+
+    // The creator still manages everyone else.
+    const demoteOther = await page.request.patch(`/api/workspaces/${team.workspace.id}/members/${otherId}`, { data: { role: "member" } });
+    expect(demoteOther.status()).toBe(200);
+    await other.context().close();
   });
 });

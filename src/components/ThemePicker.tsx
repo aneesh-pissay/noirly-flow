@@ -99,6 +99,7 @@ export function ThemePicker({ className, size = "md" }: Props) {
             <ul
               role="radiogroup"
               aria-labelledby={`${listId}-label`}
+              data-lenis-prevent
               className="max-h-[min(24rem,60vh)] overflow-y-auto"
             >
               {themes.map((theme) => {

@@ -12,15 +12,31 @@ export const E2E_AUTH_SECRET = "noirly-flow-e2e-secret-not-for-production-use-01
 export const E2E_MONGODB_URI =
   process.env.E2E_MONGODB_URI ?? "mongodb://127.0.0.1:27017/noirly-flow-e2e";
 
+/** Where the e2e server writes invite emails (see src/server/mail/invite-mail.ts). */
+export const E2E_INVITE_OUTBOX = "test-results/invite-outbox";
+
 export const E2E_ENV: Record<string, string> = {
   NEXT_DIST_DIR: ".next-e2e",
   MONGODB_URI: E2E_MONGODB_URI,
   AUTH_SECRET: E2E_AUTH_SECRET,
+  // No live Identity calls: test sessions are minted locally with the test secret.
+  AUTH_NOIRLY_ISSUER: "https://identity.e2e.invalid",
   AUTH_URL: E2E_BASE_URL,
   NEXT_PUBLIC_APP_URL: E2E_BASE_URL,
   // Realtime off: no WebSocket from the browser, no publishes from the server.
   NEXT_PUBLIC_REALTIME_WS_URL: "",
   REALTIME_INTERNAL_URL: "",
+  // Invite emails land here as files instead of going out over SMTP.
+  INVITE_EMAIL_OUTBOX: E2E_INVITE_OUTBOX,
+  MENTION_EMAIL_OUTBOX: "test-results/mention-outbox",
+  TASK_EMAIL_OUTBOX: "test-results/task-outbox",
+  // No R2 in tests: attachments go to a local folder.
+  ATTACHMENTS_LOCAL_DIR: "test-results/attachments",
+  // Empty values prevent Next from inheriting live R2 credentials from .env.local.
+  R2_ACCOUNT_ID: "",
+  R2_ACCESS_KEY_ID: "",
+  R2_SECRET_ACCESS_KEY: "",
+  R2_BUCKET_NAME: "",
 };
 
 /** Auth.js cookie name under `next start` over http (no __Secure- prefix). */

@@ -1,5 +1,4 @@
 import {
-  ApiError,
   assertObjectId,
   getSyncProvider,
   jsonError,

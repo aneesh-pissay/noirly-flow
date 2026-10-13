@@ -18,7 +18,8 @@ export function FirstProjectRedirect({ workspaceId }: { workspaceId: string }) {
 
   useEffect(() => {
     if (!firstProject) return;
-    router.replace(`/w/${workspaceId}/p/${firstProject.id}`);
+    // Keep the query (e.g. ?joined=1 after accepting an invite) across the hop.
+    router.replace(`/w/${workspaceId}/p/${firstProject.id}${window.location.search}`);
   }, [firstProject, router, workspaceId]);
 
   if (workspaceQuery.isSuccess && workspaceQuery.data.projects.length === 0) {

@@ -1,3 +1,4 @@
+import { consumeRateLimit } from "@/src/server/security/rate-limit";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { Types } from "mongoose";
@@ -75,6 +76,7 @@ export const getSyncProvider = cache(async () => {
 
   if (bearer) {
     const ctx = await resolveFromBearer(bearer);
+    await enforceAccountRateLimit(ctx.userId);
     return {
       ctx,
       sync: createMongoSyncProvider({ userId: ctx.userId }),
@@ -87,6 +89,7 @@ export const getSyncProvider = cache(async () => {
     throw new ApiError(401, "unauthorized", "Sign in required");
   }
 
+  await enforceAccountRateLimit(session.user.id);
   const account = await ensureFlowAccount({
     id: session.user.id,
     email: session.user.email,
@@ -141,7 +144,7 @@ export function jsonError(error: unknown) {
       { status: error.status },
     );
   }
-  console.error(error);
+  console.error("Request failed");
   return Response.json(
     { error: "internal_error", message: "Something went wrong" },
     { status: 500 },
@@ -160,4 +163,9 @@ export async function findFlowUserIdByIdentitySub(identitySub: string) {
     const user = await FlowUser.findOne({ identitySub }).lean();
     return user?._id.toString() ?? null;
   });
+}
+
+async function enforceAccountRateLimit(id: string) {
+  const limit = await consumeRateLimit(`flow-account:${id}`, 300, 60);
+  if (!limit.allowed) throw new ApiError(429, "rate_limited", "Too many requests. Try again shortly.");
 }

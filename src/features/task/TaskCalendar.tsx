@@ -3,12 +3,16 @@
 import { useMemo, useState } from "react";
 import { Button } from "@noirly-dev/ui";
 import type { Task } from "@/src/core/sync/types";
-import { isoToDateInput } from "@/src/features/task/dates";
+import { dueTone, isoToDateInput } from "@/src/features/task/dates";
+import { priorityDotClassName } from "@/src/features/task/priority";
 
 type Props = {
   tasks: Task[];
   onOpenTask: (taskId: string) => void;
 };
+
+/** Tasks shown in a day before it collapses behind "+N more". */
+const DAY_LIMIT = 4;
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -36,6 +40,8 @@ export function TaskCalendar({ tasks, onOpenTask }: Props) {
     year: now.getFullYear(),
     month: now.getMonth(),
   });
+
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   const byDay = useMemo(() => {
     const map = new Map<string, Task[]>();
@@ -129,39 +135,63 @@ export function TaskCalendar({ tasks, onOpenTask }: Props) {
             const key = dateKey(cursor.year, cursor.month, cell.day);
             const dayTasks = byDay.get(key) ?? [];
             const isToday = key === todayKey;
+            const expanded = expandedDay === key;
+            const shown = expanded ? dayTasks : dayTasks.slice(0, DAY_LIMIT);
             return (
               <div
                 key={cell.key}
-                className="min-h-28 border-b border-r border-[var(--hairline)] p-2"
+                aria-current={isToday ? "date" : undefined}
+                className={`min-h-28 border-b border-r border-[var(--hairline)] p-2 ${
+                  isToday ? "bg-[var(--accent-soft)] shadow-[inset_0_0_0_1px_var(--accent)]" : ""
+                }`}
               >
                 <p
-                  className={`inline-block font-mono text-[11px] ${
+                  className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-mono text-[11px] ${
                     isToday
-                      ? "bg-[var(--accent-soft)] px-1 text-[var(--accent)]"
+                      ? "bg-[var(--accent)] font-bold text-[var(--accent-foreground)]"
                       : "text-[var(--muted-foreground)]"
                   }`}
                 >
                   {cell.day}
                 </p>
                 <ul className="mt-1 flex flex-col gap-1">
-                  {dayTasks.slice(0, 4).map((task) => (
-                    <li key={task.id}>
+                  {shown.map((task) => {
+                    const done = task.status === "done";
+                    const overdue = !done && dueTone(task.dueAt) === "overdue";
+                    return (
+                      <li key={task.id}>
+                        <button
+                          type="button"
+                          title={task.title}
+                          onClick={() => onOpenTask(task.id)}
+                          className={`flex w-full items-center gap-1.5 rounded-lg border px-1.5 py-1 text-left text-[11px] transition-colors hover:border-[var(--accent)] ${
+                            done
+                              ? "border-transparent text-[var(--muted-foreground)] line-through"
+                              : overdue
+                                ? "border-red-500/40 bg-red-500/10 text-[var(--foreground)]"
+                                : "border-[var(--hairline)] bg-[var(--surface-2)] text-[var(--foreground)]"
+                          }`}
+                        >
+                          <span
+                            aria-hidden
+                            className={`size-1.5 shrink-0 rounded-full ${priorityDotClassName(task.priority)}`}
+                          />
+                          <span className="truncate">
+                            {task.title}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                  {dayTasks.length > DAY_LIMIT ? (
+                    <li>
                       <button
                         type="button"
-                        onClick={() => onOpenTask(task.id)}
-                        className={`w-full truncate rounded-lg px-1.5 py-1 text-left text-[11px] transition-colors ${
-                          task.status === "done"
-                            ? "text-[var(--muted-foreground)] line-through"
-                            : "bg-[var(--bg)] text-[var(--foreground)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
-                        }`}
+                        onClick={() => setExpandedDay(expanded ? null : key)}
+                        className="px-1 text-[10px] text-[var(--muted-foreground)] hover:text-[var(--accent)]"
                       >
-                        {task.title}
+                        {expanded ? "Show less" : `+${dayTasks.length - DAY_LIMIT} more`}
                       </button>
-                    </li>
-                  ))}
-                  {dayTasks.length > 4 ? (
-                    <li className="px-1 text-[10px] text-[var(--muted-foreground)]">
-                      +{dayTasks.length - 4} more
                     </li>
                   ) : null}
                 </ul>

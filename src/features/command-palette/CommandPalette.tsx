@@ -77,12 +77,16 @@ export function CommandPalette({ workspaces }: Props) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [setOpen, toggle, busy]);
 
-  useEffect(() => {
-    if (open || busy) return;
+  const [wasActive, setWasActive] = useState(open || Boolean(busy));
+  const active = open || Boolean(busy);
+  if (wasActive !== active) {
+    setWasActive(active);
+  }
+  if (wasActive && !active) {
     setQuery("");
     setDebounced("");
     setError(null);
-  }, [open, busy]);
+  }
 
   const workspaceQuery = useQuery({
     queryKey: activeWorkspaceId
@@ -110,34 +114,10 @@ export function CommandPalette({ workspaces }: Props) {
     [workspaces, activeWorkspaceId],
   );
 
-  async function createTask(title: string) {
+  function createTask(title: string) {
     if (!activeWorkspaceId || !title || !canWrite || busy) return;
-    setBusy("Saving task");
-    setError(null);
-    try {
-      const { projects } =
-        workspaceQuery.data ?? (await api.getWorkspace(activeWorkspaceId));
-      const projectId = onInbox
-        ? null
-        : activeProjectId || projects[0]?.id || null;
-      await api.createTask(activeWorkspaceId, {
-        title,
-        projectId,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: ["tasks", activeWorkspaceId],
-      });
-      setOpen(false);
-      const href = projectId
-        ? `/w/${activeWorkspaceId}/p/${projectId}`
-        : `/w/${activeWorkspaceId}/inbox`;
-      useUIStore.getState().setPendingHref(href);
-      router.push(href);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create task");
-    } finally {
-      setBusy(null);
-    }
+    const projectId = onInbox ? null : activeProjectId || workspaceQuery.data?.projects[0]?.id || null;
+    useUIStore.getState().openTaskForm({ workspaceId: activeWorkspaceId, projectId, title });
   }
 
   async function createProject(name: string) {
@@ -193,7 +173,7 @@ export function CommandPalette({ workspaces }: Props) {
         placeholder="Create a task, search, or jump…"
         className="h-12 w-full border-b border-[var(--hairline)] bg-transparent px-4 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] disabled:opacity-50"
       />
-      <Command.List className="max-h-80 overflow-y-auto p-2">
+      <Command.List data-lenis-prevent className="max-h-80 overflow-y-auto p-2">
         <Command.Empty className="px-3 py-6 text-center text-sm text-[var(--muted-foreground)]">
           {searchQuery.isFetching
             ? "Searching…"

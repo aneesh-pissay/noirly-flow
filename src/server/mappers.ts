@@ -172,6 +172,7 @@ export function mapTag(doc: {
 }
 
 export function mapComment(doc: {
+  mentions?: Array<{ userId: Types.ObjectId; start: number; end: number }>;
   _id: Types.ObjectId;
   taskId: Types.ObjectId;
   authorId: Types.ObjectId;
@@ -185,6 +186,7 @@ export function mapComment(doc: {
     taskId: doc.taskId.toString(),
     authorId: doc.authorId.toString(),
     body: doc.body,
+    mentions: (doc.mentions ?? []).map((mention) => ({ userId: mention.userId.toString(), start: mention.start, end: mention.end })),
     deletedAt: iso(doc.deletedAt ?? null),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),

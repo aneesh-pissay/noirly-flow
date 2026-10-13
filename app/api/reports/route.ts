@@ -1,3 +1,4 @@
+import { readApiJson } from "@/src/server/security/body";
 import { ApiError, getSyncProvider, jsonError, jsonOk } from "@/src/server/api/http";
 import { createReportBodySchema } from "@/src/server/api/schemas";
 import { withDb } from "@/src/server/db/mongodb";
@@ -10,7 +11,7 @@ import { createReport } from "@/src/server/reports";
 export async function POST(request: Request) {
   try {
     const { ctx } = await getSyncProvider();
-    const body = createReportBodySchema.safeParse(await request.json().catch(() => null));
+    const body = createReportBodySchema.safeParse(await readApiJson(request));
     if (!body.success) {
       throw new ApiError(400, "invalid_request", "Invalid report");
     }

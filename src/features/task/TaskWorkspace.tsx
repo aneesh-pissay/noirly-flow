@@ -2,17 +2,21 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RealtimeClientContext } from "@noirly-dev/realtime-client/react";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { MessageSquare } from "lucide-react";
 import { qk } from "@/src/core/sync/query-keys";
 import { api } from "@/src/lib/api-client";
-import type { Tag, Task } from "@/src/core/sync/types";
+import { useUIStore } from "@/src/stores/ui-store";
+import type { Task } from "@/src/core/sync/types";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskDueBadge } from "@/src/features/task/TaskDueBadge";
+import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
-import { TagChips, TaskDrawer } from "@/src/features/task/TaskDrawer";
+import { TaskDrawer } from "@/src/features/task/TaskDrawer";
 import { ProjectRealtime } from "@/src/features/realtime/ProjectRealtime";
 import type { WorkspaceMember } from "@/src/features/workspace/members";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
@@ -37,12 +41,14 @@ const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: "canceled", label: "Canceled" },
 ];
 
+/** The priority <select> is tinted; keep its open list in the normal text colour. */
+const OPTION_CLASS = "text-[var(--foreground)]";
+
 const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
   { value: "none", label: "None" },
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
   { value: "high", label: "High" },
-  { value: "urgent", label: "Urgent" },
 ];
 
 const DUE_FILTERS: { value: DuePreset | ""; label: string }[] = [
@@ -76,9 +82,6 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     setSeenUrlTaskId(urlTaskId);
     setDrawerTaskId(urlTaskId);
   }
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState<TaskPriority>("none");
-  const [dueDate, setDueDate] = useState("");
   const [view, setView] = useState<"list" | "board" | "calendar">(
     projectId ? "board" : "list",
   );
@@ -183,11 +186,6 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     enabled: Boolean(projectId),
   });
 
-  const tagsQuery = useQuery({
-    queryKey: ["tags", workspaceId],
-    queryFn: () => api.listTags(workspaceId),
-  });
-
   const membersQuery = useQuery({
     queryKey: qk.members(workspaceId),
     queryFn: () => api.listMembers(workspaceId),
@@ -216,78 +214,6 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     setDrawerTaskId(null);
     writeTaskParam(null);
   }
-
-  const createMutation = useMutation({
-    mutationFn: (input: {
-      title: string;
-      priority: TaskPriority;
-      dueAt: string | null;
-    }) =>
-      api.createTask(workspaceId, {
-        title: input.title,
-        projectId,
-        priority: input.priority,
-        dueAt: input.dueAt,
-      }),
-    onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: ["tasks", workspaceId] });
-      const previous = queryClient.getQueriesData<{ tasks: Task[] }>({
-        queryKey: ["tasks", workspaceId],
-      });
-      const now = new Date().toISOString();
-      const optimistic: Task = {
-        id: `tmp-${crypto.randomUUID()}`,
-        workspaceId,
-        projectId,
-        columnId: null,
-        title: input.title,
-        description: null,
-        status: "todo",
-        priority: input.priority,
-        dueAt: input.dueAt,
-        startAt: null,
-        completedAt: null,
-        position: Date.now(),
-        assigneeIds: [],
-        tagIds: [],
-        parentTaskId: null,
-        recurrence: null,
-        checklist: [],
-        createdById: meQuery.data?.user.id ?? "",
-        createdAt: now,
-        updatedAt: now,
-        deletedAt: null,
-      };
-      queryClient.setQueriesData<{ tasks: Task[] }>(
-        { queryKey: ["tasks", workspaceId] },
-        (old) => (old ? { tasks: [optimistic, ...old.tasks] } : old),
-      );
-      setTitle("");
-      setPriority("none");
-      setDueDate("");
-      setError(null);
-      return { previous, optimisticId: optimistic.id };
-    },
-    onSuccess: (data, _input, context) => {
-      queryClient.setQueriesData<{ tasks: Task[] }>(
-        { queryKey: ["tasks", workspaceId] },
-        (old) => {
-          if (!old) return old;
-          return {
-            tasks: old.tasks.map((task) =>
-              task.id === context?.optimisticId ? data.task : task,
-            ),
-          };
-        },
-      );
-    },
-    onError: (err: Error, _input, context) => {
-      for (const [key, data] of context?.previous ?? []) {
-        queryClient.setQueryData(key, data);
-      }
-      setError(err.message);
-    },
-  });
 
   const updateMutation = useMutation({
     mutationFn: ({
@@ -463,55 +389,25 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
             >
               Calendar
             </button>
+            {projectId ? (
+              <Link
+                href={`/w/${workspaceId}/p/${projectId}/chat`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--hairline)] px-3 py-2 text-sm text-[var(--muted-foreground)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+              >
+                <MessageSquare size={14} aria-hidden />
+                Chat
+              </Link>
+            ) : null}
           </div>
         </div>
       </header>
 
       {canWrite ? (
-      <form
-        className="surface grain flex flex-wrap items-center gap-2 rounded-[var(--r-lg)] border border-[var(--hairline)] p-4 shadow-[var(--elev-1)]"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const nextTitle = title.trim();
-          if (!nextTitle) return;
-          createMutation.mutate({
-            title: nextTitle,
-            priority,
-            dueAt: dateInputToIso(dueDate),
-          });
-        }}
-      >
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Add a task…"
-          className={`${fieldClass} min-w-[12rem] flex-1`}
-        />
-        <select
-          value={priority}
-          onChange={(event) => setPriority(event.target.value as TaskPriority)}
-          className={`${fieldClass} cursor-pointer`}
-        >
-          {PRIORITY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(event) => setDueDate(event.target.value)}
-          className={fieldClass}
-        />
-        <button
-          type="submit"
-          disabled={!title.trim()}
-          className={`${actionClass} bg-[var(--accent)] font-medium text-[var(--accent-ink)] disabled:opacity-50`}
-        >
-          Add
-        </button>
-      </form>
+      <button type="button"
+        onClick={() => useUIStore.getState().openTaskForm({ workspaceId, projectId })}
+        className={`${actionClass} bg-[var(--accent)] font-medium text-[var(--accent-ink)]`}>
+        New task
+      </button>
       ) : (
         <p className="rounded-[var(--r-lg)] border border-[var(--hairline)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
           You have view-only access. Ask an admin if you need to edit tasks.
@@ -561,7 +457,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
         >
           <option value="">Any priority</option>
           {PRIORITY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} className={OPTION_CLASS}>
               {option.label}
             </option>
           ))}
@@ -610,7 +506,6 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
       ) : view === "list" ? (
         <TaskList
           tasks={tasks}
-          tags={tagsQuery.data?.tags ?? []}
           members={membersQuery.data?.members ?? []}
           canWrite={canWrite}
           emptyLabel={
@@ -654,6 +549,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
       )}
       {drawerTaskId ? (
         <TaskDrawer
+          key={drawerTaskId}
           workspaceId={workspaceId}
           taskId={drawerTaskId}
           initialTask={tasks.find((task) => task.id === drawerTaskId)}
@@ -666,7 +562,6 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
 
 function TaskList({
   tasks,
-  tags,
   members,
   canWrite,
   emptyLabel,
@@ -677,7 +572,6 @@ function TaskList({
   onDelete,
 }: {
   tasks: Task[];
-  tags: Tag[];
   members: WorkspaceMember[];
   canWrite: boolean;
   emptyLabel: string;
@@ -700,7 +594,15 @@ function TaskList({
       {tasks.map((task) => (
         <li
           key={task.id}
-          className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          onClick={(event) => {
+            // The title button is the keyboard and screen-reader way in; this
+            // makes the rest of the row a mouse target too. Controls in the
+            // row keep their own behaviour, and selecting text doesn't open.
+            if ((event.target as HTMLElement).closest("button, a, input, select, textarea, label")) return;
+            if (window.getSelection()?.toString()) return;
+            onOpenTask(task.id);
+          }}
+          className="flex cursor-pointer flex-col gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="min-w-0 flex-1">
             <button
@@ -715,11 +617,8 @@ function TaskList({
               {task.title}
             </button>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="font-mono text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">
-                {task.priority === "none" ? "no priority" : task.priority}
-              </p>
+              <PriorityBadge priority={task.priority} />
               <TaskDueBadge dueAt={task.dueAt} />
-              <TagChips tagIds={task.tagIds} tags={tags} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </div>
@@ -744,13 +643,15 @@ function TaskList({
               onChange={(event) =>
                 onPriorityChange(task.id, event.target.value as TaskPriority)
               }
-              className="h-9 border border-[var(--hairline)] bg-[var(--bg)] px-2 text-xs text-[var(--foreground)] disabled:opacity-50"
+              className={`h-9 border border-[var(--hairline)] bg-[var(--bg)] px-2 text-xs disabled:opacity-50 ${priorityTextClassName(task.priority)}`}
             >
               {PRIORITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value} className={OPTION_CLASS}>
                   {option.label}
                 </option>
               ))}
+              {/* No longer offered, but tasks set to it earlier still show it. */}
+              {task.priority === "urgent" ? <option value="urgent" className={OPTION_CLASS}>Urgent</option> : null}
             </select>
             <input
               type="date"
@@ -779,13 +680,12 @@ function TaskList({
 
 function useTaskRefetchInterval(): number {
   const client = useContext(RealtimeClientContext);
-  const [status, setStatus] = useState(client?.getStatus() ?? "idle");
-
-  useEffect(() => {
-    if (!client) return;
-    setStatus(client.getStatus());
-    return client.onStatus(setStatus);
-  }, [client]);
+  const subscribe = useCallback(
+    (notify: () => void) => client?.onStatus(notify) ?? (() => {}),
+    [client],
+  );
+  const getSnapshot = useCallback(() => client?.getStatus() ?? "idle", [client]);
+  const status = useSyncExternalStore(subscribe, getSnapshot, () => "idle");
 
   return status === "ready" ? 60_000 : 30_000;
 }

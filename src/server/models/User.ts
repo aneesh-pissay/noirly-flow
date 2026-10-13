@@ -32,6 +32,7 @@ const userSchema = new Schema(
       title: { type: String, default: null, trim: true },
       timezone: { type: String, default: null, trim: true },
       bio: { type: String, default: null, trim: true },
+      taskSaveMode: { type: String, enum: ["auto", "manual"], default: "auto" },
     },
   },
   { timestamps: true },

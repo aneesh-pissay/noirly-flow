@@ -9,18 +9,22 @@ import { FlowBusyScreen } from "@/src/components/FlowBusyScreen";
 
 export function SignOutButton() {
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSignOut() {
     setBusy(true);
+    setError(null);
     try {
       await signOut({ callbackUrl: "/login", redirect: true });
     } catch {
-      window.location.assign("/login");
+      setBusy(false);
+      setError("Could not sign out. Please try again.");
     }
   }
 
   return (
     <>
+      {error ? <p role="alert" className="text-sm text-[var(--foreground)]">{error}</p> : null}
       {busy
         ? createPortal(<FlowBusyScreen label="Signing out" />, document.body)
         : null}

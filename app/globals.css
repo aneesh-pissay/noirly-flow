@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @source "../node_modules/@noirly-dev/ui/dist";
 @import "@noirly-dev/ui/styles.css";
-/* Pointer spotlight, card tilt, branded cursor. */
+/* Pointer spotlight, card tilt. The branded cursor is off (see layout.tsx). */
 @import "@noirly-dev/ui/effects.css";
 /* Route shutter. */
 @import "@noirly-dev/ui/transitions.css";

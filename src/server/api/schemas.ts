@@ -21,6 +21,7 @@ const dueAtSchema = z
   });
 
 export const createTaskBodySchema = z.object({
+  assigneeIds: z.array(z.string().min(1)).max(100).optional(),
   title: z.string().trim().min(1).max(500),
   description: z.string().trim().max(20_000).nullable().optional(),
   projectId: z.string().min(1).nullable().optional(),
@@ -105,12 +106,25 @@ export const createProjectBodySchema = z.object({
   description: z.string().trim().max(2000).nullable().optional(),
 });
 
+export const updateProjectBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(80).optional(),
+    description: z.string().trim().max(2000).nullable().optional(),
+  })
+  .refine((value) => value.name !== undefined || value.description !== undefined, {
+    message: "Nothing to update",
+  });
+
 export const createWorkspaceBodySchema = z.object({
   name: z.string().trim().min(1).max(80),
 });
 
+export const updateWorkspaceBodySchema = createWorkspaceBodySchema;
+
 export const createInviteBodySchema = z.object({
   role: z.enum(["admin", "member", "viewer"]).default("member"),
+  /** When set, the invite is emailed to this address and locked to it. */
+  email: z.string().trim().toLowerCase().email().max(254).optional(),
 });
 
 export const updateMemberBodySchema = z.object({
@@ -121,8 +135,17 @@ export const acceptInviteBodySchema = z.object({
   token: z.string().min(8).max(128),
 });
 
+export const createChatMessageBodySchema = z.object({
+  body: z.string().trim().min(1).max(4000),
+});
+
 export const createCommentBodySchema = z.object({
   body: z.string().trim().min(1).max(8000),
+  mentions: z.array(z.object({
+    userId: z.string().regex(/^[a-f0-9]{24}$/i),
+    start: z.number().int().min(0).max(7999),
+    end: z.number().int().min(1).max(8000),
+  }).strict()).max(50).optional(),
 });
 
 const optionalText = (max: number) =>
@@ -138,6 +161,7 @@ const optionalText = (max: number) =>
 
 export const updateMeBodySchema = z.object({
   profile: z.object({
+    taskSaveMode: z.enum(["auto", "manual"]).optional(),
     displayName: optionalText(80),
     title: optionalText(80),
     timezone: optionalText(80),

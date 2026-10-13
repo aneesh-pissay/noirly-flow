@@ -23,8 +23,9 @@ export default async function InvitePage({ params }: Params) {
 
   try {
     const { ctx } = await getSyncProvider();
-    const result = await acceptInvite(ctx.userId, token);
-    redirect(`/w/${result.workspaceId}`);
+    const result = await acceptInvite(ctx.userId, token, ctx.email);
+    // Picked up by <JoinedNotice> to confirm the join once they land.
+    redirect(`/w/${result.workspaceId}?joined=${result.alreadyMember ? "already" : "1"}`);
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     const message =

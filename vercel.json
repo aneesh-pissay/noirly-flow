@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/comment-mentions", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/task-emails", "schedule": "30 3 * * *" }
+  ]
+}

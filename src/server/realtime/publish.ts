@@ -29,6 +29,7 @@ export async function publishRealtime(input: PublishInput): Promise<void> {
   try {
     const res = await fetch(`${base.replace(/\/$/, "")}/internal/publish`, {
       method: "POST",
+      redirect: "error",
       headers: {
         authorization: `Bearer ${secret}`,
         "content-type": "application/json",
@@ -39,7 +40,7 @@ export async function publishRealtime(input: PublishInput): Promise<void> {
     if (!res.ok) {
       console.error("realtime publish failed", res.status);
     }
-  } catch (error) {
-    console.error("realtime publish error", error);
+  } catch {
+    console.error("realtime publish error");
   }
 }

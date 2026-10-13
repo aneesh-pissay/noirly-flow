@@ -42,7 +42,7 @@ export async function createTask(
 
 /** A second, independently signed-in browser for multi-user tests. */
 export async function pageAs(browser: Browser, user: E2EUser): Promise<Page> {
-  const context = await browser.newContext({ storageState: storageStatePath(user) });
+  const context = await browser.newContext({ storageState: storageStatePath(user), extraHTTPHeaders: { "X-Noirly-CSRF": "1" } });
   return context.newPage();
 }
 
@@ -54,6 +54,7 @@ type Fixtures = {
 /** Tests run signed in as the owner unless they opt out with `test.use`. */
 export const test = base.extend<Fixtures>({
   storageState: storageStatePath("owner"),
+  extraHTTPHeaders: { "X-Noirly-CSRF": "1" },
   // `provide` is Playwright's fixture callback (usually named `use`, which the React hooks lint rule misreads).
   team: async ({ page }, provide) => {
     await provide(await createTeam(page.request));

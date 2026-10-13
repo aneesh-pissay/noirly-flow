@@ -32,8 +32,8 @@ test.describe("tasks in list view", () => {
     const row = taskRow(page, title);
     await expect(page.getByText(/1 open/)).toBeVisible();
 
-    await row.locator("select").nth(1).selectOption("urgent");
-    await expect(row.getByText("urgent", { exact: true })).toBeVisible();
+    await row.locator("select").nth(1).selectOption("high");
+    await expect(row.getByText("high", { exact: true })).toBeVisible();
 
     await row.locator("select").first().selectOption("done");
     await expect(row.getByRole("button", { name: title })).toHaveClass(/line-through/);
@@ -42,7 +42,7 @@ test.describe("tasks in list view", () => {
     // Persisted, not just optimistic.
     await openList(page, team.url);
     await expect(taskRow(page, title).locator("select").first()).toHaveValue("done");
-    await expect(taskRow(page, title).locator("select").nth(1)).toHaveValue("urgent");
+    await expect(taskRow(page, title).locator("select").nth(1)).toHaveValue("high");
 
     await taskRow(page, title).getByRole("button", { name: "Delete" }).click();
     await expect(taskRow(page, title)).toHaveCount(0);

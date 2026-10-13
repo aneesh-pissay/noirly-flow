@@ -1,9 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Input, Label, PageContainer, PageHeader, Textarea } from "@noirly-dev/ui";
 import { api } from "@/src/lib/api-client";
+import type { MePayload } from "@/src/server/users/me";
 
 const TIMEZONES = [
   { value: "", label: "Not set" },
@@ -24,34 +25,35 @@ type Props = {
   identityName: string;
   identityEmail: string;
   identityUrl: string;
+  initialMe: MePayload;
 };
 
 export function SettingsView({
   identityName,
   identityEmail,
   identityUrl,
+  initialMe,
 }: Props) {
   const queryClient = useQueryClient();
+  // Seeds the shared ["me"] cache that other screens read; the form itself
+  // starts from the server-rendered profile.
   const meQuery = useQuery({
     queryKey: ["me"],
     queryFn: () => api.me(),
+    initialData: initialMe,
     staleTime: 60_000,
   });
 
-  const [displayName, setDisplayName] = useState("");
-  const [title, setTitle] = useState("");
-  const [timezone, setTimezone] = useState("");
-  const [bio, setBio] = useState("");
+  const initialProfile = initialMe.user.profile;
+  const [displayName, setDisplayName] = useState(initialProfile.displayName ?? "");
+  const [title, setTitle] = useState(initialProfile.title ?? "");
+  const [timezone, setTimezone] = useState(initialProfile.timezone ?? "");
+  const [bio, setBio] = useState(initialProfile.bio ?? "");
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    const profile = meQuery.data?.user.profile;
-    if (!profile) return;
-    setDisplayName(profile.displayName ?? "");
-    setTitle(profile.title ?? "");
-    setTimezone(profile.timezone ?? "");
-    setBio(profile.bio ?? "");
-  }, [meQuery.data]);
+  const preferenceMutation = useMutation({
+    mutationFn: (taskSaveMode: "auto" | "manual") => api.updateMe({ taskSaveMode }),
+    onSuccess: (data) => queryClient.setQueryData(["me"], data),
+  });
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -77,6 +79,28 @@ export function SettingsView({
         title="Settings"
         lead="Sign-in details live in Noirly Identity. Optional Flow fields stay in this product only."
       />
+
+      <section className="border border-[var(--hairline)] bg-[var(--surface)] p-5">
+        <h2 className="text-sm font-medium text-[var(--foreground)]">Task saving</h2>
+        <p id="task-save-help" className="mt-2 text-sm text-[var(--muted-foreground)]">
+          New tasks always open a full form and are created when you choose Create task.
+          Choose how changes in an existing task form are saved. Board moves, comments,
+          attachments and other direct actions are applied immediately.
+        </p>
+        <label className="mt-4 block text-sm" htmlFor="task-save-mode">Save mode</label>
+        <select id="task-save-mode" aria-describedby="task-save-help"
+          value={meQuery.data.user.profile.taskSaveMode ?? "auto"}
+          disabled={preferenceMutation.isPending}
+          onChange={(event) => preferenceMutation.mutate(event.target.value as "auto" | "manual")}
+          className="mt-1 h-10 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 text-sm text-[var(--foreground)]">
+          <option value="auto">Automatic — save task fields as you edit</option>
+          <option value="manual">Manual — use Save changes</option>
+        </select>
+        <p role="status" className="mt-2 text-xs text-[var(--muted-foreground)]">
+          {preferenceMutation.isPending ? "Saving preference…" : preferenceMutation.isSuccess ? "Preference saved" : "This preference follows your account."}
+        </p>
+        {preferenceMutation.isError ? <p role="alert">Could not save your preference. Please try again.</p> : null}
+      </section>
 
       <section className="border border-[var(--hairline)] bg-[var(--surface)] p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">

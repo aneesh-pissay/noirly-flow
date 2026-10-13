@@ -16,3 +16,11 @@ export {
 } from "./ActivityEvent";
 export { RevokedSession, type RevokedSessionDocument } from "./RevokedSession";
 export { Report, type ReportDocument } from "./Report";
+export {
+  ProjectMessage,
+  type ProjectMessageDocument,
+} from "./ProjectMessage";
+export {
+  TaskAttachment,
+  type TaskAttachmentDocument,
+} from "./TaskAttachment";

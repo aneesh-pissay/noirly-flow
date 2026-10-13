@@ -1,3 +1,4 @@
+import { readLimitedText } from "@/src/server/security/body";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { identityIssuer } from "@/src/server/auth/identity-userinfo";
 import { withDb } from "@/src/server/db/mongodb";
@@ -29,12 +30,14 @@ export async function POST(request: Request) {
 
   let sub: string;
   try {
-    const token = (await request.text()).trim();
+    const token = (await readLimitedText(request, 16384)).trim();
     const { payload } = await jwtVerify(token, identityKeys(), {
       issuer: identityIssuer(),
       audience,
       typ: "secevent+jwt",
       algorithms: ["RS256"],
+      requiredClaims: ["exp", "iat", "sub", "jti"],
+      maxTokenAge: "5 minutes",
     });
     const events = payload.events as Record<string, unknown> | undefined;
     if (!payload.sub || !events || !(ACCOUNT_DELETED_EVENT in events)) {
@@ -48,8 +51,8 @@ export async function POST(request: Request) {
   try {
     const summary = await withDb(() => deleteFlowAccountData(sub));
     return Response.json({ ok: true, ...summary });
-  } catch (error) {
-    console.error("Flow account deletion failed", error);
+  } catch {
+    console.error("Flow account deletion failed");
     // Identity keeps the notice and retries later.
     return Response.json({ error: "internal_error" }, { status: 500 });
   }

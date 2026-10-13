@@ -26,6 +26,9 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailRole, setEmailRole] = useState<Exclude<MemberRole, "owner">>("member");
+  const [email, setEmail] = useState("");
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   const membersQuery = useQuery({
     queryKey: qk.members(workspaceId),
@@ -40,6 +43,16 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
       setError(null);
     },
     onError: (err: Error) => setError(err.message),
+  });
+
+  const emailMutation = useMutation({
+    mutationFn: () => api.emailInvite(workspaceId, email.trim(), emailRole),
+    onSuccess: (result) => {
+      setSentTo(result.invite.email);
+      setEmail("");
+      setError(null);
+    },
+    onError: () => setSentTo(null),
   });
 
   const roleMutation = useMutation({
@@ -64,8 +77,75 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
   return (
     <div className="flex flex-col gap-6">
       {canManage ? (
-        <section className="border border-[var(--hairline)] bg-[var(--surface)] p-4">
-          <h2 className="text-sm font-medium text-[var(--foreground)]">
+        <section
+          aria-labelledby="invite-email-title"
+          className="border border-[var(--hairline)] bg-[var(--surface)] p-4"
+        >
+          <h2 id="invite-email-title" className="text-sm font-medium text-[var(--foreground)]">
+            Invite by email
+          </h2>
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+            We&apos;ll email them a one-time link. Only that address can accept it, and it
+            expires in 7 days.
+          </p>
+          <form
+            className="mt-3 flex flex-wrap gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!email.trim()) return;
+              emailMutation.mutate();
+            }}
+          >
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setSentTo(null);
+              }}
+              placeholder="name@company.com"
+              aria-label="Email address"
+              autoComplete="off"
+              className="h-10 min-w-[14rem] flex-1"
+            />
+            <select
+              value={emailRole}
+              aria-label="Role for emailed invite"
+              onChange={(event) =>
+                setEmailRole(event.target.value as Exclude<MemberRole, "owner">)
+              }
+              className="h-10 rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-2 text-sm text-[var(--foreground)]"
+            >
+              {INVITE_ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" disabled={emailMutation.isPending || !email.trim()}>
+              {emailMutation.isPending ? "Sending…" : "Send invite"}
+            </Button>
+          </form>
+          {sentTo ? (
+            <p role="status" className="mt-3 font-mono text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">
+              Invitation sent to {sentTo}
+            </p>
+          ) : null}
+          {emailMutation.isError ? (
+            <p role="alert" className="mt-3 text-sm text-[var(--foreground)]">
+              {emailMutation.error.message}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {canManage ? (
+        <section
+          aria-labelledby="invite-link-title"
+          className="border border-[var(--hairline)] bg-[var(--surface)] p-4"
+        >
+          <h2 id="invite-link-title" className="text-sm font-medium text-[var(--foreground)]">
             Invite link
           </h2>
           <p className="mt-1 text-xs text-[var(--muted-foreground)]">
@@ -74,6 +154,7 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
           <div className="mt-3 flex flex-wrap gap-2">
             <select
               value={inviteRole}
+              aria-label="Role for invite link"
               onChange={(event) =>
                 setInviteRole(event.target.value as Exclude<MemberRole, "owner">)
               }
@@ -149,13 +230,20 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
                 className="border-b border-[var(--hairline)] last:border-0"
               >
                 <td className="px-4 py-3">
-                  <p className="text-[var(--foreground)]">{member.displayName}</p>
+                  <p className="text-[var(--foreground)]">
+                    {member.displayName}
+                    {member.isCreator ? (
+                      <span className="ml-2 rounded-full border border-[var(--accent)] px-1.5 py-0.5 align-middle font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--accent)]">
+                        Creator
+                      </span>
+                    ) : null}
+                  </p>
                   <p className="text-xs text-[var(--muted-foreground)]">
                     {member.email}
                   </p>
                 </td>
                 <td className="px-4 py-3">
-                  {canManage && member.userId !== currentUserId ? (
+                  {canManage && member.userId !== currentUserId && !member.isCreator ? (
                     <select
                       value={member.role}
                       onChange={(event) =>
@@ -180,7 +268,7 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
                 </td>
                 {canManage ? (
                   <td className="px-4 py-3 text-right">
-                    {member.userId !== currentUserId ? (
+                    {member.userId !== currentUserId && !member.isCreator ? (
                       <button
                         type="button"
                         onClick={() => removeMutation.mutate(member.userId)}

@@ -5,8 +5,8 @@ const encoder = new TextEncoder();
 
 export function realtimeJwtSecret(): Uint8Array {
   const secret = process.env.REALTIME_JWT_SECRET;
-  if (!secret) {
-    throw new Error("REALTIME_JWT_SECRET is not set");
+  if (!secret || Buffer.byteLength(secret) < 32 || new Set(secret).size < 10) {
+    throw new Error("REALTIME_JWT_SECRET must be a random secret of at least 32 bytes");
   }
   return encoder.encode(secret);
 }

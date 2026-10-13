@@ -83,7 +83,10 @@ export type Task = {
   deletedAt: string | null;
 };
 
+export type CommentMention = { userId: string; start: number; end: number };
+
 export type Comment = {
+  mentions?: CommentMention[];
   id: string;
   taskId: string;
   authorId: string;
@@ -93,7 +96,28 @@ export type Comment = {
   deletedAt: string | null;
 };
 
+export type TaskAttachment = {
+  id: string;
+  taskId: string;
+  uploadedById: string;
+  filename: string;
+  mime: string;
+  sizeBytes: number;
+  /** Flow's authorised download route — never a public storage URL. */
+  url: string;
+  createdAt: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  projectId: string;
+  authorId: string;
+  body: string;
+  createdAt: string;
+};
+
 export type FlowProfile = {
+  taskSaveMode?: "auto" | "manual";
   displayName: string | null;
   title: string | null;
   timezone: string | null;
@@ -165,10 +189,17 @@ export interface SyncProvider {
   listWorkspaces(): Promise<Workspace[]>;
   getWorkspace(id: string): Promise<Workspace & { role: MemberRole }>;
   createWorkspace(input: { name: string; kind: "team" }): Promise<Workspace>;
+  updateWorkspace(id: string, patch: { name: string }): Promise<Workspace>;
+  deleteWorkspace(id: string): Promise<void>;
 
   listProjects(workspaceId: string): Promise<Project[]>;
   getProject(projectId: string): Promise<Project & { columns: BoardColumn[] }>;
   createProject(input: CreateProjectInput): Promise<Project>;
+  updateProject(
+    projectId: string,
+    patch: { name?: string; description?: string | null },
+  ): Promise<Project>;
+  deleteProject(projectId: string): Promise<void>;
 
   listTasks(query: ListTasksQuery): Promise<Task[]>;
   getTask(taskId: string): Promise<Task>;
@@ -180,7 +211,7 @@ export interface SyncProvider {
   createTag(workspaceId: string, input: { name: string; color?: string }): Promise<Tag>;
 
   listComments(taskId: string): Promise<Comment[]>;
-  createComment(input: { taskId: string; body: string }): Promise<Comment>;
+  createComment(input: { taskId: string; body: string; mentions?: CommentMention[] }): Promise<Comment>;
   listActivity(query: {
     workspaceId: string;
     taskId?: string;

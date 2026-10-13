@@ -1,3 +1,7 @@
+import { readApiJson } from "@/src/server/security/body";
+import { scheduleTaskEmails } from "@/src/server/mail/schedule-task-emails";
+
+export const maxDuration = 60;
 import {
   ApiError,
   assertObjectId,
@@ -26,7 +30,7 @@ export async function PATCH(request: Request, { params }: Params) {
   try {
     const { taskId } = await params;
     await assertObjectId(taskId, "taskId");
-    const body = updateTaskBodySchema.safeParse(await request.json());
+    const body = updateTaskBodySchema.safeParse(await readApiJson(request));
     if (!body.success) {
       throw new ApiError(400, "invalid_request", "Invalid task patch");
     }
@@ -41,6 +45,8 @@ export async function PATCH(request: Request, { params }: Params) {
         position: item.position ?? (index + 1) * 1000,
       })),
     });
+    // Also delivers assignments created by the next recurring occurrence.
+    scheduleTaskEmails();
     if (task.projectId) {
       void publishRealtime({
         channel: `project:${task.projectId}`,

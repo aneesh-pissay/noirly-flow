@@ -19,7 +19,6 @@ type MongooseCache = {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var flowMongooseCache: MongooseCache | undefined;
 }
 

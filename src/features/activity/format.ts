@@ -28,6 +28,18 @@ export function describeActivity(
         typeof meta.title === "string" ? ` “${meta.title}”` : "";
       return `${actor} deleted a task${title}`;
     }
+    case "project.renamed":
+      return typeof meta.from === "string" && typeof meta.to === "string"
+        ? `${actor} renamed project “${meta.from}” to “${meta.to}”`
+        : `${actor} renamed a project`;
+    case "project.deleted": {
+      const name = typeof meta.name === "string" ? ` “${meta.name}”` : "";
+      return `${actor} deleted project${name}`;
+    }
+    case "attachment.added": {
+      const name = typeof meta.filename === "string" ? ` “${meta.filename}”` : "";
+      return `${actor} attached${name}`;
+    }
     case "comment.created":
       return `${actor} commented`;
     case "task.assigned": {

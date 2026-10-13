@@ -33,9 +33,11 @@ export function WorkspaceActivityPanel({
       anchor.href = url;
       anchor.download =
         filename ?? `${workspaceName.toLowerCase().replace(/\s+/g, "-")}-activity-${stamp}.csv`;
+      document.body.appendChild(anchor);
       anchor.click();
-      // Revoking synchronously can cancel the download in some browsers.
-      setTimeout(() => URL.revokeObjectURL(url), 0);
+      anchor.remove();
+      // Download handoff can outlive the next event-loop turn, particularly on Windows.
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     },
     onError: (err: Error) => setError(err.message),
   });

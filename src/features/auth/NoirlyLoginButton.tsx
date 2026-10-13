@@ -4,12 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@noirly-dev/ui";
 import { FlowBusyScreen } from "@/src/components/FlowBusyScreen";
-import { ProductGoogleOneTap } from "@/src/features/auth/GoogleOneTap";
 
 const AUTH_MESSAGE = "noirly-auth";
 const AUTH_STORAGE_KEY = "noirly-auth";
-const IDENTITY_URL =
-  process.env.NEXT_PUBLIC_IDENTITY_URL ?? "http://localhost:3000";
 
 function safeNext(value: string): string {
   return value.startsWith("/") && !value.startsWith("//") ? value : "/";
@@ -38,12 +35,8 @@ export function NoirlyLoginButton({ redirectTo = "/" }: { redirectTo?: string })
   const [error, setError] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const signedInRef = useRef(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     function finish(next: string) {
@@ -132,44 +125,10 @@ export function NoirlyLoginButton({ redirectTo = "/" }: { redirectTo?: string })
     watchPopup(popup);
   }
 
-  function startGoogleOneTap(input: { credential: string; nonce: string }) {
-    setError(null);
-    setSignedIn(false);
-    signedInRef.current = false;
-    setWaiting(true);
-    const popup = window.open("about:blank", "noirly-identity", popupFeatures());
-    if (!popup) {
-      setWaiting(false);
-      setError("Allow popups for Noirly Flow, then try again.");
-      return;
-    }
-    const returnTo = `${window.location.origin}/login/popup?next=${encodeURIComponent(target)}`;
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = `${IDENTITY_URL.replace(/\/$/, "")}/api/auth/google/one-tap`;
-    form.target = "noirly-identity";
-    form.style.display = "none";
-    for (const [name, value] of Object.entries({
-      credential: input.credential,
-      nonce: input.nonce,
-      return_to: returnTo,
-    })) {
-      const field = document.createElement("input");
-      field.type = "hidden";
-      field.name = name;
-      field.value = value;
-      form.appendChild(field);
-    }
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
-    popup.focus();
-    watchPopup(popup);
-  }
 
   return (
     <div className="flex flex-col gap-3">
-      {mounted && waiting
+      {waiting
         ? createPortal(
             <FlowBusyScreen
               label={signedIn ? "Signing in to Flow" : "Waiting for Identity"}
@@ -177,9 +136,6 @@ export function NoirlyLoginButton({ redirectTo = "/" }: { redirectTo?: string })
             document.body,
           )
         : null}
-      {mounted ? (
-        <ProductGoogleOneTap identityUrl={IDENTITY_URL} onCredential={startGoogleOneTap} />
-      ) : null}
       <Button
         type="button"
         size="lg"

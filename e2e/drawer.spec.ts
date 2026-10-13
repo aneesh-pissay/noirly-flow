@@ -5,13 +5,6 @@ function drawer(page: Page) {
   return page.locator("aside", { has: page.getByPlaceholder("Add a description…") });
 }
 
-/** Submits one of the drawer's inline "Add" forms by its placeholder. */
-async function addVia(page: Page, placeholder: string, value: string) {
-  const input = drawer(page).getByPlaceholder(placeholder);
-  await input.fill(value);
-  await input.press("Enter");
-}
-
 test.describe("task drawer", () => {
   test("opens from the list with ?task= and closes with Escape", async ({ page, team }) => {
     const title = `Drawer ${uid()}`;
@@ -35,7 +28,7 @@ test.describe("task drawer", () => {
     await expect(drawer(page).locator("input").first()).toHaveValue(title);
   });
 
-  test("title, description, checklist, subtask and comment all persist", async ({ page, team }) => {
+  test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });
     // The drawer copies the task into its fields when the fetch lands, wiping
@@ -54,11 +47,13 @@ test.describe("task drawer", () => {
     await description.fill("Ship it behind a flag.");
     await description.blur();
 
-    await addVia(page, "Add checklist item", "Write tests");
-    await expect(panel.getByText("Write tests")).toBeVisible();
-
-    await addVia(page, "Add subtask", `Sub ${id}`);
-    await expect(panel.getByText(`Sub ${id}`)).toBeVisible();
+    // Tags, checklists, repeat and subtasks were removed from the drawer.
+    for (const gone of ["Tags", "Checklist", "Repeat", "Subtasks"]) {
+      await expect(panel.getByText(gone, { exact: true })).toHaveCount(0);
+    }
+    await expect(panel.getByPlaceholder("Add checklist item")).toHaveCount(0);
+    await expect(panel.getByPlaceholder("Add subtask")).toHaveCount(0);
+    await expect(panel.getByPlaceholder("New tag")).toHaveCount(0);
 
     await panel.getByPlaceholder("Write a comment…").fill("Looks good to me");
     await panel.getByRole("button", { name: "Comment" }).click();
@@ -72,8 +67,6 @@ test.describe("task drawer", () => {
     await expect(drawer(page)).toBeVisible();
     await expect(drawer(page).locator("input").first()).toHaveValue(`New title ${id}`);
     await expect(drawer(page).getByPlaceholder("Add a description…")).toHaveValue("Ship it behind a flag.");
-    await expect(drawer(page).getByText("Write tests")).toBeVisible();
-    await expect(drawer(page).getByText(`Sub ${id}`)).toBeVisible();
     await expect(drawer(page).getByText("Looks good to me")).toBeVisible();
   });
 });

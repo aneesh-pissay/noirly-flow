@@ -1,3 +1,7 @@
+import { readApiJson } from "@/src/server/security/body";
+import { scheduleTaskEmails } from "@/src/server/mail/schedule-task-emails";
+
+export const maxDuration = 60;
 import {
   ApiError,
   assertObjectId,
@@ -14,7 +18,7 @@ export async function POST(request: Request, { params }: Params) {
   try {
     const { projectId } = await params;
     await assertObjectId(projectId, "projectId");
-    const body = reorderTasksBodySchema.safeParse(await request.json());
+    const body = reorderTasksBodySchema.safeParse(await readApiJson(request));
     if (!body.success) {
       throw new ApiError(400, "invalid_request", "Invalid reorder payload");
     }
@@ -24,6 +28,7 @@ export async function POST(request: Request, { params }: Params) {
       projectId,
       moves: body.data.moves,
     });
+    scheduleTaskEmails();
     void publishRealtime({
       channel: `project:${projectId}`,
       event: "tasks.reordered",

@@ -1,49 +1,16 @@
+import { readApiJson } from "@/src/server/security/body";
 import { getSyncProvider, jsonError, jsonOk, ApiError } from "@/src/server/api/http";
 import { updateMeBodySchema } from "@/src/server/api/schemas";
 import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser } from "@/src/server/models";
 import { deleteFlowAccountData } from "@/src/server/users/delete-account";
 import { resolveFlowDisplayName } from "@/src/server/users/display-name";
-import type { FlowProfile } from "@/src/core/sync/types";
-
-function mapProfile(user: {
-  profile?: {
-    displayName?: string | null;
-    title?: string | null;
-    timezone?: string | null;
-    bio?: string | null;
-  } | null;
-}): FlowProfile {
-  return {
-    displayName: user.profile?.displayName?.trim() || null,
-    title: user.profile?.title?.trim() || null,
-    timezone: user.profile?.timezone?.trim() || null,
-    bio: user.profile?.bio?.trim() || null,
-  };
-}
+import { loadMe, mapProfile } from "@/src/server/users/me";
 
 export async function GET() {
   try {
     const { ctx } = await getSyncProvider();
-    const user = await withDb(async () =>
-      FlowUser.findById(ctx.userId).lean(),
-    );
-    if (!user) {
-      throw new ApiError(404, "not_found", "User not found");
-    }
-    const profile = mapProfile(user);
-    return jsonOk({
-      user: {
-        id: ctx.userId,
-        email: ctx.email,
-        displayName: resolveFlowDisplayName({
-          displayName: ctx.displayName,
-          profile,
-        }),
-        identityName: ctx.displayName,
-        profile,
-      },
-    });
+    return jsonOk(await loadMe(ctx));
   } catch (error) {
     return jsonError(error);
   }
@@ -52,13 +19,16 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const { ctx } = await getSyncProvider();
-    const parsed = updateMeBodySchema.safeParse(await request.json());
+    const parsed = updateMeBodySchema.safeParse(await readApiJson(request));
     if (!parsed.success) {
       throw new ApiError(400, "invalid_request", "Invalid profile payload");
     }
 
     const $set: Record<string, string | null> = {};
     const profile = parsed.data.profile;
+    if (profile.taskSaveMode !== undefined) {
+      $set["profile.taskSaveMode"] = profile.taskSaveMode;
+    }
     if (profile.displayName !== undefined) {
       $set["profile.displayName"] = profile.displayName;
     }

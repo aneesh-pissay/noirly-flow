@@ -1,3 +1,4 @@
+import { readApiJson } from "@/src/server/security/body";
 import { getSyncProvider, jsonError, jsonOk, ApiError } from "@/src/server/api/http";
 import { createWorkspaceBodySchema } from "@/src/server/api/schemas";
 
@@ -13,7 +14,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = createWorkspaceBodySchema.safeParse(await request.json());
+    const body = createWorkspaceBodySchema.safeParse(await readApiJson(request));
     if (!body.success) {
       throw new ApiError(400, "invalid_request", "Invalid workspace payload");
     }

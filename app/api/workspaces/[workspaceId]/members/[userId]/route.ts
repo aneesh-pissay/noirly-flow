@@ -1,3 +1,4 @@
+import { readApiJson } from "@/src/server/security/body";
 import {
   ApiError,
   assertObjectId,
@@ -15,7 +16,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const { workspaceId, userId } = await params;
     await assertObjectId(workspaceId, "workspaceId");
     await assertObjectId(userId, "userId");
-    const body = updateMemberBodySchema.safeParse(await request.json());
+    const body = updateMemberBodySchema.safeParse(await readApiJson(request));
     if (!body.success) {
       throw new ApiError(400, "invalid_request", "Invalid role");
     }

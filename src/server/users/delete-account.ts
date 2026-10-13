@@ -5,6 +5,7 @@ import {
   Comment,
   FlowUser,
   Project,
+  ProjectMessage,
   Report,
   Tag,
   Task,
@@ -13,6 +14,7 @@ import {
   WorkspaceMembership,
 } from "@/src/server/models";
 import type { MemberRole } from "@/src/core/models/enums";
+import { purgeAttachments } from "@/src/server/attachments/task-attachments";
 
 /**
  * Deletes a person's Flow data when their Noirly account is deleted.
@@ -30,14 +32,18 @@ import type { MemberRole } from "@/src/core/models/enums";
 
 const SUCCESSION: MemberRole[] = ["owner", "admin", "member", "viewer"];
 
-async function purgeWorkspace(workspaceId: Types.ObjectId): Promise<void> {
+/** Hard-deletes a workspace and everything in it. */
+export async function purgeWorkspace(workspaceId: Types.ObjectId): Promise<void> {
   const projectIds = (await Project.find({ workspaceId }).select("_id").lean()).map((p) => p._id);
+  // Stored files first, while their records still say where they are.
+  await purgeAttachments({ workspaceId });
   await Promise.all([
     BoardColumn.deleteMany({ projectId: { $in: projectIds } }),
     Project.deleteMany({ workspaceId }),
     Task.deleteMany({ workspaceId }),
     Tag.deleteMany({ workspaceId }),
     Comment.deleteMany({ workspaceId }),
+    ProjectMessage.deleteMany({ workspaceId }),
     ActivityEvent.deleteMany({ workspaceId }),
     Report.deleteMany({ workspaceId }),
     WorkspaceInvite.deleteMany({ workspaceId }),
@@ -99,6 +105,8 @@ export async function deleteFlowAccountData(identitySub: string): Promise<FlowDe
   // What is left of them in shared workspaces.
   await Promise.all([
     Comment.deleteMany({ authorId: userId }),
+    ProjectMessage.deleteMany({ authorId: userId }),
+    purgeAttachments({ uploadedById: userId }),
     ActivityEvent.deleteMany({ actorId: userId }),
     WorkspaceInvite.deleteMany({ createdById: userId }),
     // Reports they filed, and reports about them or their content.

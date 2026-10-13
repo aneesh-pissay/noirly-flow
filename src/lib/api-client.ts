@@ -1,10 +1,13 @@
 import type {
   ActivityEvent,
   BoardColumn,
+  ChatMessage,
   Comment,
+  CommentMention,
   Project,
   Tag,
   Task,
+  TaskAttachment,
   Workspace,
 } from "@/src/core/sync/types";
 import type { MemberRole } from "@/src/core/models/enums";
@@ -26,7 +29,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      // FormData sets its own multipart Content-Type (with the boundary).
+      ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+      "X-Noirly-CSRF": "1",
       ...(init?.headers ?? {}),
     },
   });
@@ -47,6 +52,7 @@ export const api = {
         displayName: string;
         identityName: string;
         profile: {
+          taskSaveMode?: "auto" | "manual";
           displayName: string | null;
           title: string | null;
           timezone: string | null;
@@ -56,6 +62,7 @@ export const api = {
     }>("/api/me");
   },
   updateMe(profile: {
+    taskSaveMode?: "auto" | "manual";
     displayName?: string | null;
     title?: string | null;
     timezone?: string | null;
@@ -68,6 +75,7 @@ export const api = {
         displayName: string;
         identityName: string;
         profile: {
+          taskSaveMode?: "auto" | "manual";
           displayName: string | null;
           title: string | null;
           timezone: string | null;
@@ -88,6 +96,17 @@ export const api = {
       body: JSON.stringify({ name }),
     });
   },
+  updateWorkspace(workspaceId: string, name: string) {
+    return request<{ workspace: Workspace }>(`/api/workspaces/${workspaceId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name }),
+    });
+  },
+  deleteWorkspace(workspaceId: string) {
+    return request<{ ok: boolean }>(`/api/workspaces/${workspaceId}`, {
+      method: "DELETE",
+    });
+  },
   listMembers(workspaceId: string) {
     return request<{
       members: Array<{
@@ -95,6 +114,7 @@ export const api = {
         email: string;
         displayName: string;
         role: MemberRole;
+        isCreator: boolean;
       }>;
     }>(`/api/workspaces/${workspaceId}/members`);
   },
@@ -119,6 +139,14 @@ export const api = {
     }>(`/api/workspaces/${workspaceId}/invites`, {
       method: "POST",
       body: JSON.stringify({ role }),
+    });
+  },
+  emailInvite(workspaceId: string, email: string, role: Exclude<MemberRole, "owner">) {
+    return request<{
+      invite: { role: string; email: string; expiresAt: string; emailed: true };
+    }>(`/api/workspaces/${workspaceId}/invites`, {
+      method: "POST",
+      body: JSON.stringify({ role, email }),
     });
   },
   acceptInvite(token: string) {
@@ -154,6 +182,51 @@ export const api = {
         body: JSON.stringify(body),
       },
     );
+  },
+  listAttachments(taskId: string) {
+    return request<{ attachments: TaskAttachment[] }>(`/api/tasks/${taskId}/attachments`);
+  },
+  uploadAttachment(taskId: string, file: File) {
+    const form = new FormData();
+    form.append("file", file);
+    return request<{ attachment: TaskAttachment }>(`/api/tasks/${taskId}/attachments`, {
+      method: "POST",
+      body: form,
+    });
+  },
+  deleteAttachment(attachmentId: string) {
+    return request<{ ok: boolean }>(`/api/attachments/${attachmentId}`, { method: "DELETE" });
+  },
+  listChatMessages(projectId: string, before?: string) {
+    const query = before ? `?before=${encodeURIComponent(before)}` : "";
+    return request<{ messages: ChatMessage[]; hasMore: boolean }>(
+      `/api/projects/${projectId}/messages${query}`,
+    );
+  },
+  sendChatMessage(projectId: string, body: string) {
+    return request<{ message: ChatMessage }>(`/api/projects/${projectId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    });
+  },
+  deleteChatMessage(projectId: string, messageId: string) {
+    return request<{ ok: boolean }>(`/api/projects/${projectId}/messages/${messageId}`, {
+      method: "DELETE",
+    });
+  },
+  updateProject(
+    projectId: string,
+    patch: { name?: string; description?: string | null },
+  ) {
+    return request<{ project: Project }>(`/api/projects/${projectId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  },
+  deleteProject(projectId: string) {
+    return request<{ ok: boolean }>(`/api/projects/${projectId}`, {
+      method: "DELETE",
+    });
   },
   listTasks(
     workspaceId: string,
@@ -194,6 +267,8 @@ export const api = {
     workspaceId: string,
     body: {
       title: string;
+      description?: string | null;
+      assigneeIds?: string[];
       projectId?: string | null;
       parentTaskId?: string | null;
       status?: Task["status"];
@@ -254,10 +329,10 @@ export const api = {
   listComments(taskId: string) {
     return request<{ comments: Comment[] }>(`/api/tasks/${taskId}/comments`);
   },
-  createComment(taskId: string, body: string) {
+  createComment(taskId: string, body: string, mentions: CommentMention[] = []) {
     return request<{ comment: Comment }>(`/api/tasks/${taskId}/comments`, {
       method: "POST",
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ body, mentions }),
     });
   },
   listActivity(workspaceId: string, query: { taskId?: string; cursor?: string } = {}) {

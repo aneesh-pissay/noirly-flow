@@ -49,3 +49,11 @@ next-env.d.ts
 /playwright/.cache/
 /e2e/.auth/
 /.next-e2e/
+
+# Local invite-email previews (INVITE_EMAIL_OUTBOX)
+/.invite-outbox/
+/.mention-outbox/
+/.task-outbox/
+
+# Task attachments stored locally in development (no R2)
+/.attachments/

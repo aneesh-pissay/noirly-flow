@@ -37,12 +37,34 @@ import {
 import { ApiError } from "@/src/server/api/http";
 import { idsEqual, recordActivity } from "@/src/server/activity";
 import { escapeRegex } from "@/src/server/search";
+import { purgeWorkspace } from "@/src/server/users/delete-account";
 
 type ProviderContext = {
   userId: string;
 };
 
+async function assertTaskReferences(workspaceId: string, refs: {
+  projectId?: string | null; columnId?: string | null; parentTaskId?: string | null;
+  tagIds?: string[]; taskId?: string;
+}) {
+  const workspace = oid(workspaceId);
+  if (refs.projectId && !await Project.exists({ _id: oid(refs.projectId), workspaceId: workspace, deletedAt: null })) {
+    throw new ApiError(403, "forbidden", "Project is not in this workspace");
+  }
+  if (refs.columnId && (!refs.projectId || !await BoardColumn.exists({ _id: oid(refs.columnId), projectId: oid(refs.projectId) }))) {
+    throw new ApiError(403, "forbidden", "Column is not in this project");
+  }
+  if (refs.parentTaskId && (refs.parentTaskId === refs.taskId || !await TaskModel.exists({ _id: oid(refs.parentTaskId), workspaceId: workspace, deletedAt: null }))) {
+    throw new ApiError(403, "forbidden", "Invalid parent task");
+  }
+  const tags = [...new Set(refs.tagIds ?? [])];
+  if (tags.length && await Tag.countDocuments({ _id: { $in: tags.map(oid) }, workspaceId: workspace }) !== tags.length) {
+    throw new ApiError(403, "forbidden", "Tag is not in this workspace");
+  }
+}
+
 function oid(id: string) {
+  if (typeof id !== "string" || !/^[a-f0-9]{24}$/i.test(id)) throw new ApiError(400, "invalid_request", "Invalid object ID");
   return new Types.ObjectId(id);
 }
 
@@ -51,6 +73,13 @@ function nextPosition(after?: number | null) {
     return after + 1000;
   }
   return Date.now();
+}
+
+function completionRecipients(creator: Types.ObjectId, assignees: Types.ObjectId[]) {
+  return [...new Set([creator, ...assignees].map(String))].map((id) => ({
+    _id: new Types.ObjectId(), userId: oid(id), pending: true,
+    nextAttemptAt: new Date(0), lockedUntil: new Date(0), attempts: 0,
+  }));
 }
 
 async function spawnNextOccurrence(
@@ -88,6 +117,7 @@ async function spawnNextOccurrence(
     dueAt,
     position: nextPosition(last?.position),
     assigneeIds: source.assigneeIds ?? [],
+    emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
     tagIds: source.tagIds ?? [],
     parentTaskId: source.parentTaskId ?? null,
     recurrence: {
@@ -256,6 +286,36 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       });
     },
 
+    async updateWorkspace(id, patch) {
+      return withDb(async () => {
+        await requireMembership(userId, id, "admin");
+        const workspace = await Workspace.findById(id);
+        if (!workspace) {
+          throw new ApiError(404, "not_found", "Workspace not found");
+        }
+        if (workspace.kind === "personal") {
+          throw new ApiError(400, "invalid_request", "Your personal workspace can't be renamed");
+        }
+        workspace.name = patch.name.trim();
+        await workspace.save();
+        return mapWorkspace(workspace);
+      });
+    },
+
+    async deleteWorkspace(id) {
+      return withDb(async () => {
+        await requireMembership(userId, id, "owner");
+        const workspace = await Workspace.findById(id).select("kind").lean();
+        if (!workspace) {
+          throw new ApiError(404, "not_found", "Workspace not found");
+        }
+        if (workspace.kind === "personal") {
+          throw new ApiError(400, "invalid_request", "Your personal workspace can't be deleted");
+        }
+        await purgeWorkspace(workspace._id);
+      });
+    },
+
     async listProjects(workspaceId) {
       return withDb(async () => {
         await requireMembership(userId, workspaceId, "viewer");
@@ -322,6 +382,60 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       });
     },
 
+    async updateProject(projectId, patch) {
+      return withDb(async () => {
+        const project = await Project.findById(projectId);
+        if (!project || project.deletedAt) {
+          throw new ApiError(404, "not_found", "Project not found");
+        }
+        await requireMembership(userId, project.workspaceId.toString(), "member");
+        const before = project.name;
+        if (patch.name !== undefined) project.name = patch.name.trim();
+        if (patch.description !== undefined) project.description = patch.description;
+        await project.save();
+        if (project.name !== before) {
+          void recordActivity({
+            workspaceId: project.workspaceId,
+            projectId: project._id,
+            actorId: userId,
+            verb: "project.renamed",
+            metadata: { from: before, to: project.name },
+          }).catch(() => {
+            console.error("recordActivity failed");
+          });
+        }
+        return mapProject(project);
+      });
+    },
+
+    async deleteProject(projectId) {
+      return withDb(async () => {
+        const project = await Project.findById(projectId);
+        if (!project || project.deletedAt) {
+          throw new ApiError(404, "not_found", "Project not found");
+        }
+        await requireMembership(userId, project.workspaceId.toString(), "admin");
+        // Soft delete, like tasks: the project and its tasks drop out of every
+        // listing, but the rows stay until the workspace itself is deleted.
+        const now = new Date();
+        project.deletedAt = now;
+        await project.save();
+        await TaskModel.updateMany(
+          { projectId: project._id, deletedAt: null },
+          { $set: { deletedAt: now } },
+        );
+        void recordActivity({
+          workspaceId: project.workspaceId,
+          projectId: project._id,
+          actorId: userId,
+          verb: "project.deleted",
+          metadata: { name: project.name },
+        }).catch(() => {
+          console.error("recordActivity failed");
+        });
+      });
+    },
+
     async listTasks(query: ListTasksQuery) {
       return withDb(async () => {
         await requireMembership(userId, query.workspaceId, "viewer");
@@ -381,6 +495,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
 
     async createTask(input: CreateTaskInput) {
       return withDb(async () => {
+        await requireMembership(userId, input.workspaceId, "member");
+        await assertTaskReferences(input.workspaceId, input);
         let columnId = input.columnId ? oid(input.columnId) : null;
         let status: TaskStatus = input.status ?? "todo";
 
@@ -421,7 +537,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           .sort({ position: -1 })
           .lean();
 
-        const assigneeIds = input.assigneeIds ?? [];
+        const assigneeIds = [...new Set((input.assigneeIds ?? []).map((id) => id.toLowerCase()))];
         await assertAssigneesInWorkspace(input.workspaceId, assigneeIds);
 
         const task = await TaskModel.create({
@@ -431,10 +547,13 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           title: input.title.trim(),
           description: input.description ?? null,
           status,
+          completedAt: status === "done" ? new Date() : null,
+          completionDeliveries: status === "done" ? completionRecipients(oid(userId), assigneeIds.map(oid)) : [],
           priority: input.priority ?? "none",
           dueAt: input.dueAt ? new Date(input.dueAt) : null,
           position: input.position ?? nextPosition(last?.position),
-          assigneeIds: assigneeIds.map(oid),
+          assigneeIds: [...new Set(assigneeIds)].map(oid),
+          emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
           tagIds: (input.tagIds ?? []).map(oid),
           parentTaskId: input.parentTaskId ? oid(input.parentTaskId) : null,
           createdById: oid(userId),
@@ -447,8 +566,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           actorId: userId,
           verb: "task.created",
           metadata: { title: task.title },
-        }).catch((error) => {
-          console.error("recordActivity failed", error);
+        }).catch(() => {
+          console.error("recordActivity failed");
         });
 
         return mapTask(task);
@@ -459,6 +578,16 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       return withDb(async () => {
         const task = await requireTaskAccess(userId, taskId);
         await requireMembership(userId, task.workspaceId.toString(), "member");
+
+        const nextProject = patch.projectId !== undefined ? patch.projectId : task.projectId?.toString() ?? null;
+        const projectChanges = nextProject !== (task.projectId?.toString() ?? null);
+        await assertTaskReferences(task.workspaceId.toString(), {
+          taskId,
+          projectId: nextProject,
+          columnId: patch.columnId !== undefined ? patch.columnId : projectChanges ? null : task.columnId?.toString() ?? null,
+          parentTaskId: patch.parentTaskId !== undefined ? patch.parentTaskId : task.parentTaskId?.toString() ?? null,
+          tagIds: patch.tagIds ?? task.tagIds.map((id) => id.toString()),
+        });
 
         const before = {
           title: task.title,
@@ -490,7 +619,17 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         }
         if (patch.position !== undefined) task.position = patch.position;
         if (patch.assigneeIds !== undefined) {
-          task.assigneeIds = patch.assigneeIds.map(oid);
+          const ids = [...new Set(patch.assigneeIds.map((id) => id.toLowerCase()))];
+          task.assigneeIds = ids.map(oid);
+          // Persist new assignment mail in the same write as the assignment itself.
+          // Retained assignees keep their delivery state; removal cancels their jobs.
+          if (!idsEqual(before.assigneeIds, ids)) {
+            task.set("emailDeliveries", ids.map((id) =>
+              (before.assigneeIds.includes(id) ? task.emailDeliveries?.find((job) => String(job.userId) === id) : undefined) ?? {
+                userId: oid(id), assignmentPending: !before.assigneeIds.includes(id),
+              },
+            ));
+          }
         }
         if (patch.tagIds !== undefined) {
           task.tagIds = patch.tagIds.map(oid);
@@ -574,6 +713,14 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           task.recurrence = null;
         }
 
+        if (task.status !== before.status) {
+          // The completion event and recipients persist atomically with the status.
+          // A concurrent status change must not overwrite another completion event.
+          task.$where = { status: before.status };
+          task.set("completionDeliveries", becomingDone
+            ? completionRecipients(task.createdById, task.assigneeIds)
+            : []);
+        }
         await task.save();
         if (spawnRule) {
           await spawnNextOccurrence(task, spawnRule, userId);
@@ -632,8 +779,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           );
         }
         if (activity.length > 0) {
-          void Promise.all(activity).catch((error) => {
-            console.error("recordActivity failed", error);
+          void Promise.all(activity).catch(() => {
+            console.error("recordActivity failed");
           });
         }
 
@@ -655,8 +802,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           actorId: userId,
           verb: "task.deleted",
           metadata: { title: task.title },
-        }).catch((error) => {
-          console.error("recordActivity failed", error);
+        }).catch(() => {
+          console.error("recordActivity failed");
         });
         return mapped;
       });
@@ -674,9 +821,13 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           "member",
         );
 
+        for (const columnId of new Set(input.moves.map((move) => move.columnId).filter(Boolean))) {
+          await assertTaskReferences(project.workspaceId.toString(), { projectId: input.projectId, columnId });
+        }
         const tasks = await TaskModel.find({
           _id: { $in: input.moves.map((move) => oid(move.taskId)) },
           projectId: oid(input.projectId),
+          workspaceId: project.workspaceId,
           deletedAt: null,
         });
         const byId = new Map(
@@ -685,7 +836,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
 
         const ops: Array<{
           updateOne: {
-            filter: { _id: Types.ObjectId };
+            filter: { _id: Types.ObjectId; status: TaskStatus };
             update: { $set: Record<string, unknown> };
           };
         }> = [];
@@ -719,6 +870,11 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           if (move.status) {
             $set.status = move.status;
             $set.completedAt = nextCompletedAt;
+            if (move.status !== task.status) {
+              $set.completionDeliveries = becomingDone
+                ? completionRecipients(task.createdById, task.assigneeIds)
+                : [];
+            }
           }
           if (spawnRule) {
             $set.recurrence = null;
@@ -726,7 +882,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
 
           ops.push({
             updateOne: {
-              filter: { _id: task._id },
+              filter: { _id: task._id, status: task.status },
               update: { $set },
             },
           });
@@ -745,7 +901,10 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         }
 
         if (ops.length > 0) {
-          await TaskModel.bulkWrite(ops);
+          const result = await TaskModel.bulkWrite(ops);
+          if (result.matchedCount !== ops.length) {
+            throw new ApiError(409, "task_changed", "A task changed while moving it. Refresh and try again.");
+          }
         }
         await Promise.all(
           spawnJobs.map((job) =>
@@ -808,11 +967,22 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (!body) {
           throw new ApiError(400, "invalid_request", "Comment cannot be empty");
         }
+        const mentions = [...(input.mentions ?? [])].sort((a, b) => a.start - b.start);
+        if (mentions.length > 50 || mentions.some((mention, index) =>
+          !Number.isInteger(mention.start) || !Number.isInteger(mention.end) ||
+          mention.start < 0 || mention.end > body.length || mention.end <= mention.start + 1 ||
+          body[mention.start] !== "@" || /[\r\n]/.test(body.slice(mention.start, mention.end)) ||
+          (index > 0 && mention.start < mentions[index - 1].end)
+        )) throw new ApiError(400, "invalid_request", "Invalid comment mentions");
+        const recipientIds = [...new Set(mentions.map((mention) => mention.userId.toLowerCase()))];
+        await assertAssigneesInWorkspace(task.workspaceId.toString(), recipientIds);
         const comment = await Comment.create({
           workspaceId: task.workspaceId,
           taskId: task._id,
           authorId: oid(userId),
           body,
+          mentions: mentions.map((mention) => ({ ...mention, userId: oid(mention.userId) })),
+          mentionDeliveries: recipientIds.map((id) => ({ userId: oid(id) })),
         });
         await recordActivity({
           workspaceId: task.workspaceId,

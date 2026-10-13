@@ -47,6 +47,8 @@ export async function fetchIdentityUserInfo(
 
   const response = await fetch(`${identityIssuer()}/api/oidc/userinfo`, {
     method: "GET",
+    redirect: "error",
+    signal: AbortSignal.timeout(8000),
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${accessToken}`,
@@ -59,10 +61,11 @@ export async function fetchIdentityUserInfo(
   }
 
   const body = (await response.json()) as IdentityUserInfo;
-  if (!body.sub) {
+  if (typeof body.sub !== "string" || !/^[a-f0-9]{24}$/i.test(body.sub)) {
     throw new Error("Identity userinfo missing sub");
   }
 
+  if (cache.size >= 5000) cache.clear();
   cache.set(key, {
     userInfo: body,
     expiresAt: Date.now() + CACHE_TTL_MS,

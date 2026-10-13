@@ -14,6 +14,7 @@ import type { MemberRole } from "@/src/core/models/enums";
 import { resolveFlowDisplayName } from "@/src/server/users/display-name";
 
 function oid(id: string) {
+  if (typeof id !== "string" || !/^[a-f0-9]{24}$/i.test(id)) throw new ApiError(400, "invalid_request", "Invalid object ID");
   return new Types.ObjectId(id);
 }
 
@@ -26,7 +27,21 @@ export type MemberView = {
   email: string;
   displayName: string;
   role: MemberRole;
+  /** Created the workspace. Nobody else can change their role or remove them. */
+  isCreator: boolean;
 };
+
+/**
+ * The person who created a team workspace keeps it: other owners can manage
+ * everyone else, but not demote or remove them. (Ownership only moves when the
+ * creator deletes their account — see users/delete-account.ts.)
+ */
+async function assertNotCreator(workspaceId: string, targetUserId: string, action: string) {
+  const workspace = await Workspace.findById(workspaceId).select("ownerUserId").lean();
+  if (workspace && workspace.ownerUserId.toString() === targetUserId) {
+    throw new ApiError(403, "forbidden", `The workspace creator can't be ${action}`);
+  }
+}
 
 export async function requireWorkspaceRole(
   userId: string,
@@ -49,9 +64,11 @@ export async function requireWorkspaceRole(
 }
 
 export async function listMembers(workspaceId: string): Promise<MemberView[]> {
-  const memberships = await WorkspaceMembership.find({
-    workspaceId: oid(workspaceId),
-  }).lean();
+  const [memberships, workspace] = await Promise.all([
+    WorkspaceMembership.find({ workspaceId: oid(workspaceId) }).lean(),
+    Workspace.findById(workspaceId).select("ownerUserId").lean(),
+  ]);
+  const creatorId = workspace?.ownerUserId.toString();
   const users = await FlowUser.find({
     _id: { $in: memberships.map((m) => m.userId) },
   }).lean();
@@ -63,6 +80,7 @@ export async function listMembers(workspaceId: string): Promise<MemberView[]> {
       email: user?.email ?? "",
       displayName: resolveFlowDisplayName(user),
       role: membership.role as MemberRole,
+      isCreator: membership.userId.toString() === creatorId,
     };
   });
 }
@@ -71,10 +89,22 @@ export async function createInvite(input: {
   workspaceId: string;
   userId: string;
   role: Exclude<MemberRole, "owner">;
+  /** Locks the invite to this address (emailed invites). */
+  email?: string | null;
   days?: number;
 }) {
   return withDb(async () => {
     await requireWorkspaceRole(input.userId, input.workspaceId, "admin");
+    const email = input.email?.trim().toLowerCase() || null;
+    if (email) {
+      const user = await FlowUser.findOne({ email }).select("_id").lean();
+      if (
+        user &&
+        (await WorkspaceMembership.exists({ workspaceId: oid(input.workspaceId), userId: user._id }))
+      ) {
+        throw new ApiError(409, "conflict", `${email} is already a member`);
+      }
+    }
     const token = randomBytes(24).toString("base64url");
     const days = input.days ?? 7;
     const expiresAt = new Date();
@@ -84,28 +114,34 @@ export async function createInvite(input: {
       workspaceId: oid(input.workspaceId),
       role: input.role,
       tokenHash: hashToken(token),
+      email,
       createdById: oid(input.userId),
       expiresAt,
     });
 
-    return { token, expiresAt: expiresAt.toISOString(), role: input.role };
+    return { token, expiresAt: expiresAt.toISOString(), role: input.role, email };
   });
 }
 
-export async function acceptInvite(userId: string, token: string) {
+export async function acceptInvite(userId: string, token: string, userEmail: string) {
   return withDb(async () => {
-    const invite = await WorkspaceInvite.findOne({
-      tokenHash: hashToken(token),
-    });
-    if (!invite || invite.revokedAt) {
-      throw new ApiError(404, "not_found", "Invite is invalid");
+    const live = { tokenHash: hashToken(token), revokedAt: null, usedAt: null, expiresAt: { $gt: new Date() } };
+    // An emailed invite belongs to that address. Checked before claiming it, so
+    // opening a forwarded link with the wrong account doesn't burn the invite.
+    const pending = await WorkspaceInvite.findOne(live).select("email").lean();
+    if (pending?.email && pending.email !== userEmail.trim().toLowerCase()) {
+      throw new ApiError(
+        403,
+        "forbidden",
+        `This invite was sent to ${pending.email}. Sign in with that email to accept it.`,
+      );
     }
-    if (invite.usedAt) {
-      throw new ApiError(400, "invalid_request", "Invite already used");
-    }
-    if (invite.expiresAt.getTime() < Date.now()) {
-      throw new ApiError(400, "invalid_request", "Invite expired");
-    }
+    const invite = await WorkspaceInvite.findOneAndUpdate(
+      pending?.email ? { ...live, email: pending.email } : live,
+      { $set: { usedAt: new Date() } },
+      { returnDocument: "after" },
+    );
+    if (!invite) throw new ApiError(400, "invalid_request", "Invite is invalid, expired, or already used");
 
     const existing = await WorkspaceMembership.findOne({
       workspaceId: invite.workspaceId,
@@ -119,15 +155,24 @@ export async function acceptInvite(userId: string, token: string) {
       });
     }
 
-    invite.usedAt = new Date();
-    await invite.save();
 
     const workspace = await Workspace.findById(invite.workspaceId).lean();
     if (!workspace) {
       throw new ApiError(404, "not_found", "Workspace not found");
     }
-    return { workspaceId: workspace._id.toString(), name: workspace.name };
+    return {
+      workspaceId: workspace._id.toString(),
+      name: workspace.name,
+      alreadyMember: Boolean(existing),
+    };
   });
+}
+
+/** Withdraws an invite that failed to send, so its link can't be used. */
+export async function revokeInvite(token: string) {
+  await withDb(() =>
+    WorkspaceInvite.updateOne({ tokenHash: hashToken(token) }, { $set: { revokedAt: new Date() } }),
+  );
 }
 
 export async function updateMemberRole(input: {
@@ -148,6 +193,9 @@ export async function updateMemberRole(input: {
     if (input.targetUserId === input.actorId && input.role !== actorRole) {
       throw new ApiError(400, "invalid_request", "You cannot change your own role");
     }
+    if (input.targetUserId !== input.actorId) {
+      await assertNotCreator(input.workspaceId, input.targetUserId, "changed to another role");
+    }
 
     const membership = await WorkspaceMembership.findOne({
       workspaceId: oid(input.workspaceId),
@@ -155,6 +203,9 @@ export async function updateMemberRole(input: {
     });
     if (!membership) {
       throw new ApiError(404, "not_found", "Member not found");
+    }
+    if (membership.role === "owner" && actorRole !== "owner") {
+      throw new ApiError(403, "forbidden", "Only an owner can modify another owner");
     }
     if (membership.role === "owner" && input.role !== "owner") {
       const owners = await WorkspaceMembership.countDocuments({
@@ -177,13 +228,17 @@ export async function removeMember(input: {
   targetUserId: string;
 }) {
   return withDb(async () => {
-    await requireWorkspaceRole(input.actorId, input.workspaceId, "admin");
+    const actorRole = await requireWorkspaceRole(input.actorId, input.workspaceId, "admin");
+    await assertNotCreator(input.workspaceId, input.targetUserId, "removed");
     const membership = await WorkspaceMembership.findOne({
       workspaceId: oid(input.workspaceId),
       userId: oid(input.targetUserId),
     });
     if (!membership) {
       throw new ApiError(404, "not_found", "Member not found");
+    }
+    if (membership.role === "owner" && actorRole !== "owner") {
+      throw new ApiError(403, "forbidden", "Only an owner can modify another owner");
     }
     if (membership.role === "owner") {
       const owners = await WorkspaceMembership.countDocuments({

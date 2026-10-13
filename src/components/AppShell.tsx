@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import {
   Activity,
   Search,
   Settings,
+  SlidersHorizontal,
   Users,
 } from "lucide-react";
 import {
@@ -16,6 +17,8 @@ import {
 } from "@noirly-dev/ui";
 import { SignOutButton } from "@/src/features/auth/SignOutButton";
 import { CommandPalette } from "@/src/features/command-palette/CommandPalette";
+import { TaskCreateDialog } from "@/src/features/task/TaskCreateDialog";
+import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
 import { useOptimisticPath } from "@/src/components/NavLink";
 import { ThemeControls } from "@/src/components/ThemeControls";
@@ -36,6 +39,19 @@ type Props = {
   children: ReactNode;
 };
 
+const noSubscribe = () => () => {};
+
+function isApplePlatform() {
+  const nav = navigator as Navigator & { userAgentData?: { platform?: string } };
+  return /mac|iphone|ipad/i.test(nav.userAgentData?.platform ?? nav.platform ?? "");
+}
+
+/** "⌘K" on Apple devices, "Ctrl K" elsewhere. The server render can't know, so it says Ctrl. */
+function ShortcutLabel() {
+  const apple = useSyncExternalStore(noSubscribe, isApplePlatform, () => false);
+  return apple ? "⌘K" : "Ctrl K";
+}
+
 function workspaceLinkClass(active: boolean) {
   return [
     "flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm transition-colors",
@@ -46,6 +62,7 @@ function workspaceLinkClass(active: boolean) {
 }
 
 export function AppShell({ user, initialWorkspaces, children }: Props) {
+  const taskDraft = useUIStore((state) => state.taskDraft);
   const path = useOptimisticPath();
   const lastWorkspaceId = useUIStore((state) => state.lastWorkspaceId);
   const setLastWorkspaceId = useUIStore((state) => state.setLastWorkspaceId);
@@ -95,14 +112,30 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
             icon: Users,
             match: "prefix" as const,
           },
+          {
+            href: `/w/${workspaceId}/settings`,
+            label: "Workspace",
+            icon: SlidersHorizontal,
+            match: "prefix" as const,
+          },
         ]
       : []),
   ];
 
   return (
-    <>
+    // The app scrolls inside its own panes (task list, drawer, sidebar), not the
+    // document. Lenis smooth-scrolls only the document and swallows wheel and
+    // touchpad input over nested scrollers, which left them unscrollable.
+    // `contents` keeps this wrapper out of the layout.
+    <div data-lenis-prevent className="contents">
       <UIShell
-        contentClassName="min-h-0 flex-1 overflow-hidden"
+        // Pin the shell to the viewport so the document never scrolls: the
+        // sidebar and header stay put, and only the content pane (or the
+        // workspace's own panes inside it) scrolls. With the default
+        // `min-h-dvh`, a long page grew the document and carried the sidebar
+        // away with it.
+        className="h-dvh overflow-hidden"
+        contentClassName="min-h-0 flex-1 overflow-y-auto"
         sidebar={{
           brand: (
             <SidebarBrand
@@ -116,13 +149,21 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
               <button
                 type="button"
                 onClick={() => useUIStore.getState().setCommandPaletteOpen(true)}
-                className="flex w-full items-center justify-between rounded-xl border border-[var(--hairline)] bg-[var(--surface-2)] px-3 py-2 text-left text-sm text-[var(--muted-foreground)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
+                aria-keyshortcuts="Control+K Meta+K"
+                className="group flex w-full items-center justify-between rounded-xl border border-[var(--hairline)] bg-[var(--surface-2)] px-3 py-2 text-left text-sm text-[var(--muted-foreground)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
               >
                 <span className="flex items-center gap-2">
                   <Search size={14} />
                   Search
                 </span>
-                <span className="font-mono text-[10px]">⌘K</span>
+                {/* The shortcut is a hint for whoever is about to click: shown on
+                    hover or keyboard focus only. */}
+                <kbd
+                  aria-hidden
+                  className="rounded-md border border-[var(--hairline)] px-1.5 py-0.5 font-mono text-[10px] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                >
+                  <ShortcutLabel />
+                </kbd>
               </button>
               <div>
                 <p className="px-1 pb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
@@ -176,23 +217,16 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
             </p>
           ),
           actions: (
-            <>
-              <ThemeControls size="sm" />
-              <button
-                type="button"
-                onClick={() => useUIStore.getState().setCommandPaletteOpen(true)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--hairline)] font-mono text-sm text-[var(--muted-foreground)]"
-                aria-label="Open search"
-              >
-                ⌘K
-              </button>
-            </>
+            // Search opens from the sidebar's Search button or ⌘K / Ctrl+K.
+            <ThemeControls size="sm" />
           ),
         }}
       >
         {children}
       </UIShell>
       <CommandPalette workspaces={workspaces} />
-    </>
+      {taskDraft ? <TaskCreateDialog draft={taskDraft} /> : null}
+      <JoinedNotice path={path} workspaces={workspaces} />
+    </div>
   );
 }

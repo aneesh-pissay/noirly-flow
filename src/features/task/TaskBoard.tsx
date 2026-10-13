@@ -36,6 +36,7 @@ import {
 } from "@/src/features/task/board-order";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskDueBadge } from "@/src/features/task/TaskDueBadge";
+import { PriorityBadge } from "@/src/features/task/priority";
 import type { WorkspaceMember } from "@/src/features/workspace/members";
 
 type Props = {
@@ -57,7 +58,6 @@ type Props = {
 };
 
 export function TaskBoard({
-  projectId: _projectId,
   tasks,
   columns,
   members,
@@ -354,9 +354,7 @@ function SortableTaskCard({
           >
             <p className="text-sm text-[var(--foreground)]">{task.title}</p>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="font-mono text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">
-                {task.priority === "none" ? "no priority" : task.priority}
-              </p>
+              <PriorityBadge priority={task.priority} />
               <TaskDueBadge dueAt={task.dueAt} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>

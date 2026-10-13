@@ -1,3 +1,4 @@
+import { readApiJson } from "@/src/server/security/body";
 import {
   ApiError,
   assertObjectId,
@@ -25,7 +26,7 @@ export async function POST(request: Request, { params }: Params) {
   try {
     const { workspaceId } = await params;
     await assertObjectId(workspaceId, "workspaceId");
-    const body = createProjectBodySchema.safeParse(await request.json());
+    const body = createProjectBodySchema.safeParse(await readApiJson(request));
     if (!body.success) {
       throw new ApiError(400, "invalid_request", "Invalid project payload");
     }

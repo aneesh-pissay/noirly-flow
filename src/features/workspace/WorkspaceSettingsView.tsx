@@ -1,0 +1,189 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Input, PageContainer, PageHeader } from "@noirly-dev/ui";
+import { api } from "@/src/lib/api-client";
+import { qk } from "@/src/core/sync/query-keys";
+import type { Workspace } from "@/src/core/sync/types";
+import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
+import { useUIStore } from "@/src/stores/ui-store";
+
+const sectionClass = "border border-[var(--hairline)] bg-[var(--surface)] p-5";
+const kickerClass =
+  "font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]";
+
+export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const canRename = useCan("workspace.manage");
+  const canDelete = useCan("workspace.delete");
+
+  const workspaceQuery = useQuery({
+    queryKey: qk.workspace(workspaceId),
+    queryFn: () => api.getWorkspace(workspaceId),
+    staleTime: 60_000,
+  });
+  const workspace = workspaceQuery.data?.workspace;
+  const personal = workspace?.kind === "personal";
+
+  const [name, setName] = useState("");
+  const [confirmName, setConfirmName] = useState("");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- seed the form once the workspace loads
+    if (workspace) setName(workspace.name);
+  }, [workspace]);
+
+  const renameMutation = useMutation({
+    mutationFn: () => api.updateWorkspace(workspaceId, name.trim()),
+    onSuccess: (result) => {
+      queryClient.setQueryData<{ workspaces: Workspace[] }>(qk.workspaces, (old) =>
+        old
+          ? {
+              workspaces: old.workspaces.map((w) =>
+                w.id === workspaceId ? result.workspace : w,
+              ),
+            }
+          : old,
+      );
+      void queryClient.invalidateQueries({ queryKey: qk.workspace(workspaceId) });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.deleteWorkspace(workspaceId),
+    onSuccess: async () => {
+      const remaining =
+        queryClient
+          .getQueryData<{ workspaces: Workspace[] }>(qk.workspaces)
+          ?.workspaces.filter((w) => w.id !== workspaceId) ?? [];
+      queryClient.setQueryData(qk.workspaces, { workspaces: remaining });
+      queryClient.removeQueries({ queryKey: qk.workspace(workspaceId) });
+      queryClient.removeQueries({ queryKey: ["tasks", workspaceId] });
+      // Every user keeps a personal workspace, so there is always somewhere to land.
+      const next = remaining.find((w) => w.kind === "personal") ?? remaining[0];
+      if (next) useUIStore.getState().setLastWorkspaceId(next.id);
+      const href = next ? `/w/${next.id}` : "/inbox";
+      useUIStore.getState().setPendingHref(href);
+      router.replace(href);
+    },
+  });
+
+  if (!workspace) {
+    return (
+      <PageContainer size="sm">
+        <p className="text-sm text-[var(--muted-foreground)]">
+          {workspaceQuery.isError
+            ? (workspaceQuery.error as Error).message
+            : "Loading workspace…"}
+        </p>
+      </PageContainer>
+    );
+  }
+
+  const trimmed = name.trim();
+
+  return (
+    <PageContainer size="sm" className="max-w-2xl">
+      <PageHeader
+        kicker="Workspace"
+        title={`${workspace.name} settings`}
+        lead={
+          personal
+            ? "Your personal workspace is private to you and can't be renamed or deleted."
+            : "Rename this workspace or delete it with everything in it."
+        }
+      />
+
+      <section className={sectionClass}>
+        <p className={kickerClass}>General</p>
+        <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Name</h2>
+        <form
+          className="mt-4 flex flex-col gap-3 sm:flex-row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!trimmed || trimmed === workspace.name) return;
+            renameMutation.mutate();
+          }}
+        >
+          <Input
+            value={name}
+            maxLength={80}
+            disabled={personal || !canRename}
+            onChange={(event) => setName(event.target.value)}
+            aria-label="Workspace name"
+            className="flex-1"
+          />
+          {canRename && !personal ? (
+            <Button
+              type="submit"
+              disabled={renameMutation.isPending || !trimmed || trimmed === workspace.name}
+            >
+              {renameMutation.isPending ? "Saving…" : "Save"}
+            </Button>
+          ) : null}
+        </form>
+        {!canRename && !personal ? (
+          <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+            Only owners and admins can rename the workspace.
+          </p>
+        ) : null}
+        {renameMutation.isError ? (
+          <p className="mt-2 text-sm text-[var(--foreground)]" role="alert">
+            {(renameMutation.error as Error).message}
+          </p>
+        ) : renameMutation.isSuccess ? (
+          <p className="mt-2 font-mono text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">
+            Saved
+          </p>
+        ) : null}
+      </section>
+
+      {!personal && canDelete ? (
+        <section className={`${sectionClass} border-red-500/40`}>
+          <p className={`${kickerClass} text-red-600 dark:text-red-400`}>Danger zone</p>
+          <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">
+            Delete workspace
+          </h2>
+          <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+            Permanently deletes every project, task, comment and invite in this workspace,
+            and removes all members. This can&apos;t be undone.
+          </p>
+          <form
+            className="mt-4 flex flex-col gap-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (confirmName !== workspace.name) return;
+              deleteMutation.mutate();
+            }}
+          >
+            <label className="space-y-1 text-xs text-[var(--muted-foreground)]">
+              Type <span className="font-mono text-[var(--foreground)]">{workspace.name}</span> to
+              confirm
+              <Input
+                value={confirmName}
+                onChange={(event) => setConfirmName(event.target.value)}
+                autoComplete="off"
+              />
+            </label>
+            <div>
+              <Button
+                type="submit"
+                disabled={deleteMutation.isPending || confirmName !== workspace.name}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                {deleteMutation.isPending ? "Deleting…" : "Delete workspace"}
+              </Button>
+            </div>
+          </form>
+          {deleteMutation.isError ? (
+            <p className="mt-2 text-sm text-[var(--foreground)]" role="alert">
+              {(deleteMutation.error as Error).message}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+    </PageContainer>
+  );
+}

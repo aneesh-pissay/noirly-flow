@@ -17,10 +17,14 @@ export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",
   fullyParallel: true,
+  // These fixtures share accounts and an IP, so parallel workers exhaust real API limits.
+  workers: 1,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : [["list"], ["html", { open: "never" }]],
   use: {
+    // Optional installed browser for offline/local runs; CI uses bundled Chromium.
+    ...(process.env.E2E_BROWSER_CHANNEL ? { channel: process.env.E2E_BROWSER_CHANNEL } : {}),
     baseURL: `http://localhost:${E2E_PORT}`,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
@@ -34,7 +38,7 @@ export default defineConfig({
   webServer: {
     command: `pnpm build && pnpm start --port ${E2E_PORT}`,
     url: `http://localhost:${E2E_PORT}`,
-    timeout: 5 * 60 * 1000,
+    timeout: 10 * 60 * 1000,
     reuseExistingServer: !process.env.CI,
     env: E2E_ENV,
   },

@@ -24,6 +24,8 @@ const workspaceInviteSchema = new Schema(
       default: "member",
     },
     tokenHash: { type: String, required: true, unique: true, index: true },
+    /** Set for emailed invites: only the account with this email can accept. */
+    email: { type: String, default: null, lowercase: true, trim: true },
     createdById: {
       type: Schema.Types.ObjectId,
       ref: "FlowUser",

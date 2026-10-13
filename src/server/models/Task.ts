@@ -4,7 +4,7 @@ import {
   model,
   type InferSchemaType,
   type Model,
-  type Types,
+  Types,
 } from "mongoose";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/src/core/models/enums";
 
@@ -74,6 +74,30 @@ const taskSchema = new Schema(
       type: [{ type: Schema.Types.ObjectId, ref: "FlowUser" }],
       default: [],
     },
+    emailDeliveries: {
+      type: [new Schema({
+        _id: { type: Schema.Types.ObjectId, required: true, default: () => new Types.ObjectId() },
+        userId: { type: Schema.Types.ObjectId, required: true, ref: "FlowUser" },
+        assignmentPending: { type: Boolean, default: true },
+        remindedOn: { type: String, default: "" },
+        nextAttemptAt: { type: Date, default: () => new Date(0) },
+        lockedUntil: { type: Date, default: () => new Date(0) },
+        attempts: { type: Number, default: 0 },
+      })],
+      default: [],
+    },
+    emailCheckedAt: { type: Date, default: () => new Date(0) },
+    completionDeliveries: {
+      type: [new Schema({
+        _id: { type: Schema.Types.ObjectId, required: true, default: () => new Types.ObjectId() },
+        userId: { type: Schema.Types.ObjectId, required: true, ref: "FlowUser" },
+        pending: { type: Boolean, default: true },
+        nextAttemptAt: { type: Date, default: () => new Date(0) },
+        lockedUntil: { type: Date, default: () => new Date(0) },
+        attempts: { type: Number, default: 0 },
+      })],
+      default: [],
+    },
     tagIds: {
       type: [{ type: Schema.Types.ObjectId }],
       default: [],
@@ -98,6 +122,9 @@ const taskSchema = new Schema(
 
 taskSchema.index({ workspaceId: 1, deletedAt: 1 });
 taskSchema.index({ projectId: 1, columnId: 1, position: 1 });
+taskSchema.index({ deletedAt: 1, status: 1, dueAt: 1, emailCheckedAt: 1 });
+taskSchema.index({ "emailDeliveries.assignmentPending": 1, emailCheckedAt: 1 });
+taskSchema.index({ "completionDeliveries.pending": 1, emailCheckedAt: 1 });
 
 export type TaskDocument = InferSchemaType<typeof taskSchema> & {
   _id: Types.ObjectId;

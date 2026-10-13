@@ -1,3 +1,7 @@
+import { readApiJson } from "@/src/server/security/body";
+import { scheduleTaskEmails } from "@/src/server/mail/schedule-task-emails";
+
+export const maxDuration = 60;
 import {
   assertObjectId,
   getSyncProvider,
@@ -67,7 +71,7 @@ export async function POST(request: Request, { params }: Params) {
   try {
     const { workspaceId } = await params;
     await assertObjectId(workspaceId, "workspaceId");
-    const body = createTaskBodySchema.safeParse(await request.json());
+    const body = createTaskBodySchema.safeParse(await readApiJson(request));
     if (!body.success) {
       throw new ApiError(400, "invalid_request", "Invalid task payload");
     }
@@ -77,6 +81,7 @@ export async function POST(request: Request, { params }: Params) {
       workspaceId,
       ...body.data,
     });
+    scheduleTaskEmails(task.id);
     if (task.projectId) {
       void publishRealtime({
         channel: `project:${task.projectId}`,

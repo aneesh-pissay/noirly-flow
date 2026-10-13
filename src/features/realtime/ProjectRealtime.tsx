@@ -98,6 +98,14 @@ export function ProjectRealtime({
     });
   });
 
+  // Project chat: refetch rather than splice, so pages and order stay the server's.
+  useRealtimeEvent(channel, "chat.message", () => {
+    void queryClient.invalidateQueries({ queryKey: qk.chat(projectId) });
+  });
+  useRealtimeEvent(channel, "chat.message.deleted", () => {
+    void queryClient.invalidateQueries({ queryKey: qk.chat(projectId) });
+  });
+
   return <PresenceAvatars members={members} status={status} />;
 
   function patchTasks(

@@ -12,6 +12,9 @@ export function readLastWorkspaceId(): string | null {
 }
 
 type UIState = {
+  taskDraft: { workspaceId: string; projectId: string | null; title: string } | null;
+  openTaskForm: (draft: { workspaceId: string; projectId: string | null; title?: string }) => void;
+  closeTaskForm: () => void;
   commandPaletteOpen: boolean;
   pendingHref: string | null;
   lastWorkspaceId: string | null;
@@ -22,6 +25,9 @@ type UIState = {
 };
 
 export const useUIStore = create<UIState>((set) => ({
+  taskDraft: null,
+  openTaskForm: (draft) => set({ taskDraft: { ...draft, title: draft.title ?? "" }, commandPaletteOpen: false }),
+  closeTaskForm: () => set({ taskDraft: null }),
   commandPaletteOpen: false,
   pendingHref: null,
   lastWorkspaceId: null,

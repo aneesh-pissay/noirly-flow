@@ -6,12 +6,9 @@ test.describe("settings", () => {
   test.use({ storageState: storageStatePath("editor") });
 
   test("Flow profile saves and survives a reload", async ({ page }) => {
-    // The form fills itself from /api/me when it arrives and overwrites anything
-    // typed before then — wait for it, as a person would. (Known UX gap: early
-    // typing is silently discarded and the save still says "Saved".)
-    const profileLoaded = page.waitForResponse((r) => r.url().endsWith("/api/me") && r.request().method() === "GET");
+    // The profile is server-rendered into the form, so it is ready to type into
+    // at once; nothing arrives later to overwrite what was typed.
     await page.goto("/settings");
-    await profileLoaded;
     const titleValue = `Lead ${uid()}`;
     await page.getByLabel("Title").fill(titleValue);
     await page.getByLabel("Timezone").selectOption({ label: "Tokyo" });
@@ -32,7 +29,7 @@ test.describe("command palette", () => {
     await waitForTasks(page);
     const title = `From palette ${uid()}`;
 
-    await page.getByRole("button", { name: "Open search" }).click();
+    await page.getByRole("button", { name: /^Search/ }).click();
     const input = page.getByPlaceholder("Create a task, search, or jump…");
     await input.fill(title);
     await page.getByText(`Create task “${title}”`).click();
@@ -63,7 +60,7 @@ test.describe("command palette", () => {
 
   test("jumps to Settings", async ({ page }) => {
     await page.goto("/inbox");
-    await page.getByRole("button", { name: "Open search" }).click();
+    await page.getByRole("button", { name: /^Search/ }).click();
     await page.getByPlaceholder("Create a task, search, or jump…").fill("settings");
     await page.getByRole("option", { name: "Settings", exact: true }).click();
     await expect(page).toHaveURL(/\/settings$/);

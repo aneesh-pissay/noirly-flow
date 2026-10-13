@@ -64,7 +64,9 @@ export function ProductGoogleOneTap({
 }) {
   const buttonRef = useRef<HTMLDivElement>(null);
   const callbackRef = useRef(onCredential);
-  callbackRef.current = onCredential;
+  useEffect(() => {
+    callbackRef.current = onCredential;
+  }, [onCredential]);
   const [available, setAvailable] = useState(false);
 
   useEffect(() => {
