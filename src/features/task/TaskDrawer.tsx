@@ -11,6 +11,7 @@ import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
 import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { dateInputToIso, isoToDateInput } from "@/src/features/task/dates";
+import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import {
@@ -300,19 +301,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     ))}
                   </select>
                 </label>
-                <label className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
-                  Due date
-                  <input
-                    type="date"
-                    value={dueDate}
-                    disabled={!canEdit}
-                    onChange={(event) => {
-                      setDueDate(event.target.value);
-                      persist({ dueAt: dateInputToIso(event.target.value) });
-                    }}
-                    className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50"
-                  />
-                </label>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Due date</span>
+                  <TaskDatePicker value={dueDate} disabled={!canEdit} onChange={(value) => {
+                    setDueDate(value);
+                    persist({ dueAt: dateInputToIso(value) });
+                  }} />
+                </div>
               </div>
 
               <section>

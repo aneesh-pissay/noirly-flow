@@ -187,12 +187,28 @@ export const api = {
     return request<{ attachments: TaskAttachment[] }>(`/api/tasks/${taskId}/attachments`);
   },
   uploadAttachment(taskId: string, file: File) {
-    const form = new FormData();
-    form.append("file", file);
-    return request<{ attachment: TaskAttachment }>(`/api/tasks/${taskId}/attachments`, {
-      method: "POST",
-      body: form,
-    });
+    return (async () => {
+      const prepared = await request<{ upload: { mode: "proxy" } | { mode: "direct"; key: string; uploadUrl: string; contentType: string } }>(
+        `/api/tasks/${taskId}/attachments/upload-url`,
+        { method: "POST", body: JSON.stringify({ name: file.name, type: file.type, size: file.size }) },
+      );
+      if (prepared.upload.mode === "proxy") {
+        const form = new FormData();
+        form.append("file", file);
+        return request<{ attachment: TaskAttachment }>(`/api/tasks/${taskId}/attachments`, { method: "POST", body: form });
+      }
+      const response = await fetch(prepared.upload.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": prepared.upload.contentType },
+        body: file,
+        credentials: "omit",
+      });
+      if (!response.ok) throw new ApiRequestError(response.status, "Direct R2 upload failed. Try again.");
+      return request<{ attachment: TaskAttachment }>(`/api/tasks/${taskId}/attachments`, {
+        method: "POST",
+        body: JSON.stringify({ key: prepared.upload.key, name: file.name }),
+      });
+    })();
   },
   deleteAttachment(attachmentId: string) {
     return request<{ ok: boolean }>(`/api/attachments/${attachmentId}`, { method: "DELETE" });

@@ -2,11 +2,14 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import {
+  CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 /**
  * Where task attachments live. Cloudflare R2 when configured — the same
@@ -44,6 +47,47 @@ function r2() {
     responseChecksumValidation: "WHEN_REQUIRED",
   });
   return { client, bucket: config.bucket };
+}
+
+export function canWriteToR2() {
+  return Boolean(r2Config());
+}
+
+/** Issue a five-minute, content-type-bound URL for a browser to PUT directly to R2. */
+export async function createAttachmentUploadUrl(workspaceId: string, taskId: string, contentType: string) {
+  if (!r2Config()) return null;
+  const { client: s3, bucket } = r2();
+  const key = `flow/attachment-uploads/${workspaceId}/${taskId}/${Date.now()}-${randomUUID()}`;
+  const uploadUrl = await getSignedUrl(
+    s3,
+    new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType }),
+    { expiresIn: 300, signableHeaders: new Set(["content-type"]) },
+  );
+  return { key, uploadUrl, contentType };
+}
+
+export async function inspectR2Attachment(key: string) {
+  const { client: s3, bucket } = r2();
+  const result = await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+  return { size: result.ContentLength ?? 0, contentType: result.ContentType ?? "application/octet-stream" };
+}
+
+/** Move a validated temporary upload under the permanent attachment prefix. */
+export async function commitR2Attachment(workspaceId: string, sourceKey: string, contentType: string): Promise<StoredObject> {
+  const { client: s3, bucket } = r2();
+  const key = `flow/attachments/${workspaceId}/${randomUUID()}`;
+  const copySource = `/${bucket}/${sourceKey.split("/").map(encodeURIComponent).join("/")}`;
+  await s3.send(new CopyObjectCommand({
+    Bucket: bucket, Key: key, CopySource: copySource,
+    ContentType: contentType, MetadataDirective: "REPLACE",
+  }));
+  try {
+    await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: sourceKey }));
+  } catch {
+    await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key })).catch(() => {});
+    throw new Error("Temporary attachment cleanup failed");
+  }
+  return { storage: "r2", key };
 }
 
 function localDir() {

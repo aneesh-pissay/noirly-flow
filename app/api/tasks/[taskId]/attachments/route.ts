@@ -7,12 +7,16 @@ import {
 } from "@/src/server/api/http";
 import {
   addAttachment,
+  completeAttachmentUpload,
   listAttachments,
   MAX_ATTACHMENT_BYTES,
 } from "@/src/server/attachments/task-attachments";
-import { readLimitedBytes } from "@/src/server/security/body";
+import { completeAttachmentUploadSchema } from "@/src/server/api/schemas";
+import { readApiJson, readLimitedBytes } from "@/src/server/security/body";
 
 type Params = { params: Promise<{ taskId: string }> };
+
+export const maxDuration = 60;
 
 export async function GET(_request: Request, { params }: Params) {
   try {
@@ -29,13 +33,18 @@ export async function POST(request: Request, { params }: Params) {
   try {
     const { taskId } = await params;
     await assertObjectId(taskId, "taskId");
-    // Refuse oversized uploads before reading them into memory.
+    const { ctx } = await getSyncProvider();
+    const contentType = request.headers.get("content-type") ?? "";
+    if (contentType.toLowerCase().startsWith("application/json")) {
+      const body = completeAttachmentUploadSchema.safeParse(await readApiJson(request));
+      if (!body.success) throw new ApiError(400, "invalid_request", "Invalid attachment upload confirmation");
+      return jsonOk({ attachment: await completeAttachmentUpload(ctx.userId, taskId, body.data) }, 201);
+    }
+    // Refuse oversized proxy uploads before reading them into memory.
     const length = Number(request.headers.get("content-length") ?? 0);
     if (length > MAX_ATTACHMENT_BYTES + 64 * 1024) {
       throw new ApiError(413, "too_large", "Files can be up to 25 MB");
     }
-    const { ctx } = await getSyncProvider();
-    const contentType = request.headers.get("content-type") ?? "";
     if (!contentType.toLowerCase().startsWith("multipart/form-data;")) {
       throw new ApiError(415, "unsupported_media_type", "Expected a multipart file upload");
     }

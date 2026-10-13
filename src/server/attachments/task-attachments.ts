@@ -6,6 +6,10 @@ import { ApiError } from "@/src/server/api/http";
 import { recordActivity } from "@/src/server/activity";
 import { requireWorkspaceRole } from "@/src/server/workspace/members";
 import {
+  canWriteToR2,
+  commitR2Attachment,
+  createAttachmentUploadUrl,
+  inspectR2Attachment,
   putAttachment,
   readAttachment,
   removeAttachment,
@@ -118,6 +122,79 @@ export async function addAttachment(
     }).catch(() => console.error("recordActivity failed"));
     return mapAttachment(doc);
   });
+}
+
+/** Reserve a random temporary key and return a short-lived direct R2 upload URL. */
+export async function prepareAttachmentUpload(
+  userId: string,
+  taskId: string,
+  file: { name: string; type: string; size: number },
+) {
+  return withDb(async () => {
+    const { task } = await requireTask(userId, taskId, "member");
+    if (!canWriteToR2()) return { mode: "proxy" as const };
+    validateUploadSize(file.size);
+    const count = await TaskAttachment.countDocuments({ taskId: task._id, deletedAt: null });
+    if (count >= MAX_ATTACHMENTS_PER_TASK) {
+      throw new ApiError(400, "invalid_request", `A task can have up to ${MAX_ATTACHMENTS_PER_TASK} attachments`);
+    }
+    const contentType = cleanContentType(file.type);
+    const upload = await createAttachmentUploadUrl(task.workspaceId.toString(), task._id.toString(), contentType);
+    if (!upload) return { mode: "proxy" as const };
+    return { mode: "direct" as const, ...upload };
+  });
+}
+
+/** Validate a completed browser upload, copy it out of the temporary prefix, and persist metadata. */
+export async function completeAttachmentUpload(userId: string, taskId: string, input: { key: string; name: string }) {
+  return withDb(async () => {
+    const { task } = await requireTask(userId, taskId, "member");
+    const prefix = `flow/attachment-uploads/${task.workspaceId}/${task._id}/`;
+    const match = input.key.startsWith(prefix) && input.key.slice(prefix.length).match(/^(\d{13})-([a-f0-9-]{36})$/i);
+    const issuedAt = match ? Number(match[1]) : 0;
+    if (!match || !Number.isSafeInteger(issuedAt) || Date.now() - issuedAt > 15 * 60_000 || issuedAt > Date.now() + 60_000) {
+      throw new ApiError(400, "invalid_request", "Invalid or expired upload");
+    }
+    if (await TaskAttachment.exists({ key: input.key })) {
+      throw new ApiError(409, "already_completed", "This upload has already been attached");
+    }
+    const info = await inspectR2Attachment(input.key).catch(() => null);
+    if (!info) throw new ApiError(400, "upload_missing", "Upload the file before completing the attachment");
+    validateUploadSize(info.size);
+    const bytes = Buffer.from(await readAttachment({ storage: "r2", key: input.key }));
+    if (bytes.byteLength !== info.size) throw new ApiError(400, "invalid_upload", "Uploaded file size could not be verified");
+    const mime = safeAttachmentMime(info.contentType, bytes);
+    const filename = cleanFilename(input.name);
+    const count = await TaskAttachment.countDocuments({ taskId: task._id, deletedAt: null });
+    if (count >= MAX_ATTACHMENTS_PER_TASK) throw new ApiError(400, "invalid_request", `A task can have up to ${MAX_ATTACHMENTS_PER_TASK} attachments`);
+    const stored = await commitR2Attachment(task.workspaceId.toString(), input.key, mime);
+    try {
+      const doc = await TaskAttachment.create({
+        workspaceId: task.workspaceId, taskId: task._id, uploadedById: new Types.ObjectId(userId),
+        filename, mime, sizeBytes: info.size, storage: stored.storage, key: stored.key,
+      });
+      void recordActivity({
+        workspaceId: task.workspaceId, projectId: task.projectId, taskId: task._id,
+        actorId: userId, verb: "attachment.added", metadata: { filename: doc.filename },
+      }).catch(() => console.error("recordActivity failed"));
+      return mapAttachment(doc);
+    } catch (error) {
+      await removeAttachment(stored);
+      throw error;
+    }
+  });
+}
+
+function validateUploadSize(size: number) {
+  if (!Number.isInteger(size) || size <= 0) throw new ApiError(400, "invalid_request", "That file is empty or invalid");
+  if (size > MAX_ATTACHMENT_BYTES) throw new ApiError(413, "too_large", "Files can be up to 25 MB");
+}
+
+function cleanContentType(value: string) {
+  const type = value.trim().toLowerCase().split(";")[0];
+  return /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(type)
+    ? type
+    : "application/octet-stream";
 }
 
 /** The file and how to serve it, after checking the viewer belongs to its workspace. */

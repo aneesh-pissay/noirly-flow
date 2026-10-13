@@ -32,6 +32,17 @@ export const createTaskBodySchema = z.object({
   dueAt: dueAtSchema,
 });
 
+export const prepareAttachmentUploadSchema = z.object({
+  name: z.string().trim().min(1).max(1024),
+  type: z.string().max(255).optional().default(""),
+  size: z.number().int().min(1).max(25 * 1024 * 1024),
+});
+
+export const completeAttachmentUploadSchema = z.object({
+  key: z.string().min(1).max(512),
+  name: z.string().trim().min(1).max(1024),
+});
+
 export const updateTaskBodySchema = z
   .object({
     title: z.string().trim().min(1).max(500).optional(),

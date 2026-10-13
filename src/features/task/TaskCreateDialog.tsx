@@ -9,13 +9,17 @@ import { can } from "@/src/core/permissions/can";
 import { useUIStore } from "@/src/stores/ui-store";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { dateInputToIso } from "./dates";
+import { TaskDatePicker } from "./TaskDatePicker";
 
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+const MAX_ATTACHMENTS = 20;
 
 export function TaskCreateDialog({ draft }: {
   draft: { workspaceId: string; projectId: string | null; title: string };
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const attachmentInput = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   const close = useUIStore((state) => state.closeTaskForm);
@@ -26,16 +30,32 @@ export function TaskCreateDialog({ draft }: {
   const [priority, setPriority] = useState<TaskPriority>("none");
   const [dueDate, setDueDate] = useState("");
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [attachmentError, setAttachmentError] = useState("");
   const workspace = useQuery({ queryKey: qk.workspace(draft.workspaceId), queryFn: () => api.getWorkspace(draft.workspaceId) });
   const members = useQuery({ queryKey: qk.members(draft.workspaceId), queryFn: () => api.listMembers(draft.workspaceId) });
   const canWrite = Boolean(workspace.data && can(workspace.data.workspace.role, "task.write"));
-  const dirty = Boolean(title || description || dueDate || assigneeIds.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
+  const dirty = Boolean(title || description || dueDate || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
   const create = useMutation({
-    mutationFn: () => api.createTask(draft.workspaceId, {
-      title: title.trim(), description: description.trim() || null, projectId: projectId || null,
-      status, priority, dueAt: dateInputToIso(dueDate), assigneeIds,
-    }),
-    onSuccess: ({ task }) => {
+    mutationFn: async () => {
+      const result = await api.createTask(draft.workspaceId, {
+        title: title.trim(), description: description.trim() || null, projectId: projectId || null,
+        status, priority, dueAt: dateInputToIso(dueDate), assigneeIds,
+      });
+      const failed: string[] = [];
+      for (const [index, file] of attachments.entries()) {
+        setUploadProgress(`Uploading attachment ${index + 1} of ${attachments.length}…`);
+        try { await api.uploadAttachment(result.task.id, file); }
+        catch { failed.push(file.name); }
+      }
+      setUploadProgress("");
+      return { ...result, failedAttachments: failed };
+    },
+    onSuccess: ({ task, failedAttachments }) => {
+      if (failedAttachments.length) {
+        window.alert(`The task was created, but these attachments could not be uploaded: ${failedAttachments.join(", ")}. You can add them from the task.`);
+      }
       void queryClient.invalidateQueries({ queryKey: ["tasks", draft.workspaceId] });
       queryClient.setQueryData(qk.task(task.id), { task });
       close();
@@ -94,9 +114,7 @@ export function TaskCreateDialog({ draft }: {
                 <option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
               </select>
             </label>
-            <label className="text-sm sm:col-span-2">Due date
-              <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className={fieldClass} />
-            </label>
+            <div className="text-sm sm:col-span-2"><span>Due date</span><TaskDatePicker value={dueDate} onChange={setDueDate} /></div>
           </div>
           <fieldset><legend className="text-sm">Assignees</legend>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -107,11 +125,35 @@ export function TaskCreateDialog({ draft }: {
             {members.isPending ? <p className="mt-2 text-sm">Loading members…</p> : null}
             {members.isError ? <p role="alert" className="mt-2 text-sm">Could not load assignees. <button type="button" onClick={() => void members.refetch()} className="underline">Retry</button></p> : null}
           </fieldset>
-          <p className="text-xs text-[var(--muted-foreground)]">Attachments and comments can be added after creating the task.</p>
+          <fieldset className="space-y-2">
+            <legend className="text-sm">Attachments <span className="text-[var(--muted-foreground)]">(optional)</span></legend>
+            <p className="text-xs text-[var(--muted-foreground)]">Attach up to {MAX_ATTACHMENTS} files, 25 MB each.</p>
+            <input ref={attachmentInput} type="file" multiple hidden aria-label="Choose task attachments"
+              onChange={(event) => {
+                const chosen = Array.from(event.target.files ?? []);
+                const oversized = chosen.filter((file) => file.size > MAX_ATTACHMENT_BYTES);
+                const next = [...attachments, ...chosen.filter((file) => file.size <= MAX_ATTACHMENT_BYTES)];
+                setAttachmentError(oversized.length ? `${oversized.map((file) => file.name).join(", ")} exceed the 25 MB limit.` : "");
+                if (next.length > MAX_ATTACHMENTS) setAttachmentError(`A task can have up to ${MAX_ATTACHMENTS} attachments.`);
+                else setAttachments(next);
+                event.target.value = "";
+              }} />
+            <button type="button" onClick={() => attachmentInput.current?.click()}
+              className="min-h-10 rounded-xl border border-[var(--hairline)] px-3 text-sm hover:bg-[var(--bg)]">
+              Choose files
+            </button>
+            {attachments.length ? <ul className="space-y-1">
+              {attachments.map((file, index) => <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-lg border border-[var(--hairline)] px-3 py-2 text-sm">
+                <span className="min-w-0 truncate">{file.name}</span>
+                <button type="button" aria-label={`Remove ${file.name}`} onClick={() => setAttachments((files) => files.filter((_, i) => i !== index))} className="shrink-0 underline">Remove</button>
+              </li>)}
+            </ul> : null}
+            {attachmentError ? <p role="alert" className="text-xs">{attachmentError}</p> : null}
+          </fieldset>
         </fieldset>
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--hairline)] p-5">
-          <div role="status" className="text-sm text-[var(--muted-foreground)]">{workspace.isPending ? "Loading workspace…" : create.isPending ? "Creating task…" : "Not created yet"}</div>
-          <button type="submit" disabled={!title.trim() || !canWrite || create.isPending} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-ink)] disabled:opacity-50">{create.isPending ? "Creating…" : "Create task"}</button>
+          <div role="status" className="text-sm text-[var(--muted-foreground)]">{workspace.isPending ? "Loading workspace…" : uploadProgress || (create.isPending ? "Creating task…" : "Not created yet")}</div>
+          <button type="submit" disabled={!title.trim() || !canWrite || create.isPending || Boolean(attachmentError)} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-ink)] disabled:opacity-50">{create.isPending ? uploadProgress ? "Attaching…" : "Creating…" : "Create task"}</button>
           {workspace.isError ? <p role="alert" className="w-full text-sm">Could not load workspace. <button type="button" className="underline" onClick={() => void workspace.refetch()}>Retry</button></p> : null}
           {workspace.data && !canWrite ? <p role="alert" className="w-full text-sm">You do not have permission to create tasks here.</p> : null}
           {create.isError ? <p role="alert" className="w-full text-sm">{create.error.message}</p> : null}

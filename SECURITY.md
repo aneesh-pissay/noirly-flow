@@ -20,6 +20,10 @@ Both email workers use the same Flow SMTP configuration and `CRON_SECRET` descri
 
 Delivery uses a five-minute claim lease and retry backoff. Success is recorded only after SMTP accepts the message. SMTP delivery is at least once: a crash after acceptance can cause a duplicate. A worker invocation is bounded to 50 attempts / about 35 seconds of work plus the current mail operation. The response includes `more` when that budget is exhausted. For volumes exceeding one daily invocation, configure a scheduler/queue to drain repeated authenticated calls and monitor deferred mail; the provided daily schedule alone does not guarantee every recipient is processed that day. Vercel invocation timing and SMTP acceptance do not guarantee exact inbox arrival time.
 
+## Direct R2 attachment uploads
+
+When all four `R2_*` settings are present, Flow issues a five-minute, content-type-bound PUT URL and the browser uploads bytes directly to R2. Flow verifies object size and content, copies validated files from `flow/attachment-uploads/` to the private `flow/attachments/` prefix, then records attachment metadata. Without R2 configuration, local development keeps using the existing Flow upload route. Downloads still pass through Flow's authorization-checked API. Create a bucket-scoped R2 API token with Object Read & Write access. In the R2 bucket's CORS policy, allow `PUT`, `Content-Type`, and the exact Flow origin (plus any origins used for local or preview uploads). Add a lifecycle rule expiring the `flow/attachment-uploads/` prefix after one day to clean up uploads that never get finalized. Do not make the bucket public. The R2 values are listed in `.env.example`; no public bucket URL is needed.
+
 ## Coordinated rollout
 
 The coordinated rollout guide is maintained in the sibling Identity repository at `docs/SECURITY-ROLLOUT.md`.
