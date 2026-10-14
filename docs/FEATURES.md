@@ -94,7 +94,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | Open project | `/w/.../p/[projectId]`; workspace root jumps to first project |
 | Move tasks | Drawer can move a task between Inbox and a project |
 
-**Not in product yet:** rename, archive, delete, description/color/`defaultView` UI, custom column CRUD, separate `/board` `/list` `/calendar` URLs (views are in-page toggles).
+**Not in product yet:** rename, archive, delete, description/color/`defaultView` UI, separate `/board` `/list` `/calendar` URLs (views are in-page toggles).
 
 ---
 
@@ -110,7 +110,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | Status | `todo` \| `in_progress` \| `done` \| `canceled` |
 | Priority | `none` \| `low` \| `medium` \| `high` \| `urgent` |
 | Due date | Stored + overdue / today badges |
-| Soft delete | `deletedAt` (no restore UI) |
+| Soft delete + Trash | `deletedAt`; **Undo** right after deleting, and `/w/[workspaceId]/trash` lists deleted tasks with **Restore** (back to its project and column, or the Inbox if the project is gone) |
 
 ### 6.2 Views
 
@@ -148,8 +148,10 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Task activity | Inside the drawer |
 | Workspace activity | Infinite “Load more” on `/w/.../activity` |
 | CSV export | Whole workspace log built server-side in one request (`GET /api/workspaces/[workspaceId]/activity/export`) |
+| Edit / delete comments | Authors edit their own (shown as *edited*; newly tagged people are notified); authors, admins and owners delete |
+| In-app notifications | Header bell: mentions, assignments, and comments on tasks you created or are assigned to; unread count, mark read / mark all read; polls every 60s |
 
-**Not in product yet:** edit / delete comments, mentions, notifications, email.
+**Not in product yet:** comment threads / reactions; notification preferences.
 
 ---
 
@@ -271,9 +273,8 @@ Requires `NEXT_PUBLIC_REALTIME_WS_URL` (and matching server JWT config).
 Tracked here so architecture plans are not mistaken for shipped product:
 
 - Dedicated `/search`, workspace settings, per-view board/list/calendar URLs, task deep-link page
-- Project / workspace / column admin (rename, archive, delete, custom columns, tag color picker)
+- Project / workspace / column admin (archive, tag color picker)
 - Email invites, notifications, mentions, billing
-- Comment edit/delete, soft-delete restore
 - Full RRULE; `blocked` status; `startAt` UI
 - Presence task-focus highlight; Inbox realtime
 - Light theme toggle; offline CRDT; chat / video (architecture non-goals)

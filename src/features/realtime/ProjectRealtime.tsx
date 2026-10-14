@@ -10,7 +10,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { shouldApplyLww } from "@noirly-dev/realtime-shared";
-import type { Comment, Task } from "@/src/core/sync/types";
+import type { BoardColumn, Comment, Project, Task } from "@/src/core/sync/types";
 import { qk } from "@/src/core/sync/query-keys";
 import { setRealtimeScope } from "@/src/features/realtime/FlowRealtimeProvider";
 import { PresenceAvatars } from "@/src/features/realtime/PresenceAvatars";
@@ -96,6 +96,30 @@ export function ProjectRealtime({
     void queryClient.invalidateQueries({
       queryKey: qk.activity(workspaceId, data.taskId),
     });
+  });
+
+  useRealtimeEvent<CommentPayload>(channel, "comment.updated", (data) => {
+    queryClient.setQueryData<{ comments: Comment[] }>(qk.comments(data.taskId), (old) =>
+      old
+        ? { comments: old.comments.map((comment) => (comment.id === data.comment.id ? data.comment : comment)) }
+        : old,
+    );
+  });
+
+  useRealtimeEvent<{ taskId: string; commentId: string }>(channel, "comment.deleted", (data) => {
+    queryClient.setQueryData<{ comments: Comment[] }>(qk.comments(data.taskId), (old) =>
+      old ? { comments: old.comments.filter((comment) => comment.id !== data.commentId) } : old,
+    );
+    void queryClient.invalidateQueries({
+      queryKey: qk.activity(workspaceId, data.taskId),
+    });
+  });
+
+  useRealtimeEvent<{ projectId: string; columns: BoardColumn[]; tasksMoved?: boolean }>(channel, "columns.changed", (data) => {
+    queryClient.setQueryData<{ project: Project & { columns: BoardColumn[] } }>(qk.project(projectId), (old) =>
+      old ? { project: { ...old.project, columns: data.columns } } : old,
+    );
+    if (data.tasksMoved) void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
   });
 
   // Project chat: refetch rather than splice, so pages and order stay the server's.

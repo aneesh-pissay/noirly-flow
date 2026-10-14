@@ -20,6 +20,7 @@ export {
   ProjectMessage,
   type ProjectMessageDocument,
 } from "./ProjectMessage";
+export { Notification, type NotificationDocument } from "./Notification";
 export {
   TaskAttachment,
   type TaskAttachmentDocument,

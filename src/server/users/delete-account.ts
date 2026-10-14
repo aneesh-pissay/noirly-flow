@@ -4,6 +4,7 @@ import {
   BoardColumn,
   Comment,
   FlowUser,
+  Notification,
   Project,
   ProjectMessage,
   Report,
@@ -45,6 +46,7 @@ export async function purgeWorkspace(workspaceId: Types.ObjectId): Promise<void>
     Comment.deleteMany({ workspaceId }),
     ProjectMessage.deleteMany({ workspaceId }),
     ActivityEvent.deleteMany({ workspaceId }),
+    Notification.deleteMany({ workspaceId }),
     Report.deleteMany({ workspaceId }),
     WorkspaceInvite.deleteMany({ workspaceId }),
     WorkspaceMembership.deleteMany({ workspaceId }),
@@ -108,6 +110,8 @@ export async function deleteFlowAccountData(identitySub: string): Promise<FlowDe
     ProjectMessage.deleteMany({ authorId: userId }),
     purgeAttachments({ uploadedById: userId }),
     ActivityEvent.deleteMany({ actorId: userId }),
+    // Their own inbox, and what they caused in other people's.
+    Notification.deleteMany({ $or: [{ userId }, { actorId: userId }] }),
     WorkspaceInvite.deleteMany({ createdById: userId }),
     // Reports they filed, and reports about them or their content.
     Report.deleteMany({ $or: [{ reporterId: userId }, { targetUserId: userId }] }),

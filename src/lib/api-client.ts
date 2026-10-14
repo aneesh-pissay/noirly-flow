@@ -1,6 +1,8 @@
 import type {
   ActivityEvent,
+  AppNotification,
   BoardColumn,
+  BoardStatus,
   ChatMessage,
   Comment,
   CommentMention,
@@ -8,6 +10,7 @@ import type {
   Tag,
   Task,
   TaskAttachment,
+  TrashedTask,
   Workspace,
 } from "@/src/core/sync/types";
 import type { MemberRole } from "@/src/core/models/enums";
@@ -85,6 +88,15 @@ export const api = {
     }>("/api/me", {
       method: "PATCH",
       body: JSON.stringify({ profile }),
+    });
+  },
+  listNotifications() {
+    return request<{ items: AppNotification[]; unread: number }>("/api/notifications");
+  },
+  markNotificationsRead(ids?: string[]) {
+    return request<{ ok: boolean }>("/api/notifications/read", {
+      method: "POST",
+      body: JSON.stringify(ids ? { ids } : {}),
     });
   },
   listWorkspaces() {
@@ -182,6 +194,29 @@ export const api = {
         body: JSON.stringify(body),
       },
     );
+  },
+  createColumn(projectId: string, body: { name: string; statusMapped: BoardStatus }) {
+    return request<{ columns: BoardColumn[] }>(`/api/projects/${projectId}/columns`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+  reorderColumns(projectId: string, columnIds: string[]) {
+    return request<{ columns: BoardColumn[] }>(`/api/projects/${projectId}/columns`, {
+      method: "PATCH",
+      body: JSON.stringify({ columnIds }),
+    });
+  },
+  updateColumn(columnId: string, patch: { name?: string; statusMapped?: BoardStatus }) {
+    return request<{ columns: BoardColumn[] }>(`/api/columns/${columnId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  },
+  deleteColumn(columnId: string) {
+    return request<{ columns: BoardColumn[] }>(`/api/columns/${columnId}`, {
+      method: "DELETE",
+    });
   },
   listAttachments(taskId: string) {
     return request<{ attachments: TaskAttachment[] }>(`/api/tasks/${taskId}/attachments`);
@@ -311,6 +346,14 @@ export const api = {
       method: "DELETE",
     });
   },
+  listTrash(workspaceId: string) {
+    return request<{ items: TrashedTask[] }>(`/api/workspaces/${workspaceId}/trash`);
+  },
+  restoreTask(taskId: string) {
+    return request<{ task: Task }>(`/api/tasks/${taskId}/restore`, {
+      method: "POST",
+    });
+  },
   search(q: string) {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -349,6 +392,17 @@ export const api = {
     return request<{ comment: Comment }>(`/api/tasks/${taskId}/comments`, {
       method: "POST",
       body: JSON.stringify({ body, mentions }),
+    });
+  },
+  updateComment(commentId: string, body: string, mentions: CommentMention[] = []) {
+    return request<{ comment: Comment }>(`/api/comments/${commentId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ body, mentions }),
+    });
+  },
+  deleteComment(commentId: string) {
+    return request<{ ok: boolean }>(`/api/comments/${commentId}`, {
+      method: "DELETE",
     });
   },
   listActivity(workspaceId: string, query: { taskId?: string; cursor?: string } = {}) {

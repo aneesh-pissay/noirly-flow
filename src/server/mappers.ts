@@ -177,6 +177,7 @@ export function mapComment(doc: {
   taskId: Types.ObjectId;
   authorId: Types.ObjectId;
   body: string;
+  editedAt?: Date | null;
   deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -187,6 +188,7 @@ export function mapComment(doc: {
     authorId: doc.authorId.toString(),
     body: doc.body,
     mentions: (doc.mentions ?? []).map((mention) => ({ userId: mention.userId.toString(), start: mention.start, end: mention.end })),
+    editedAt: iso(doc.editedAt ?? null),
     deletedAt: iso(doc.deletedAt ?? null),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),

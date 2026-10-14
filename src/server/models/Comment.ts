@@ -39,6 +39,8 @@ const commentSchema = new Schema(
       nextAttemptAt: { type: Date, default: Date.now },
       lockedUntil: { type: Date, default: () => new Date(0) },
     }, { _id: false })], default: [] },
+    /** Set when the author edits the body; `updatedAt` also moves for mail bookkeeping. */
+    editedAt: { type: Date, default: null },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },

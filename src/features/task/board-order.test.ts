@@ -80,6 +80,24 @@ describe("groupTasksByColumn", () => {
     expect(groups["col-todo"]?.map((item) => item.id)).toEqual(["b", "a"]);
     expect(groups["col-done"]?.map((item) => item.id)).toEqual(["c"]);
   });
+
+  it("sends column-less tasks to the first of several columns with their status", () => {
+    const shared = resolveBoardColumns([
+      { id: "review", projectId: "proj", name: "Review", statusMapped: "in_progress", position: 3000, createdAt: "", updatedAt: "" },
+      { id: "doing", projectId: "proj", name: "Doing", statusMapped: "in_progress", position: 2000, createdAt: "", updatedAt: "" },
+      { id: "todo", projectId: "proj", name: "Todo", statusMapped: "todo", position: 1000, createdAt: "", updatedAt: "" },
+    ]);
+    expect(shared.map((column) => column.id)).toEqual(["todo", "doing", "review"]);
+    const groups = groupTasksByColumn(
+      [
+        task({ id: "a", status: "in_progress", columnId: null }),
+        task({ id: "b", status: "in_progress", columnId: "review" }),
+      ],
+      shared,
+    );
+    expect(groups["doing"]?.map((item) => item.id)).toEqual(["a"]);
+    expect(groups["review"]?.map((item) => item.id)).toEqual(["b"]);
+  });
 });
 
 describe("moveTaskInGroups + buildReorderMoves", () => {

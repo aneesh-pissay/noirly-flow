@@ -246,13 +246,18 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     onMutate: async (taskId) => {
       await queryClient.cancelQueries({ queryKey: ["tasks", workspaceId] });
       const previous = snapshotTaskQueries(queryClient, workspaceId);
+      const title = tasksQuery.data?.tasks.find((task) => task.id === taskId)?.title ?? "Task";
       if (drawerTaskId === taskId) {
         setDrawerTaskId(null);
         writeTaskParam(null);
       }
       removeCachedTask(queryClient, workspaceId, taskId);
       setError(null);
-      return { previous };
+      return { previous, title };
+    },
+    onSuccess: (_data, taskId, context) => {
+      setUndoable({ id: taskId, title: context.title });
+      void queryClient.invalidateQueries({ queryKey: qk.trash(workspaceId) });
     },
     onError: (err: Error, _taskId, context) => {
       if (context?.previous) {
@@ -260,6 +265,24 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
       }
       setError(err.message);
     },
+  });
+
+  // The last deleted task, offered back for a few seconds; older ones live in Trash.
+  const [undoable, setUndoable] = useState<{ id: string; title: string } | null>(null);
+  useEffect(() => {
+    if (!undoable) return;
+    const timer = window.setTimeout(() => setUndoable(null), 8000);
+    return () => window.clearTimeout(timer);
+  }, [undoable]);
+
+  const restoreMutation = useMutation({
+    mutationFn: (taskId: string) => api.restoreTask(taskId),
+    onSuccess: () => {
+      setUndoable(null);
+      void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
+      void queryClient.invalidateQueries({ queryKey: qk.trash(workspaceId) });
+    },
+    onError: (err: Error) => setError(err.message),
   });
 
   const reorderMutation = useMutation({
@@ -499,6 +522,25 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
         </p>
       ) : null}
 
+      <div role="status">
+        {undoable ? (
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--r-lg)] border border-[var(--hairline)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
+            <span className="min-w-0 truncate">Deleted “{undoable.title}”.</span>
+            <button
+              type="button"
+              disabled={restoreMutation.isPending}
+              onClick={() => restoreMutation.mutate(undoable.id)}
+              className="cursor-pointer font-medium text-[var(--accent)] underline-offset-2 hover:underline disabled:opacity-50"
+            >
+              {restoreMutation.isPending ? "Restoring…" : "Undo"}
+            </button>
+            <Link href={`/w/${workspaceId}/trash`} className="underline-offset-2 hover:text-[var(--foreground)] hover:underline">
+              View trash
+            </Link>
+          </p>
+        ) : null}
+      </div>
+
       {tasksQuery.isLoading ? (
         <p className="text-sm text-[var(--muted-foreground)]">Loading tasks…</p>
       ) : tasksQuery.isError ? (
@@ -535,6 +577,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
         <p className="text-sm text-[var(--muted-foreground)]">Loading board…</p>
       ) : (
         <TaskBoard
+          workspaceId={workspaceId}
           projectId={projectId}
           tasks={tasks}
           columns={projectQuery.data?.project.columns}

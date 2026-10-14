@@ -52,7 +52,11 @@ export function groupTasksByColumn(
   const groups: ColumnTasks = Object.fromEntries(
     columns.map((column) => [column.id, []]),
   );
-  const byStatus = new Map(columns.map((column) => [column.status, column.id]));
+  // Several columns can share a status; tasks without a column go to the first.
+  const byStatus = new Map<TaskStatus, string>();
+  for (const column of columns) {
+    if (!byStatus.has(column.status)) byStatus.set(column.status, column.id);
+  }
 
   for (const task of tasks) {
     if (task.status === "canceled") continue;

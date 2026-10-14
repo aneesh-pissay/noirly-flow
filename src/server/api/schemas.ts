@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  COLUMN_STATUSES,
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from "@/src/core/models/enums";
@@ -126,6 +127,28 @@ export const updateProjectBodySchema = z
     message: "Nothing to update",
   });
 
+export const createColumnBodySchema = z.object({
+  name: z.string().trim().min(1).max(40),
+  statusMapped: z.enum(COLUMN_STATUSES),
+});
+
+export const updateColumnBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(40).optional(),
+    statusMapped: z.enum(COLUMN_STATUSES).optional(),
+  })
+  .refine((value) => value.name !== undefined || value.statusMapped !== undefined, {
+    message: "Nothing to update",
+  });
+
+export const reorderColumnsBodySchema = z.object({
+  columnIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).min(1).max(50),
+});
+
+export const markNotificationsReadBodySchema = z.object({
+  ids: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).min(1).max(100).optional(),
+}).strict();
+
 export const createWorkspaceBodySchema = z.object({
   name: z.string().trim().min(1).max(80),
 });
@@ -158,6 +181,8 @@ export const createCommentBodySchema = z.object({
     end: z.number().int().min(1).max(8000),
   }).strict()).max(50).optional(),
 });
+
+export const updateCommentBodySchema = createCommentBodySchema;
 
 const optionalText = (max: number) =>
   z

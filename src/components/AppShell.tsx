@@ -8,6 +8,7 @@ import {
   Search,
   Settings,
   SlidersHorizontal,
+  Trash2,
   Users,
 } from "lucide-react";
 import {
@@ -22,6 +23,7 @@ import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
 import { useOptimisticPath } from "@/src/components/NavLink";
 import { ThemeControls } from "@/src/components/ThemeControls";
+import { NotificationBell } from "@/src/features/notifications/NotificationBell";
 import { BrandMark } from "@/src/components/BrandMark";
 import { api } from "@/src/lib/api-client";
 import { qk } from "@/src/core/sync/query-keys";
@@ -104,6 +106,12 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
             href: `/w/${workspaceId}/activity`,
             label: "Activity",
             icon: Activity,
+            match: "prefix" as const,
+          },
+          {
+            href: `/w/${workspaceId}/trash`,
+            label: "Trash",
+            icon: Trash2,
             match: "prefix" as const,
           },
           {
@@ -218,7 +226,10 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
           ),
           actions: (
             // Search opens from the sidebar's Search button or ⌘K / Ctrl+K.
-            <ThemeControls size="sm" />
+            <div className="flex items-center gap-1.5">
+              <NotificationBell />
+              <ThemeControls size="sm" />
+            </div>
           ),
         }}
       >

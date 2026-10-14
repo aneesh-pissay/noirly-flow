@@ -1,5 +1,6 @@
 export const qk = {
   workspaces: ["workspaces"] as const,
+  notifications: ["notifications"] as const,
   workspace: (id: string) => ["workspaces", id] as const,
   projects: (workspaceId: string) => ["projects", workspaceId] as const,
   project: (projectId: string) => ["project", projectId] as const,
@@ -10,6 +11,7 @@ export const qk = {
   comments: (taskId: string) => ["comments", taskId] as const,
   chat: (projectId: string) => ["chat", projectId] as const,
   attachments: (taskId: string) => ["attachments", taskId] as const,
+  trash: (workspaceId: string) => ["trash", workspaceId] as const,
   activity: (workspaceId: string, taskId?: string) =>
     ["activity", workspaceId, taskId ?? "all"] as const,
 };

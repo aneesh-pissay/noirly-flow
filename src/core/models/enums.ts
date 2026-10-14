@@ -10,6 +10,9 @@ export type ProjectView = (typeof PROJECT_VIEWS)[number];
 export const TASK_STATUSES = ["todo", "in_progress", "done", "canceled"] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
+/** Statuses a board column can map to, in board order. */
+export const COLUMN_STATUSES = ["todo", "in_progress", "done"] as const;
+
 export const TASK_PRIORITIES = ["none", "low", "medium", "high", "urgent"] as const;
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 

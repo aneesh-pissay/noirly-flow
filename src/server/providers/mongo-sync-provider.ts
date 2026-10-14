@@ -1,6 +1,7 @@
 import { Types, type HydratedDocument } from "mongoose";
 import type { TaskDocument } from "@/src/server/models";
 import type {
+  CommentMention,
   CreateProjectInput,
   CreateTaskInput,
   ListTasksQuery,
@@ -19,6 +20,7 @@ import {
   ActivityEvent,
   BoardColumn,
   Comment,
+  Notification,
   Project,
   Tag,
   Task as TaskModel,
@@ -37,7 +39,12 @@ import {
 import { ApiError } from "@/src/server/api/http";
 import { idsEqual, recordActivity } from "@/src/server/activity";
 import { escapeRegex } from "@/src/server/search";
+import { notify } from "@/src/server/notifications";
 import { purgeWorkspace } from "@/src/server/users/delete-account";
+
+/** The trash shows this many of the most recently deleted tasks. */
+const TRASH_LIMIT = 200;
+const MAX_COLUMNS = 12;
 
 type ProviderContext = {
   userId: string;
@@ -68,6 +75,23 @@ function oid(id: string) {
   return new Types.ObjectId(id);
 }
 
+/** Trims the body and checks each @-tag sits on its text, in order, without overlap. */
+function checkCommentBody(input: { body: string; mentions?: CommentMention[] }) {
+  const body = input.body.trim();
+  if (!body) {
+    throw new ApiError(400, "invalid_request", "Comment cannot be empty");
+  }
+  const mentions = [...(input.mentions ?? [])].sort((a, b) => a.start - b.start);
+  if (mentions.length > 50 || mentions.some((mention, index) =>
+    !Number.isInteger(mention.start) || !Number.isInteger(mention.end) ||
+    mention.start < 0 || mention.end > body.length || mention.end <= mention.start + 1 ||
+    body[mention.start] !== "@" || /[\r\n]/.test(body.slice(mention.start, mention.end)) ||
+    (index > 0 && mention.start < mentions[index - 1].end)
+  )) throw new ApiError(400, "invalid_request", "Invalid comment mentions");
+  const recipientIds = [...new Set(mentions.map((mention) => mention.userId.toLowerCase()))];
+  return { body, mentions, recipientIds };
+}
+
 function nextPosition(after?: number | null) {
   if (typeof after === "number" && Number.isFinite(after)) {
     return after + 1000;
@@ -90,10 +114,7 @@ async function spawnNextOccurrence(
   const dueAt = nextOccurrenceDueAt(source.dueAt, rule);
   let columnId = null;
   if (source.projectId) {
-    const column = await BoardColumn.findOne({
-      projectId: source.projectId,
-      statusMapped: "todo",
-    }).lean();
+    const column = await firstColumnFor(source.projectId, "todo");
     columnId = column?._id ?? null;
   }
 
@@ -171,6 +192,43 @@ async function requireMembership(
   }
 
   return membership.role as MemberRole;
+}
+
+/** A project that isn't deleted, after checking the caller's role in its workspace. */
+async function requireLiveProject(userId: string, projectId: string, minRole: MemberRole) {
+  const project = await Project.findById(oid(projectId)).lean();
+  if (!project || project.deletedAt) {
+    throw new ApiError(404, "not_found", "Project not found");
+  }
+  await requireMembership(userId, project.workspaceId.toString(), minRole);
+  return project;
+}
+
+async function listColumns(projectId: Types.ObjectId) {
+  const columns = await BoardColumn.find({ projectId }).sort({ position: 1 }).lean();
+  return columns.map(mapColumn);
+}
+
+/** The leftmost column for a status; tasks without a column choice land here. */
+function firstColumnFor(projectId: Types.ObjectId, status: TaskStatus) {
+  return BoardColumn.findOne({ projectId, statusMapped: status }).sort({ position: 1 }).lean();
+}
+
+/**
+ * A column may lose its status only while another column keeps it, or tasks
+ * set to that status from the list would have nowhere to show on the board.
+ * Returns that other column.
+ */
+async function assertStatusKeepsAColumn(column: { _id: Types.ObjectId; projectId: Types.ObjectId; statusMapped?: TaskStatus | null }) {
+  const other = await BoardColumn.findOne({
+    projectId: column.projectId,
+    statusMapped: column.statusMapped,
+    _id: { $ne: column._id },
+  }).sort({ position: 1 }).lean();
+  if (!other) {
+    throw new ApiError(409, "last_status_column", "Each of Todo, In progress and Done needs at least one column");
+  }
+  return other;
 }
 
 async function requireTaskAccess(userId: string, taskId: string) {
@@ -436,6 +494,85 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       });
     },
 
+    async createColumn(projectId, input) {
+      return withDb(async () => {
+        const project = await requireLiveProject(userId, projectId, "member");
+        const count = await BoardColumn.countDocuments({ projectId: project._id });
+        if (count >= MAX_COLUMNS) {
+          throw new ApiError(400, "invalid_request", `A board can have up to ${MAX_COLUMNS} columns`);
+        }
+        const last = await BoardColumn.findOne({ projectId: project._id }).sort({ position: -1 }).lean();
+        await BoardColumn.create({
+          projectId: project._id,
+          name: input.name.trim(),
+          statusMapped: input.statusMapped,
+          position: (last?.position ?? 0) + 1000,
+        });
+        return listColumns(project._id);
+      });
+    },
+
+    async updateColumn(columnId, patch) {
+      return withDb(async () => {
+        const column = await BoardColumn.findById(oid(columnId));
+        if (!column) throw new ApiError(404, "not_found", "Column not found");
+        const project = await requireLiveProject(userId, column.projectId.toString(), "member");
+        if (patch.statusMapped !== undefined && patch.statusMapped !== column.statusMapped) {
+          await assertStatusKeepsAColumn(column);
+          // Moving cards' status in bulk would skip completion mail and recurrence.
+          if (await TaskModel.exists({ columnId: column._id, deletedAt: null })) {
+            throw new ApiError(409, "column_not_empty", "Move this column's tasks out before changing its status");
+          }
+          column.statusMapped = patch.statusMapped;
+        }
+        if (patch.name !== undefined) column.name = patch.name.trim();
+        await column.save();
+        return { projectId: project._id.toString(), columns: await listColumns(project._id) };
+      });
+    },
+
+    async deleteColumn(columnId) {
+      return withDb(async () => {
+        const column = await BoardColumn.findById(oid(columnId));
+        if (!column) throw new ApiError(404, "not_found", "Column not found");
+        const project = await requireLiveProject(userId, column.projectId.toString(), "member");
+        const target = await assertStatusKeepsAColumn(column);
+        // Cards keep their status and order, after the target's own cards.
+        // Deleted tasks move too, so restoring one lands on a real column.
+        const [last, moving] = await Promise.all([
+          TaskModel.findOne({ columnId: target._id, deletedAt: null }).sort({ position: -1 }).select("position").lean(),
+          TaskModel.find({ columnId: column._id }).sort({ position: 1 }).select("_id").lean(),
+        ]);
+        const base = last?.position ?? 0;
+        if (moving.length) {
+          await TaskModel.bulkWrite(moving.map((task, index) => ({
+            updateOne: {
+              filter: { _id: task._id, columnId: column._id },
+              update: { $set: { columnId: target._id, position: base + (index + 1) * 1000 } },
+            },
+          })));
+        }
+        await column.deleteOne();
+        return { projectId: project._id.toString(), columns: await listColumns(project._id) };
+      });
+    },
+
+    async reorderColumns(projectId, columnIds) {
+      return withDb(async () => {
+        const project = await requireLiveProject(userId, projectId, "member");
+        const current = await BoardColumn.find({ projectId: project._id }).select("_id").lean();
+        const ids = [...new Set(columnIds.map((id) => id.toLowerCase()))];
+        const known = new Set(current.map((column) => column._id.toString()));
+        if (ids.length !== current.length || ids.some((id) => !known.has(id))) {
+          throw new ApiError(409, "columns_changed", "The board's columns changed. Refresh and try again.");
+        }
+        await BoardColumn.bulkWrite(ids.map((id, index) => ({
+          updateOne: { filter: { _id: oid(id), projectId: project._id }, update: { $set: { position: (index + 1) * 1000 } } },
+        })));
+        return listColumns(project._id);
+      });
+    },
+
     async listTasks(query: ListTasksQuery) {
       return withDb(async () => {
         await requireMembership(userId, query.workspaceId, "viewer");
@@ -503,10 +640,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         const [, mappedColumn] = await Promise.all([
           requireMembership(userId, input.workspaceId, "member"),
           input.projectId && !columnId
-            ? BoardColumn.findOne({
-                projectId: oid(input.projectId),
-                statusMapped: status,
-              }).lean()
+            ? firstColumnFor(oid(input.projectId), status)
             : Promise.resolve(null),
         ]);
 
@@ -568,6 +702,13 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           metadata: { title: task.title },
         }).catch(() => {
           console.error("recordActivity failed");
+        });
+        await notify({
+          workspaceId: task.workspaceId,
+          taskId: task._id,
+          actorId: userId,
+          kind: "assigned",
+          recipientIds: assigneeIds,
         });
 
         return mapTask(task);
@@ -649,10 +790,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
             if (!nextProjectId) {
               task.columnId = null;
             } else {
-              const column = await BoardColumn.findOne({
-                projectId: nextProjectId,
-                statusMapped: task.status,
-              }).lean();
+              const column = await firstColumnFor(nextProjectId, task.status);
               task.columnId = column?._id ?? null;
             }
           }
@@ -669,11 +807,15 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
             task.completedAt = null;
           }
 
+          // Stay in the current column if it already stands for this status
+          // (several columns can share one); otherwise go to its first column.
           if (task.projectId && patch.columnId === undefined) {
-            const column = await BoardColumn.findOne({
+            const fits = task.columnId && await BoardColumn.exists({
+              _id: task.columnId,
               projectId: task.projectId,
               statusMapped: patch.status,
-            }).lean();
+            });
+            const column = fits ? null : await firstColumnFor(task.projectId, patch.status);
             if (column) {
               task.columnId = column._id;
             }
@@ -752,6 +894,13 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
 
         const activity: Array<Promise<unknown>> = [];
         if (!idsEqual(before.assigneeIds, afterAssignees)) {
+          await notify({
+            workspaceId: task.workspaceId,
+            taskId: task._id,
+            actorId: userId,
+            kind: "assigned",
+            recipientIds: afterAssignees.filter((id) => !before.assigneeIds.includes(id)),
+          });
           activity.push(
             recordActivity({
               workspaceId: task.workspaceId,
@@ -794,6 +943,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         await requireMembership(userId, task.workspaceId.toString(), "member");
         task.deletedAt = new Date();
         await task.save();
+        // Its notifications can't be opened any more; don't leave them counted as unread.
+        void Notification.updateMany({ taskId: task._id, readAt: null }, { $set: { readAt: new Date() } })
+          .catch(() => console.error("notification cleanup failed"));
         const mapped = mapTask(task);
         void recordActivity({
           workspaceId: task.workspaceId,
@@ -806,6 +958,68 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           console.error("recordActivity failed");
         });
         return mapped;
+      });
+    },
+
+    async listTrash(workspaceId) {
+      return withDb(async () => {
+        await requireMembership(userId, workspaceId, "viewer");
+        const tasks = await TaskModel.find({
+          workspaceId: oid(workspaceId),
+          deletedAt: { $ne: null },
+        })
+          .sort({ deletedAt: -1 })
+          .limit(TRASH_LIMIT)
+          .lean();
+        const projectIds = [...new Set(tasks.flatMap((task) => (task.projectId ? [task.projectId.toString()] : [])))];
+        const projects = await Project.find({ _id: { $in: projectIds.map(oid) } })
+          .select("name deletedAt")
+          .lean();
+        const byId = new Map(projects.map((project) => [project._id.toString(), project] as const));
+        return tasks.map((task) => {
+          const project = task.projectId ? byId.get(task.projectId.toString()) : undefined;
+          return {
+            task: mapTask(task),
+            projectName: project?.name ?? null,
+            projectDeleted: Boolean(task.projectId) && (!project || Boolean(project.deletedAt)),
+          };
+        });
+      });
+    },
+
+    async restoreTask(taskId) {
+      return withDb(async () => {
+        const task = await TaskModel.findOne({ _id: oid(taskId), deletedAt: { $ne: null } });
+        if (!task) throw new ApiError(404, "not_found", "Task is not in the trash");
+        await requireMembership(userId, task.workspaceId.toString(), "member");
+
+        // Put it back where it was if that place still exists; otherwise the Inbox.
+        if (task.projectId && !await Project.exists({ _id: task.projectId, deletedAt: null })) {
+          task.projectId = null;
+          task.columnId = null;
+        }
+        if (task.projectId && (!task.columnId || !await BoardColumn.exists({ _id: task.columnId, projectId: task.projectId }))) {
+          const column = await firstColumnFor(task.projectId, task.status)
+            ?? await BoardColumn.findOne({ projectId: task.projectId }).sort({ position: 1 }).lean();
+          task.columnId = column?._id ?? null;
+        }
+        // A subtask whose parent is gone would be hidden from every list.
+        if (task.parentTaskId && !await TaskModel.exists({ _id: task.parentTaskId, deletedAt: null })) {
+          task.parentTaskId = null;
+        }
+        task.deletedAt = null;
+        await task.save();
+        void recordActivity({
+          workspaceId: task.workspaceId,
+          projectId: task.projectId,
+          taskId: task._id,
+          actorId: userId,
+          verb: "task.restored",
+          metadata: { title: task.title },
+        }).catch(() => {
+          console.error("recordActivity failed");
+        });
+        return mapTask(task);
       });
     },
 
@@ -963,18 +1177,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       return withDb(async () => {
         const task = await requireTaskAccess(userId, input.taskId);
         await requireMembership(userId, task.workspaceId.toString(), "member");
-        const body = input.body.trim();
-        if (!body) {
-          throw new ApiError(400, "invalid_request", "Comment cannot be empty");
-        }
-        const mentions = [...(input.mentions ?? [])].sort((a, b) => a.start - b.start);
-        if (mentions.length > 50 || mentions.some((mention, index) =>
-          !Number.isInteger(mention.start) || !Number.isInteger(mention.end) ||
-          mention.start < 0 || mention.end > body.length || mention.end <= mention.start + 1 ||
-          body[mention.start] !== "@" || /[\r\n]/.test(body.slice(mention.start, mention.end)) ||
-          (index > 0 && mention.start < mentions[index - 1].end)
-        )) throw new ApiError(400, "invalid_request", "Invalid comment mentions");
-        const recipientIds = [...new Set(mentions.map((mention) => mention.userId.toLowerCase()))];
+        const { body, mentions, recipientIds } = checkCommentBody(input);
         await assertAssigneesInWorkspace(task.workspaceId.toString(), recipientIds);
         const comment = await Comment.create({
           workspaceId: task.workspaceId,
@@ -992,7 +1195,90 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           verb: "comment.created",
           metadata: { commentId: comment._id.toString() },
         });
+        // Tagged people get a mention; the task's assignees and creator a comment.
+        await notify({
+          workspaceId: task.workspaceId,
+          taskId: task._id,
+          commentId: comment._id,
+          actorId: userId,
+          kind: "mention",
+          recipientIds,
+        });
+        await notify({
+          workspaceId: task.workspaceId,
+          taskId: task._id,
+          commentId: comment._id,
+          actorId: userId,
+          kind: "comment",
+          recipientIds: [task.createdById, ...task.assigneeIds]
+            .map(String)
+            .filter((id) => !recipientIds.includes(id)),
+        });
         return mapComment(comment);
+      });
+    },
+
+    async updateComment(commentId, input) {
+      return withDb(async () => {
+        const comment = await Comment.findOne({ _id: oid(commentId), deletedAt: null });
+        if (!comment) throw new ApiError(404, "not_found", "Comment not found");
+        const task = await requireTaskAccess(userId, comment.taskId.toString());
+        await requireMembership(userId, task.workspaceId.toString(), "member");
+        if (comment.authorId.toString() !== userId) {
+          throw new ApiError(403, "forbidden", "You can only edit your own comments");
+        }
+        const { body, mentions, recipientIds } = checkCommentBody(input);
+        await assertAssigneesInWorkspace(task.workspaceId.toString(), recipientIds);
+        // Only people tagged for the first time get mail; existing jobs keep their state.
+        const queued = new Set((comment.mentionDeliveries ?? []).map((job) => String(job.userId)));
+        const added = recipientIds.filter((id) => !queued.has(id));
+        if (body !== comment.body) comment.editedAt = new Date();
+        comment.body = body;
+        comment.set("mentions", mentions.map((mention) => ({ ...mention, userId: oid(mention.userId) })));
+        if (added.length) {
+          comment.set("mentionDeliveries", [
+            ...(comment.mentionDeliveries ?? []),
+            ...added.map((id) => ({ userId: oid(id) })),
+          ]);
+        }
+        await comment.save();
+        await notify({
+          workspaceId: task.workspaceId,
+          taskId: task._id,
+          commentId: comment._id,
+          actorId: userId,
+          kind: "mention",
+          recipientIds: added,
+        });
+        return { comment: mapComment(comment), projectId: task.projectId?.toString() ?? null };
+      });
+    },
+
+    async deleteComment(commentId) {
+      return withDb(async () => {
+        const comment = await Comment.findOne({ _id: oid(commentId), deletedAt: null });
+        if (!comment) throw new ApiError(404, "not_found", "Comment not found");
+        const task = await requireTaskAccess(userId, comment.taskId.toString());
+        const role = await requireMembership(userId, task.workspaceId.toString(), "viewer");
+        const isAuthor = comment.authorId.toString() === userId;
+        if (!isAuthor && role !== "admin" && role !== "owner") {
+          throw new ApiError(403, "forbidden", "You can only delete your own comments");
+        }
+        comment.deletedAt = new Date();
+        await comment.save();
+        void Notification.deleteMany({ commentId: comment._id })
+          .catch(() => console.error("notification cleanup failed"));
+        void recordActivity({
+          workspaceId: task.workspaceId,
+          projectId: task.projectId,
+          taskId: task._id,
+          actorId: userId,
+          verb: "comment.deleted",
+          metadata: { commentId, byAuthor: isAuthor },
+        }).catch(() => {
+          console.error("recordActivity failed");
+        });
+        return { taskId: task._id.toString(), projectId: task.projectId?.toString() ?? null };
       });
     },
 

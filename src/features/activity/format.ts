@@ -28,6 +28,11 @@ export function describeActivity(
         typeof meta.title === "string" ? ` “${meta.title}”` : "";
       return `${actor} deleted a task${title}`;
     }
+    case "task.restored": {
+      const title =
+        typeof meta.title === "string" ? ` “${meta.title}”` : "";
+      return `${actor} restored a task${title}`;
+    }
     case "project.renamed":
       return typeof meta.from === "string" && typeof meta.to === "string"
         ? `${actor} renamed project “${meta.from}” to “${meta.to}”`
@@ -42,6 +47,10 @@ export function describeActivity(
     }
     case "comment.created":
       return `${actor} commented`;
+    case "comment.deleted":
+      return meta.byAuthor === false
+        ? `${actor} removed a comment`
+        : `${actor} deleted their comment`;
     case "task.assigned": {
       const to = Array.isArray(meta.to)
         ? meta.to.map((id) => memberName(members, String(id)))
