@@ -64,6 +64,10 @@ export async function fetchIdentityUserInfo(
   if (typeof body.sub !== "string" || !/^[a-f0-9]{24}$/i.test(body.sub)) {
     throw new Error("Identity userinfo missing sub");
   }
+  // Only a verified email is the person's: anyone can register any address.
+  if (body.email_verified !== true) {
+    throw new Error("Identity email is not verified");
+  }
 
   if (cache.size >= 5000) cache.clear();
   cache.set(key, {

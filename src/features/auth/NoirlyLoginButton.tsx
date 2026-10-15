@@ -1,5 +1,7 @@
 "use client";
 
+import { safeLocalPath } from "@/src/lib/safe-path";
+
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@noirly-dev/ui";
@@ -9,7 +11,7 @@ const AUTH_MESSAGE = "noirly-auth";
 const AUTH_STORAGE_KEY = "noirly-auth";
 
 function safeNext(value: string): string {
-  return value.startsWith("/") && !value.startsWith("//") ? value : "/";
+  return safeLocalPath(value, "/");
 }
 
 function readAuthPayload(): { next?: string } | null {

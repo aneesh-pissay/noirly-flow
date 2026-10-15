@@ -1,10 +1,11 @@
+import { safeLocalPath } from "@/src/lib/safe-path";
 import { headers } from "next/headers";
 
 const AUTH_MESSAGE = "noirly-auth";
 const AUTH_STORAGE_KEY = "noirly-auth";
 
 function safeNext(value: string | null): string {
-  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/";
+  return safeLocalPath(value, "/");
 }
 
 /** JSON that is safe to drop inside a <script> element. */

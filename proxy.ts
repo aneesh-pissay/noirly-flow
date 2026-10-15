@@ -1,3 +1,4 @@
+import { safeLocalPath } from "@/src/lib/safe-path";
 import { consumeRateLimit } from "@/src/server/security/rate-limit";
 import { securePageResponse, rejectCrossOriginMutation } from "@/src/server/security/request";
 import { NextResponse } from "next/server";
@@ -52,8 +53,9 @@ export const proxy = auth(async (request) => {
 
   if (request.auth && isLogin) {
     const next = request.nextUrl.searchParams.get("next");
-    if (next && next.startsWith("/") && !next.startsWith("//")) {
-      return NextResponse.redirect(new URL(next, request.nextUrl.origin));
+    const safeNext = safeLocalPath(next, "");
+    if (safeNext) {
+      return NextResponse.redirect(new URL(safeNext, request.nextUrl.origin));
     }
     return NextResponse.redirect(new URL("/", request.nextUrl.origin));
   }

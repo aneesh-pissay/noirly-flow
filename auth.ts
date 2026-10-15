@@ -64,6 +64,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   ],
   callbacks: {
+    // Only trust an email Identity has verified: anyone can register any
+    // address. Identity already refuses unverified accounts; this is the
+    // app's own check in case that ever changes.
+    signIn({ account, profile }) {
+      return account?.provider !== "noirly" || profile?.email_verified === true;
+    },
     async jwt({ token, user, profile }) {
       if (user?.id) {
         token.identitySub = user.id;
