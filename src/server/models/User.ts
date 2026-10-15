@@ -34,8 +34,18 @@ const userSchema = new Schema(
       bio: { type: String, default: null, trim: true },
       taskSaveMode: { type: String, enum: ["auto", "manual"], default: "auto" },
     },
+    /** Private calendar subscription link; only a hash of its secret is kept. */
+    calendarFeed: {
+      tokenHash: { type: String, default: null },
+      createdAt: { type: Date, default: null },
+    },
   },
   { timestamps: true },
+);
+
+userSchema.index(
+  { "calendarFeed.tokenHash": 1 },
+  { unique: true, partialFilterExpression: { "calendarFeed.tokenHash": { $type: "string" } } },
 );
 
 export type FlowUserDocument = InferSchemaType<typeof userSchema> & {

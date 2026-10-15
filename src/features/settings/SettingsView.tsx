@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button, Input, Label, PageContainer, PageHeader, Textarea } from "@noirly-dev/ui";
 import { api } from "@/src/lib/api-client";
+import { CalendarFeedSection } from "@/src/features/settings/CalendarFeedSection";
 import type { MePayload } from "@/src/server/users/me";
 
 const TIMEZONES = [
@@ -101,6 +102,8 @@ export function SettingsView({
         </p>
         {preferenceMutation.isError ? <p role="alert">Could not save your preference. Please try again.</p> : null}
       </section>
+
+      <CalendarFeedSection timezone={meQuery.data.user.profile.timezone} />
 
       <section className="border border-[var(--hairline)] bg-[var(--surface)] p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">

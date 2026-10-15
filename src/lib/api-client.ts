@@ -90,6 +90,15 @@ export const api = {
       body: JSON.stringify({ profile }),
     });
   },
+  calendarFeed() {
+    return request<{ enabled: boolean; createdAt: string | null }>("/api/me/calendar-feed");
+  },
+  createCalendarFeed() {
+    return request<{ enabled: true; createdAt: string; url: string }>("/api/me/calendar-feed", { method: "POST" });
+  },
+  disableCalendarFeed() {
+    return request<{ enabled: false; createdAt: null }>("/api/me/calendar-feed", { method: "DELETE" });
+  },
   listNotifications() {
     return request<{ items: AppNotification[]; unread: number }>("/api/notifications");
   },

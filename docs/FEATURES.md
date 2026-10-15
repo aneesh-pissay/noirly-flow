@@ -203,8 +203,9 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | `/settings` | Identity name / email + link to Identity `/account` |
 | Flow profile | Display name, title, timezone (fixed list), bio via `GET/PATCH /api/me` |
 | Display name usage | Members, comments, boards |
+| Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone; create, replace or turn off in Settings (only a hash of the token is stored) |
 
-**Not in product yet:** separate profile / preferences routes; theme / density / default-view preferences; calendar still uses browser local time for filters.
+**Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences; calendar still uses browser local time for filters.
 
 ---
 
