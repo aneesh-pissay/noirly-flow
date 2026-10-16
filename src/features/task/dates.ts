@@ -3,10 +3,33 @@ export type DuePreset = "overdue" | "today" | "upcoming" | "none";
 export type DueTone = "overdue" | "today" | "upcoming" | "none";
 
 export function dateInputToIso(value: string): string | null {
-  if (!value) return null;
-  const local = new Date(`${value}T12:00:00`);
+  return dueInputToIso(value, "");
+}
+
+/**
+ * A date input plus an optional "HH:MM" time input, as an ISO instant in the
+ * browser's time zone. Without a time the task is all-day and is stored at
+ * local noon, so it lands on the same calendar day in any nearby zone.
+ */
+export function dueInputToIso(date: string, time: string): string | null {
+  if (!date) return null;
+  const clock = /^\d{2}:\d{2}$/.test(time) ? `${time}:00` : "12:00:00";
+  const local = new Date(`${date}T${clock}`);
   if (Number.isNaN(local.getTime())) return null;
   return local.toISOString();
+}
+
+/** "HH:MM" in local time for a timed due date; "" for none or all-day. */
+export function isoToTimeInput(value: string | null | undefined, hasTime: boolean): string {
+  if (!value || !hasTime) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+/** "3:30 PM" style, in the viewer's locale. */
+export function formatTime(value: string | Date): string {
+  return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
 export function isoToDateInput(value: string | null | undefined): string {
@@ -31,20 +54,28 @@ export function endOfDay(date = new Date()) {
   return next;
 }
 
-export function dueTone(dueAt: string | null | undefined): DueTone | null {
+/** A timed task is overdue once its time passes; an all-day one only the next day. */
+export function dueTone(
+  dueAt: string | null | undefined,
+  hasTime = false,
+  now = new Date(),
+): DueTone | null {
   if (!dueAt) return null;
-  const due = startOfDay(new Date(dueAt)).getTime();
-  const today = startOfDay().getTime();
+  const instant = new Date(dueAt);
+  if (hasTime && instant.getTime() < now.getTime()) return "overdue";
+  const due = startOfDay(instant).getTime();
+  const today = startOfDay(now).getTime();
   if (due < today) return "overdue";
   if (due === today) return "today";
   return "upcoming";
 }
 
-export function formatDue(dueAt: string | null | undefined): string | null {
+export function formatDue(dueAt: string | null | undefined, hasTime = false): string | null {
   if (!dueAt) return null;
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
+    ...(hasTime ? { hour: "numeric", minute: "2-digit" } : {}),
   }).format(new Date(dueAt));
 }
 

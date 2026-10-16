@@ -10,6 +10,11 @@ const indiaDay = (date: Date) => new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
 }).format(date);
 
+/** "2026-10-16" for an all-day due date, "2026-10-16 15:30" for a timed one, India time. */
+const indiaDue = (date: Date, hasTime: boolean) => hasTime
+  ? `${indiaDay(date)} ${new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: false }).format(date)}`
+  : indiaDay(date);
+
 /** Durable recipient state for assignments, completion and reminders; claims use leases. */
 export async function deliverTaskEmails(taskId?: string, reminders = false) {
   return withDb(async () => {
@@ -86,7 +91,7 @@ export async function deliverTaskEmails(taskId?: string, reminders = false) {
               const subject = `${job.completion ? "Task completed" : job.assignmentPending ? "Task assigned to you" : "Overdue task reminder"}: ${current.title}`.replace(/[\r\n]+/g, " ").slice(0, 200);
               const text = job.completion
                 ? `This task has been completed in Noirly Flow.\n\n${current.title}\n\nYou received this email because you created this task or are assigned to it.\nOverdue reminders have stopped.\n\nOpen the task: ${url.href}`
-                : `${job.assignmentPending ? "You have been assigned a task in Noirly Flow." : "This task is overdue and still needs your attention."}\n\n${current.title}\nDue date: ${current.dueAt ? indiaDay(current.dueAt) + " (India time)" : "Not set"}\n${stillOverdue ? "This task is overdue.\n" : ""}\nOpen the task: ${url.href}\n\nDaily overdue reminders stop when the task is completed, canceled, deleted, or you are unassigned.`;
+                : `${job.assignmentPending ? "You have been assigned a task in Noirly Flow." : "This task is overdue and still needs your attention."}\n\n${current.title}\nDue: ${current.dueAt ? indiaDue(current.dueAt, Boolean(current.dueHasTime)) + " (India time)" : "Not set"}\n${stillOverdue ? "This task is overdue.\n" : ""}\nOpen the task: ${url.href}\n\nDaily overdue reminders stop when the task is completed, canceled, deleted, or you are unassigned.`;
               const key = `${current._id}-${job._id}-${job.completion ? "completed" : job.assignmentPending ? "assigned" : today}`;
               if (outbox) {
                 await mkdir(outbox, { recursive: true });

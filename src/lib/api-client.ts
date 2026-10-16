@@ -360,6 +360,7 @@ export const api = {
       status?: Task["status"];
       priority?: Task["priority"];
       dueAt?: string | null;
+      dueHasTime?: boolean;
     },
   ) {
     return request<{ task: Task }>(`/api/workspaces/${workspaceId}/tasks`, {

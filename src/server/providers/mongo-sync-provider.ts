@@ -136,6 +136,7 @@ async function spawnNextOccurrence(
     status: "todo",
     priority: source.priority,
     dueAt,
+    dueHasTime: Boolean(source.dueHasTime),
     position: nextPosition(last?.position),
     assigneeIds: source.assigneeIds ?? [],
     emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
@@ -685,6 +686,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           completionDeliveries: status === "done" ? completionRecipients(oid(userId), assigneeIds.map(oid)) : [],
           priority: input.priority ?? "none",
           dueAt: input.dueAt ? new Date(input.dueAt) : null,
+          dueHasTime: Boolean(input.dueAt && input.dueHasTime),
           position: input.position ?? nextPosition(last?.position),
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
@@ -754,6 +756,10 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (patch.priority !== undefined) task.priority = patch.priority;
         if (patch.dueAt !== undefined) {
           task.dueAt = patch.dueAt ? new Date(patch.dueAt) : null;
+          // A new dueAt without the flag is a plain date, as older clients send.
+          task.dueHasTime = Boolean(patch.dueAt && patch.dueHasTime);
+        } else if (patch.dueHasTime !== undefined) {
+          task.dueHasTime = Boolean(task.dueAt && patch.dueHasTime);
         }
         if (patch.startAt !== undefined) {
           task.startAt = patch.startAt ? new Date(patch.startAt) : null;

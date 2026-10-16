@@ -31,6 +31,7 @@ export const createTaskBodySchema = z.object({
   status: z.enum(TASK_STATUSES).optional(),
   priority: z.enum(TASK_PRIORITIES).optional(),
   dueAt: dueAtSchema,
+  dueHasTime: z.boolean().optional(),
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -51,6 +52,7 @@ export const updateTaskBodySchema = z
     status: z.enum(TASK_STATUSES).optional(),
     priority: z.enum(TASK_PRIORITIES).optional(),
     dueAt: dueAtSchema,
+    dueHasTime: z.boolean().optional(),
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),

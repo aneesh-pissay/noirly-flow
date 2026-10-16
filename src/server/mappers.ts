@@ -101,6 +101,7 @@ export function mapTask(doc: {
   status: TaskStatus;
   priority: TaskPriority;
   dueAt?: Date | null;
+  dueHasTime?: boolean | null;
   startAt?: Date | null;
   completedAt?: Date | null;
   position: number;
@@ -132,6 +133,7 @@ export function mapTask(doc: {
     status: doc.status,
     priority: doc.priority,
     dueAt: iso(doc.dueAt ?? null),
+    dueHasTime: Boolean(doc.dueAt && doc.dueHasTime),
     startAt: iso(doc.startAt ?? null),
     completedAt: iso(doc.completedAt ?? null),
     position: doc.position,

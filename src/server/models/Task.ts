@@ -67,6 +67,8 @@ const taskSchema = new Schema(
       default: "none",
     },
     dueAt: { type: Date, default: null },
+    // False: an all-day due date (stored at local noon). True: dueAt is the exact due time.
+    dueHasTime: { type: Boolean, default: false },
     startAt: { type: Date, default: null },
     completedAt: { type: Date, default: null },
     position: { type: Number, required: true, default: 0 },

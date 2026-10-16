@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, X } from "lucide-react";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -17,9 +17,14 @@ function monthCursor(date: Date) {
   return { year: date.getFullYear(), month: date.getMonth() };
 }
 
-export function TaskDatePicker({ value, onChange, disabled = false }: {
+/**
+ * Due date plus an optional time. `value` is "YYYY-MM-DD" and `time` is
+ * "HH:MM" or "" for all-day; `onChange` always receives both.
+ */
+export function TaskDatePicker({ value, time = "", onChange, disabled = false }: {
   value: string;
-  onChange: (value: string) => void;
+  time?: string;
+  onChange: (value: string, time: string) => void;
   disabled?: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null);
@@ -71,7 +76,17 @@ export function TaskDatePicker({ value, onChange, disabled = false }: {
           <CalendarDays size={16} aria-hidden className="shrink-0 text-[var(--muted-foreground)]" />
           <span className={selected ? "" : "text-[var(--muted-foreground)]"}>{label}</span>
         </button>
-        {value && !disabled ? <button type="button" aria-label="Clear due date" onClick={() => onChange("")}
+        {value ? (
+          <label className="relative flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-[var(--hairline)] bg-[var(--bg)] pl-3 pr-2 text-sm text-[var(--foreground)] focus-within:border-[var(--accent)] hover:border-[var(--accent)] has-[:disabled]:opacity-50">
+            <Clock size={15} aria-hidden className="shrink-0 text-[var(--muted-foreground)]" />
+            {/* Uncontrolled and committed on blur, so typing a time sends one save, not one per digit. */}
+            <input key={time} type="time" aria-label="Due time (optional)" defaultValue={time} disabled={disabled}
+              onBlur={(event) => { if (event.currentTarget.value !== time) onChange(value, event.currentTarget.value); }}
+              onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); event.currentTarget.blur(); } }}
+              className="w-[6.5rem] bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:hidden" />
+          </label>
+        ) : null}
+        {value && !disabled ? <button type="button" aria-label="Clear due date" onClick={() => onChange("", "")}
           className="grid size-10 shrink-0 place-items-center rounded-xl border border-[var(--hairline)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"><X size={15} aria-hidden /></button> : null}
       </div>
       {open ? <div role="dialog" aria-label="Choose due date"
@@ -93,15 +108,15 @@ export function TaskDatePicker({ value, onChange, disabled = false }: {
             const isSelected = key === value;
             return <button key={key} type="button" aria-pressed={isSelected}
               aria-label={new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(new Date(cursor.year, cursor.month, day))}
-              onClick={() => { onChange(key); setOpen(false); }}
+              onClick={() => { onChange(key, time); setOpen(false); }}
               className={`grid aspect-square place-items-center rounded-lg text-sm hover:bg-[var(--accent-soft)] ${isSelected ? "bg-[var(--accent)] font-semibold text-[var(--accent-ink)]" : isToday ? "ring-1 ring-[var(--accent)]" : ""}`}>
               {day}
             </button>;
           })}
         </div>
         <div className="mt-2 flex justify-between border-t border-[var(--hairline)] pt-2">
-          <button type="button" onClick={() => { onChange(""); setOpen(false); }} className="rounded-lg px-2 py-1.5 text-xs text-[var(--muted-foreground)] hover:bg-[var(--bg)]">Clear</button>
-          <button type="button" onClick={() => { const now = new Date(); onChange(dateKey(now.getFullYear(), now.getMonth(), now.getDate())); setOpen(false); }} className="rounded-lg px-2 py-1.5 text-xs text-[var(--accent)] hover:bg-[var(--bg)]">Today</button>
+          <button type="button" onClick={() => { onChange("", ""); setOpen(false); }} className="rounded-lg px-2 py-1.5 text-xs text-[var(--muted-foreground)] hover:bg-[var(--bg)]">Clear</button>
+          <button type="button" onClick={() => { const now = new Date(); onChange(dateKey(now.getFullYear(), now.getMonth(), now.getDate()), time); setOpen(false); }} className="rounded-lg px-2 py-1.5 text-xs text-[var(--accent)] hover:bg-[var(--bg)]">Today</button>
         </div>
       </div> : null}
     </div>

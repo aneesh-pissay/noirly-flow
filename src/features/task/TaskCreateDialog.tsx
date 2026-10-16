@@ -8,7 +8,7 @@ import { qk } from "@/src/core/sync/query-keys";
 import { can } from "@/src/core/permissions/can";
 import { useUIStore } from "@/src/stores/ui-store";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
-import { dateInputToIso } from "./dates";
+import { dueInputToIso } from "./dates";
 import { TaskDatePicker } from "./TaskDatePicker";
 
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
@@ -29,6 +29,7 @@ export function TaskCreateDialog({ draft }: {
   const [status, setStatus] = useState<TaskStatus>("todo");
   const [priority, setPriority] = useState<TaskPriority>("none");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState("");
@@ -41,7 +42,7 @@ export function TaskCreateDialog({ draft }: {
     mutationFn: async () => {
       const result = await api.createTask(draft.workspaceId, {
         title: title.trim(), description: description.trim() || null, projectId: projectId || null,
-        status, priority, dueAt: dateInputToIso(dueDate), assigneeIds,
+        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), assigneeIds,
       });
       const failed: string[] = [];
       for (const [index, file] of attachments.entries()) {
@@ -114,7 +115,7 @@ export function TaskCreateDialog({ draft }: {
                 <option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
               </select>
             </label>
-            <div className="text-sm sm:col-span-2"><span>Due date</span><TaskDatePicker value={dueDate} onChange={setDueDate} /></div>
+            <div className="text-sm sm:col-span-2"><span>Due date</span><TaskDatePicker value={dueDate} time={dueTime} onChange={(date, time) => { setDueDate(date); setDueTime(time); }} /></div>
           </div>
           <fieldset><legend className="text-sm">Assignees</legend>
             <div className="mt-2 flex flex-wrap gap-2">

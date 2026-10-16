@@ -629,7 +629,7 @@ function SortableTaskCard({
             <p className="text-sm text-[var(--foreground)]">{task.title}</p>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
-              <TaskDueBadge dueAt={task.dueAt} />
+              <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </button>

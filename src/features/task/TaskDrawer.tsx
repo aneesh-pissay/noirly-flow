@@ -10,7 +10,7 @@ import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
 import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
-import { dateInputToIso, isoToDateInput } from "@/src/features/task/dates";
+import { dueInputToIso, isoToDateInput, isoToTimeInput } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
@@ -58,6 +58,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     initialTask?.priority ?? "none",
   );
   const [dueDate, setDueDate] = useState(isoToDateInput(initialTask?.dueAt ?? null));
+  const [dueTime, setDueTime] = useState(isoToTimeInput(initialTask?.dueAt ?? null, initialTask?.dueHasTime ?? false));
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
   );
@@ -96,6 +97,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setStatus(task.status);
     setPriority(task.priority);
     setDueDate(isoToDateInput(task.dueAt));
+    setDueTime(isoToTimeInput(task.dueAt, task.dueHasTime));
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -151,7 +153,8 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     if (!nextTitle) { setError("A task title is required."); return; }
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
-      projectId: projectId || null, dueAt: dateInputToIso(dueDate), assigneeIds, ...patch,
+      projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
+      dueHasTime: Boolean(dueDate && dueTime), assigneeIds, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -303,9 +306,10 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                 </label>
                 <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
                   <span>Due date</span>
-                  <TaskDatePicker value={dueDate} disabled={!canEdit} onChange={(value) => {
+                  <TaskDatePicker value={dueDate} time={dueTime} disabled={!canEdit} onChange={(value, time) => {
                     setDueDate(value);
-                    persist({ dueAt: dateInputToIso(value) });
+                    setDueTime(time);
+                    persist({ dueAt: dueInputToIso(value, time), dueHasTime: Boolean(value && time) });
                   }} />
                 </div>
               </div>

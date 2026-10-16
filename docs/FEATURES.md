@@ -106,10 +106,10 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | CRUD | Create / update / soft-delete with optimistic cache updates |
 | Inbox | Unfiled tasks (`projectId: null`) |
-| Quick add | Title + priority + due date |
+| Quick add | Title + priority + due date and optional time |
 | Status | `todo` \| `in_progress` \| `done` \| `canceled` |
 | Priority | `none` \| `low` \| `medium` \| `high` \| `urgent` |
-| Due date | Stored + overdue / today badges |
+| Due date | Date with an optional time (`dueHasTime`); overdue / today badges — a timed task is overdue once its time passes, an all-day one the next day |
 | Soft delete + Trash | `deletedAt`; **Undo** right after deleting, and `/w/[workspaceId]/trash` lists deleted tasks with **Restore** (back to its project and column, or the Inbox if the project is gone) |
 
 ### 6.2 Views
@@ -118,7 +118,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | **List** | Inline status / priority / due / delete; tag + assignee chips |
 | **Board (Kanban)** | `@dnd-kit` (pointer + keyboard); cross-column maps status via `statusMapped`; optimistic reorder; canceled tasks hidden |
-| **Calendar** | Month grid by `dueAt`; undated list; prev / next month |
+| **Calendar** | Month grid by `dueAt`, all-day tasks first then timed ones by time (time shown on the chip); undated list; prev / next month |
 
 ### 6.3 Task drawer (`?task=`)
 
@@ -203,7 +203,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | `/settings` | Identity name / email + link to Identity `/account` |
 | Flow profile | Display name, title, timezone (fixed list), bio via `GET/PATCH /api/me` |
 | Display name usage | Members, comments, boards |
-| Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone; create, replace or turn off in Settings (only a hash of the token is stored) |
+| Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone, or a 30-minute event for a task with a due time; create, replace or turn off in Settings (only a hash of the token is stored) |
 
 **Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences; calendar still uses browser local time for filters.
 

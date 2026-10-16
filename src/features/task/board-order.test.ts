@@ -17,6 +17,7 @@ function task(partial: Partial<Task> & Pick<Task, "id" | "status">): Task {
     description: null,
     priority: "none",
     dueAt: null,
+    dueHasTime: false,
     startAt: null,
     completedAt: null,
     position: 1000,

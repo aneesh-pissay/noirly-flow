@@ -28,6 +28,45 @@ test.describe("task drawer", () => {
     await expect(drawer(page).locator("input").first()).toHaveValue(title);
   });
 
+  test("a due time is saved, shown in the list, and can be removed", async ({ page, team }) => {
+    const title = `Timed ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, dueAt: "2026-12-24" });
+    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "GET");
+    await page.goto(`${team.url}?task=${task.id}`);
+    await loaded;
+
+    const time = drawer(page).getByLabel("Due time (optional)");
+    const saved = () => page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "PATCH");
+    let patched = saved();
+    await time.fill("15:30");
+    await time.press("Enter");
+    await patched;
+
+    const timed = (await (await page.request.get(`/api/tasks/${task.id}`)).json()).task;
+    expect(timed.dueHasTime).toBe(true);
+    const due = new Date(timed.dueAt);
+    expect([due.getFullYear(), due.getMonth(), due.getDate(), due.getHours(), due.getMinutes()]).toEqual([2026, 11, 24, 15, 30]);
+
+    await page.keyboard.press("Escape");
+    await openList(page, team.url);
+    await expect(taskRow(page, title)).toContainText("3:30");
+
+    // A date sent without the flag, as older clients do, is all-day again.
+    await page.request.patch(`/api/tasks/${task.id}`, { data: { dueAt: "2026-12-25" } });
+    expect((await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.dueHasTime).toBe(false);
+
+    await page.goto(`${team.url}?task=${task.id}`);
+    patched = saved();
+    await time.fill("09:00");
+    await time.press("Enter");
+    await patched;
+    patched = saved();
+    await time.fill("");
+    await time.blur();
+    await patched;
+    expect((await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.dueHasTime).toBe(false);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });

@@ -76,6 +76,8 @@ export type Task = {
   status: TaskStatus;
   priority: TaskPriority;
   dueAt: string | null;
+  /** False for an all-day due date; true when dueAt is a specific time. */
+  dueHasTime: boolean;
   startAt: string | null;
   completedAt: string | null;
   position: number;
@@ -178,6 +180,7 @@ export type CreateTaskInput = {
   status?: TaskStatus;
   priority?: TaskPriority;
   dueAt?: string | null;
+  dueHasTime?: boolean;
   assigneeIds?: string[];
   tagIds?: string[];
   parentTaskId?: string | null;
