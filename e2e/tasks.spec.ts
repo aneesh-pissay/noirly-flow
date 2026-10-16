@@ -1,27 +1,33 @@
 import { createTask, expect, openList, taskRow, test, uid } from "./fixtures";
 
 test.describe("tasks in list view", () => {
-  test("quick add creates a task that survives a reload", async ({ page, team }) => {
+  test("creating a task from the dialog survives a reload", async ({ page, team }) => {
     await openList(page, team.url);
 
     const title = `Write launch notes ${uid()}`;
-    await page.getByPlaceholder("Add a task…").fill(title);
-    await page.getByRole("button", { name: "Add", exact: true }).click();
+    await page.getByRole("button", { name: "New task", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Create task" });
+    await dialog.getByRole("textbox", { name: "Title" }).fill(title);
+    await dialog.getByRole("button", { name: "Create task", exact: true }).click();
+    await expect(dialog).toBeHidden();
 
+    await openList(page, team.url);
     await expect(taskRow(page, title)).toBeVisible();
     await expect(page.getByText(/1 open · 1 shown/)).toBeVisible();
-    await expect(page.getByPlaceholder("Add a task…")).toHaveValue("");
-
-    await openList(page, team.url);
-    await expect(taskRow(page, title)).toBeVisible();
   });
 
-  test("Add is disabled until there is a title", async ({ page, team }) => {
+  test("Create task is disabled until there is a title", async ({ page, team }) => {
     await openList(page, team.url);
-    const add = page.getByRole("button", { name: "Add", exact: true });
-    await expect(add).toBeDisabled();
-    await page.getByPlaceholder("Add a task…").fill("   ");
-    await expect(add).toBeDisabled();
+    await page.getByRole("button", { name: "New task", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Create task" });
+    const create = dialog.getByRole("button", { name: "Create task", exact: true });
+    // Disabled while the workspace loads too, so wait for the form to be ready.
+    await expect(dialog.getByText("Not created yet")).toBeVisible();
+    await expect(create).toBeDisabled();
+    await dialog.getByRole("textbox", { name: "Title" }).fill("   ");
+    await expect(create).toBeDisabled();
+    await dialog.getByRole("textbox", { name: "Title" }).fill("Real title");
+    await expect(create).toBeEnabled();
   });
 
   test("status, priority and delete from the row", async ({ page, team }) => {

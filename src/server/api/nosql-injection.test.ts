@@ -20,6 +20,7 @@ vi.mock("@/src/server/db/mongodb", () => ({
   withDb: async <T>(fn: () => Promise<T>) => fn(),
 }));
 vi.mock("@/src/server/realtime/publish", () => ({ publishRealtime: vi.fn() }));
+vi.mock("@/src/server/mail/schedule-task-emails", () => ({ scheduleTaskEmails: vi.fn() }));
 
 const id = "507f1f77bcf86cd799439011";
 const operators = [{ $ne: null }, { $gt: "" }, { $regex: ".*" }, { $in: [id] }];
