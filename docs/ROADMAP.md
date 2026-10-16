@@ -17,7 +17,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | Phase | Done |
 | --- | --- |
 | 0. Recent fixes | 3 / 4 |
-| 1. Date model | 1 / 6 |
+| 1. Date model | 2 / 6 |
 | 2. Capture and organisation | 0 / 10 |
 | 3. Planning and calendar | 0 / 7 |
 | 4. Productivity | 0 / 6 |
@@ -37,7 +37,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 ## Phase 1 — Date model (foundation)
 
 - [x] Due **time** on tasks, not just a date (M) — done 2026-10-16
-- [ ] Start date in the UI — `startAt` is already stored on the model (S)
+- [x] Start date in the UI — `startAt` is already stored on the model (S) — done 2026-10-16
 - [ ] Separate **deadline** from the planned due date (S)
 - [ ] Task **duration** / time estimate (S)
 - [ ] Full recurrence: monthly, yearly, every N days/weeks, chosen weekdays, "N days after completion" — today only daily and weekly (M)

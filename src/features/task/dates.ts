@@ -54,6 +54,17 @@ export function endOfDay(date = new Date()) {
   return next;
 }
 
+/** True when an all-day start date is after today: the task hasn't started yet. */
+export function startsLater(startAt: string | null | undefined, now = new Date()): boolean {
+  if (!startAt) return false;
+  return startOfDay(new Date(startAt)).getTime() > startOfDay(now).getTime();
+}
+
+/** A start date ("YYYY-MM-DD") after the due date's day is not allowed; both are optional. */
+export function startAfterDue(startDate: string, dueDate: string): boolean {
+  return Boolean(startDate && dueDate && startDate > dueDate);
+}
+
 /** A timed task is overdue once its time passes; an all-day one only the next day. */
 export function dueTone(
   dueAt: string | null | undefined,

@@ -181,6 +181,8 @@ export type CreateTaskInput = {
   priority?: TaskPriority;
   dueAt?: string | null;
   dueHasTime?: boolean;
+  /** All-day start date, stored at local noon like an all-day due date. */
+  startAt?: string | null;
   assigneeIds?: string[];
   tagIds?: string[];
   parentTaskId?: string | null;

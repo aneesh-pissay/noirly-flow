@@ -13,7 +13,7 @@ import type { Task } from "@/src/core/sync/types";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
-import { TaskDueBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskDueBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
@@ -662,6 +662,7 @@ function TaskList({
             </button>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
+              <TaskStartBadge startAt={task.startAt} />
               <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>

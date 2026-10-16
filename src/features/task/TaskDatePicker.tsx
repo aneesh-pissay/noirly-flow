@@ -18,14 +18,17 @@ function monthCursor(date: Date) {
 }
 
 /**
- * Due date plus an optional time. `value` is "YYYY-MM-DD" and `time` is
- * "HH:MM" or "" for all-day; `onChange` always receives both.
+ * A date plus an optional time. `value` is "YYYY-MM-DD" and `time` is
+ * "HH:MM" or "" for all-day; `onChange` always receives both. `withTime`
+ * off (start dates) hides the time field. `name` labels the controls.
  */
-export function TaskDatePicker({ value, time = "", onChange, disabled = false }: {
+export function TaskDatePicker({ value, time = "", onChange, disabled = false, withTime = true, name = "due date" }: {
   value: string;
   time?: string;
   onChange: (value: string, time: string) => void;
   disabled?: boolean;
+  withTime?: boolean;
+  name?: string;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const selected = parseDate(value);
@@ -76,7 +79,7 @@ export function TaskDatePicker({ value, time = "", onChange, disabled = false }:
           <CalendarDays size={16} aria-hidden className="shrink-0 text-[var(--muted-foreground)]" />
           <span className={selected ? "" : "text-[var(--muted-foreground)]"}>{label}</span>
         </button>
-        {value ? (
+        {value && withTime ? (
           <label className="relative flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-[var(--hairline)] bg-[var(--bg)] pl-3 pr-2 text-sm text-[var(--foreground)] focus-within:border-[var(--accent)] hover:border-[var(--accent)] has-[:disabled]:opacity-50">
             <Clock size={15} aria-hidden className="shrink-0 text-[var(--muted-foreground)]" />
             {/* Uncontrolled and committed on blur, so typing a time sends one save, not one per digit. */}
@@ -86,10 +89,10 @@ export function TaskDatePicker({ value, time = "", onChange, disabled = false }:
               className="w-[6.5rem] bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:hidden" />
           </label>
         ) : null}
-        {value && !disabled ? <button type="button" aria-label="Clear due date" onClick={() => onChange("", "")}
+        {value && !disabled ? <button type="button" aria-label={`Clear ${name}`} onClick={() => onChange("", "")}
           className="grid size-10 shrink-0 place-items-center rounded-xl border border-[var(--hairline)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"><X size={15} aria-hidden /></button> : null}
       </div>
-      {open ? <div role="dialog" aria-label="Choose due date"
+      {open ? <div role="dialog" aria-label={`Choose ${name}`}
         className="absolute left-0 top-full z-50 mt-2 w-[min(19rem,calc(100vw-3rem))] rounded-2xl border border-[var(--hairline)] bg-[var(--surface)] p-3 text-[var(--foreground)] shadow-xl">
         <div className="mb-2 flex items-center justify-between">
           <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)} className="grid size-9 place-items-center rounded-lg hover:bg-[var(--bg)]"><ChevronLeft size={17} /></button>

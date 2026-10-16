@@ -67,6 +67,26 @@ test.describe("task drawer", () => {
     expect((await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.dueHasTime).toBe(false);
   });
 
+  test("a start date shows until it arrives and moves with a recurring task", async ({ page, team }) => {
+    const title = `Starts later ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, startAt: "2099-01-05", dueAt: "2099-01-10" });
+    await openList(page, team.url);
+    await expect(taskRow(page, title)).toContainText(/Starts Jan 5/i);
+
+    await page.goto(`${team.url}?task=${task.id}`);
+    await expect(drawer(page).getByText("Start date", { exact: true })).toBeVisible();
+    await expect(drawer(page).getByRole("button", { name: /Jan 5, 2099/ })).toBeVisible();
+
+    // Completing a weekly task makes the next copy, starting 5 days before its new due date.
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { recurrence: { frequency: "weekly", interval: 1 } } })).ok()).toBe(true);
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { status: "done" } })).ok()).toBe(true);
+    const { tasks } = await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks?projectId=${team.project.id}`)).json();
+    const next = (tasks as Array<{ id: string; title: string; dueAt: string; startAt: string }>).find((t) => t.title === title && t.id !== task.id)!;
+    expect(next).toBeTruthy();
+    expect(Date.parse(next.dueAt) - Date.parse(next.startAt)).toBe(5 * 86_400_000);
+    expect(new Date(next.dueAt).getDate()).toBe(17);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });

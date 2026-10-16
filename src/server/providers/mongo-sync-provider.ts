@@ -112,6 +112,10 @@ async function spawnNextOccurrence(
   actorId: string,
 ) {
   const dueAt = nextOccurrenceDueAt(source.dueAt, rule);
+  // The next copy starts the same distance before its due date as this one did.
+  const startAt = source.startAt && source.dueAt
+    ? new Date(dueAt.getTime() - (source.dueAt.getTime() - source.startAt.getTime()))
+    : null;
   let columnId = null;
   if (source.projectId) {
     const column = await firstColumnFor(source.projectId, "todo");
@@ -137,6 +141,7 @@ async function spawnNextOccurrence(
     priority: source.priority,
     dueAt,
     dueHasTime: Boolean(source.dueHasTime),
+    startAt,
     position: nextPosition(last?.position),
     assigneeIds: source.assigneeIds ?? [],
     emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
@@ -687,6 +692,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           priority: input.priority ?? "none",
           dueAt: input.dueAt ? new Date(input.dueAt) : null,
           dueHasTime: Boolean(input.dueAt && input.dueHasTime),
+          startAt: input.startAt ? new Date(input.startAt) : null,
           position: input.position ?? nextPosition(last?.position),
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
@@ -737,6 +743,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           status: task.status,
           priority: task.priority,
           dueAt: task.dueAt?.toISOString() ?? null,
+          startAt: task.startAt?.toISOString() ?? null,
           assigneeIds: (task.assigneeIds ?? []).map((id) => id.toString()),
         };
         const becomingDone =
@@ -895,6 +902,12 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           const nextDue = task.dueAt?.toISOString() ?? null;
           if (nextDue !== before.dueAt) {
             changes.dueAt = { from: before.dueAt, to: nextDue };
+          }
+        }
+        if (patch.startAt !== undefined) {
+          const nextStart = task.startAt?.toISOString() ?? null;
+          if (nextStart !== before.startAt) {
+            changes.startAt = { from: before.startAt, to: nextStart };
           }
         }
 

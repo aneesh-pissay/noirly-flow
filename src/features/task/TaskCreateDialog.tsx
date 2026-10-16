@@ -8,7 +8,7 @@ import { qk } from "@/src/core/sync/query-keys";
 import { can } from "@/src/core/permissions/can";
 import { useUIStore } from "@/src/stores/ui-store";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
-import { dueInputToIso } from "./dates";
+import { dateInputToIso, dueInputToIso, startAfterDue } from "./dates";
 import { TaskDatePicker } from "./TaskDatePicker";
 
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
@@ -30,6 +30,8 @@ export function TaskCreateDialog({ draft }: {
   const [priority, setPriority] = useState<TaskPriority>("none");
   const [dueDate, setDueDate] = useState("");
   const [dueTime, setDueTime] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const datesInvalid = startAfterDue(startDate, dueDate);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState("");
@@ -37,12 +39,12 @@ export function TaskCreateDialog({ draft }: {
   const workspace = useQuery({ queryKey: qk.workspace(draft.workspaceId), queryFn: () => api.getWorkspace(draft.workspaceId) });
   const members = useQuery({ queryKey: qk.members(draft.workspaceId), queryFn: () => api.listMembers(draft.workspaceId) });
   const canWrite = Boolean(workspace.data && can(workspace.data.workspace.role, "task.write"));
-  const dirty = Boolean(title || description || dueDate || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
+  const dirty = Boolean(title || description || dueDate || startDate || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
   const create = useMutation({
     mutationFn: async () => {
       const result = await api.createTask(draft.workspaceId, {
         title: title.trim(), description: description.trim() || null, projectId: projectId || null,
-        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), assigneeIds,
+        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), assigneeIds,
       });
       const failed: string[] = [];
       for (const [index, file] of attachments.entries()) {
@@ -115,7 +117,9 @@ export function TaskCreateDialog({ draft }: {
                 <option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
               </select>
             </label>
-            <div className="text-sm sm:col-span-2"><span>Due date</span><TaskDatePicker value={dueDate} time={dueTime} onChange={(date, time) => { setDueDate(date); setDueTime(time); }} /></div>
+            <div className="text-sm sm:col-span-2"><span>Start date <span className="text-[var(--muted-foreground)]">(optional)</span></span><TaskDatePicker value={startDate} withTime={false} name="start date" onChange={(date) => setStartDate(date)} /></div>
+            <div className="text-sm sm:col-span-2"><span>Due date</span><TaskDatePicker value={dueDate} time={dueTime} onChange={(date, time) => { setDueDate(date); setDueTime(time); }} />
+              {datesInvalid ? <p role="alert" className="mt-1 text-xs text-[var(--accent)]">The start date can&apos;t be after the due date.</p> : null}</div>
           </div>
           <fieldset><legend className="text-sm">Assignees</legend>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -154,7 +158,7 @@ export function TaskCreateDialog({ draft }: {
         </fieldset>
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--hairline)] p-5">
           <div role="status" className="text-sm text-[var(--muted-foreground)]">{workspace.isPending ? "Loading workspace…" : uploadProgress || (create.isPending ? "Creating task…" : "Not created yet")}</div>
-          <button type="submit" disabled={!title.trim() || !canWrite || create.isPending || Boolean(attachmentError)} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-ink)] disabled:opacity-50">{create.isPending ? uploadProgress ? "Attaching…" : "Creating…" : "Create task"}</button>
+          <button type="submit" disabled={!title.trim() || !canWrite || create.isPending || Boolean(attachmentError) || datesInvalid} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-ink)] disabled:opacity-50">{create.isPending ? uploadProgress ? "Attaching…" : "Creating…" : "Create task"}</button>
           {workspace.isError ? <p role="alert" className="w-full text-sm">Could not load workspace. <button type="button" className="underline" onClick={() => void workspace.refetch()}>Retry</button></p> : null}
           {workspace.data && !canWrite ? <p role="alert" className="w-full text-sm">You do not have permission to create tasks here.</p> : null}
           {create.isError ? <p role="alert" className="w-full text-sm">{create.error.message}</p> : null}

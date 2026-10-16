@@ -110,6 +110,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | Status | `todo` \| `in_progress` \| `done` \| `canceled` |
 | Priority | `none` \| `low` \| `medium` \| `high` \| `urgent` |
 | Due date | Date with an optional time (`dueHasTime`); overdue / today badges — a timed task is overdue once its time passes, an all-day one the next day |
+| Start date | Optional all-day `startAt` in the drawer and new-task dialog, never after the due date; list and board show "Starts …" until it arrives; a recurring task's next copy keeps the same gap before its due date |
 | Soft delete + Trash | `deletedAt`; **Undo** right after deleting, and `/w/[workspaceId]/trash` lists deleted tasks with **Restore** (back to its project and column, or the Inbox if the project is gone) |
 
 ### 6.2 Views
@@ -135,7 +136,7 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Recurrence | Daily / weekly (interval 1 in UI); completing spawns next occurrence |
 | Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none) |
 
-**Partial / not yet:** `startAt` UI, tag filter in list UI, checklist title edit, nested subtask drawer, custom RRULE / monthly / yearly, dedicated `/tasks/[taskId]` page.
+**Partial / not yet:** tag filter in list UI, checklist title edit, nested subtask drawer, custom RRULE / monthly / yearly, dedicated `/tasks/[taskId]` page.
 
 ---
 
@@ -276,7 +277,7 @@ Tracked here so architecture plans are not mistaken for shipped product:
 - Dedicated `/search`, workspace settings, per-view board/list/calendar URLs, task deep-link page
 - Project / workspace / column admin (archive, tag color picker)
 - Email invites, notifications, mentions, billing
-- Full RRULE; `blocked` status; `startAt` UI
+- Full RRULE; `blocked` status
 - Presence task-focus highlight; Inbox realtime
 - Light theme toggle; offline CRDT; chat / video (architecture non-goals)
 

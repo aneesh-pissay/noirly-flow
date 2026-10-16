@@ -6,7 +6,25 @@ import {
   dueTone,
   isoToDateInput,
   isoToTimeInput,
+  startAfterDue,
+  startsLater,
 } from "@/src/features/task/dates";
+
+describe("start date", () => {
+  it("has not started while the start day is ahead", () => {
+    const now = new Date(2026, 7, 14, 23, 0);
+    expect(startsLater(dateInputToIso("2026-08-15"), now)).toBe(true);
+    expect(startsLater(dateInputToIso("2026-08-14"), now)).toBe(false);
+    expect(startsLater(null, now)).toBe(false);
+  });
+
+  it("may be on the due day but not after it", () => {
+    expect(startAfterDue("2026-08-14", "2026-08-14")).toBe(false);
+    expect(startAfterDue("2026-08-15", "2026-08-14")).toBe(true);
+    expect(startAfterDue("2026-08-15", "")).toBe(false);
+    expect(startAfterDue("", "2026-08-14")).toBe(false);
+  });
+});
 
 describe("due time", () => {
   it("keeps the chosen time and round-trips it", () => {

@@ -10,7 +10,7 @@ import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
 import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
-import { dueInputToIso, isoToDateInput, isoToTimeInput } from "@/src/features/task/dates";
+import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
@@ -59,6 +59,8 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   );
   const [dueDate, setDueDate] = useState(isoToDateInput(initialTask?.dueAt ?? null));
   const [dueTime, setDueTime] = useState(isoToTimeInput(initialTask?.dueAt ?? null, initialTask?.dueHasTime ?? false));
+  const [startDate, setStartDate] = useState(isoToDateInput(initialTask?.startAt ?? null));
+  const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
   );
@@ -98,6 +100,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setPriority(task.priority);
     setDueDate(isoToDateInput(task.dueAt));
     setDueTime(isoToTimeInput(task.dueAt, task.dueHasTime));
+    setStartDate(isoToDateInput(task.startAt));
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -154,7 +157,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), assigneeIds, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), assigneeIds, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -305,12 +308,24 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   </select>
                 </label>
                 <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Start date</span>
+                  <TaskDatePicker value={startDate} withTime={false} name="start date" disabled={!canEdit} onChange={(value) => {
+                    if (startAfterDue(value, dueDate)) { setDateError("The start date can't be after the due date."); return; }
+                    setDateError(null);
+                    setStartDate(value);
+                    persist({ startAt: dateInputToIso(value) });
+                  }} />
+                </div>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
                   <span>Due date</span>
                   <TaskDatePicker value={dueDate} time={dueTime} disabled={!canEdit} onChange={(value, time) => {
+                    if (startAfterDue(startDate, value)) { setDateError("The due date can't be before the start date."); return; }
+                    setDateError(null);
                     setDueDate(value);
                     setDueTime(time);
                     persist({ dueAt: dueInputToIso(value, time), dueHasTime: Boolean(value && time) });
                   }} />
+                  {dateError ? <p role="alert" className="text-xs text-[var(--accent)]">{dateError}</p> : null}
                 </div>
               </div>
 

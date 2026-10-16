@@ -361,6 +361,7 @@ export const api = {
       priority?: Task["priority"];
       dueAt?: string | null;
       dueHasTime?: boolean;
+      startAt?: string | null;
     },
   ) {
     return request<{ task: Task }>(`/api/workspaces/${workspaceId}/tasks`, {
