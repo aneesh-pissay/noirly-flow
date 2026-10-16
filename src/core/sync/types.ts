@@ -63,7 +63,16 @@ export type ChecklistItem = {
 
 export type RecurrenceRule = {
   frequency: RecurrenceFrequency;
+  /** Every N days / weeks / months / years. */
   interval: number;
+  /** Weekly only: the days it lands on, 0 = Sunday … 6 = Saturday. */
+  byWeekday?: number[];
+  /** Monthly / yearly: day of the month; short months use their last day. */
+  monthDay?: number;
+  /** Count from the day it's completed instead of from the due date. */
+  fromCompletion?: boolean;
+  /** IANA zone the days are counted in (the browser's when the rule was set). */
+  timeZone?: string;
 };
 
 export type Task = {
@@ -189,6 +198,7 @@ export type CreateTaskInput = {
   startAt?: string | null;
   deadlineAt?: string | null;
   durationMinutes?: number | null;
+  recurrence?: RecurrenceRule | null;
   assigneeIds?: string[];
   tagIds?: string[];
   parentTaskId?: string | null;

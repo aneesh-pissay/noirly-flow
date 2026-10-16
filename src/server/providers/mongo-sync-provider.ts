@@ -151,10 +151,7 @@ async function spawnNextOccurrence(
     emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
     tagIds: source.tagIds ?? [],
     parentTaskId: source.parentTaskId ?? null,
-    recurrence: {
-      frequency: rule.frequency,
-      interval: rule.interval,
-    },
+    recurrence: rule,
     checklist: (source.checklist ?? []).map((item, index) => ({
       title: item.title,
       completed: false,
@@ -699,6 +696,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           startAt: input.startAt ? new Date(input.startAt) : null,
           deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
           durationMinutes: input.durationMinutes ?? null,
+          recurrence: asRecurrenceRule(input.recurrence),
           position: input.position ?? nextPosition(last?.position),
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
@@ -854,12 +852,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
             : null;
         }
         if (patch.recurrence !== undefined) {
-          task.recurrence = patch.recurrence
-            ? {
-                frequency: patch.recurrence.frequency,
-                interval: patch.recurrence.interval || 1,
-              }
-            : null;
+          const rule = asRecurrenceRule(patch.recurrence);
+          task.recurrence = rule ? { ...rule, fromCompletion: Boolean(rule.fromCompletion) } : null;
         }
         if (patch.checklist !== undefined) {
           task.set(

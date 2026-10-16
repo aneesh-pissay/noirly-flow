@@ -41,7 +41,7 @@ import {
   type ColumnTasks,
 } from "@/src/features/task/board-order";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
-import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge } from "@/src/features/task/priority";
 import type { WorkspaceMember } from "@/src/features/workspace/members";
 
@@ -633,6 +633,7 @@ function SortableTaskCard({
               <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
               <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
               <TaskDurationBadge minutes={task.durationMinutes} />
+              <TaskRepeatBadge rule={task.recurrence} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </button>

@@ -13,6 +13,7 @@ import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
+import { TaskRepeatPicker } from "@/src/features/task/TaskRepeatPicker";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import {
@@ -63,6 +64,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [startDate, setStartDate] = useState(isoToDateInput(initialTask?.startAt ?? null));
   const [deadline, setDeadline] = useState(isoToDateInput(initialTask?.deadlineAt ?? null));
   const [duration, setDuration] = useState<number | null>(initialTask?.durationMinutes ?? null);
+  const [recurrence, setRecurrence] = useState<Task["recurrence"]>(initialTask?.recurrence ?? null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
@@ -106,6 +108,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setStartDate(isoToDateInput(task.startAt));
     setDeadline(isoToDateInput(task.deadlineAt));
     setDuration(task.durationMinutes ?? null);
+    setRecurrence(task.recurrence ?? null);
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -349,6 +352,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     persist({ durationMinutes: minutes });
                   }} className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 </label>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Repeat</span>
+                  <TaskRepeatPicker value={recurrence} date={dueDate || startDate} disabled={!canEdit} onChange={(rule) => {
+                    setRecurrence(rule);
+                    persist({ recurrence: rule });
+                  }} selectClassName="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                </div>
               </div>
 
               <section>

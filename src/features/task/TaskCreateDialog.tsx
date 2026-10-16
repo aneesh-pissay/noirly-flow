@@ -11,6 +11,8 @@ import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { dateInputToIso, dueInputToIso, startAfterDue } from "./dates";
 import { TaskDatePicker } from "./TaskDatePicker";
 import { TaskDurationSelect } from "./TaskDurationSelect";
+import { TaskRepeatPicker } from "./TaskRepeatPicker";
+import type { RecurrenceRule } from "@/src/core/sync/types";
 
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
@@ -34,6 +36,7 @@ export function TaskCreateDialog({ draft }: {
   const [startDate, setStartDate] = useState("");
   const [deadline, setDeadline] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
+  const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
   const datesInvalid = startAfterDue(startDate, dueDate) || startAfterDue(startDate, deadline);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -42,12 +45,12 @@ export function TaskCreateDialog({ draft }: {
   const workspace = useQuery({ queryKey: qk.workspace(draft.workspaceId), queryFn: () => api.getWorkspace(draft.workspaceId) });
   const members = useQuery({ queryKey: qk.members(draft.workspaceId), queryFn: () => api.listMembers(draft.workspaceId) });
   const canWrite = Boolean(workspace.data && can(workspace.data.workspace.role, "task.write"));
-  const dirty = Boolean(title || description || dueDate || startDate || deadline || duration || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
+  const dirty = Boolean(title || description || dueDate || startDate || deadline || duration || recurrence || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
   const create = useMutation({
     mutationFn: async () => {
       const result = await api.createTask(draft.workspaceId, {
         title: title.trim(), description: description.trim() || null, projectId: projectId || null,
-        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds,
+        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, recurrence, assigneeIds,
       });
       const failed: string[] = [];
       for (const [index, file] of attachments.entries()) {
@@ -128,6 +131,9 @@ export function TaskCreateDialog({ draft }: {
             <label className="text-sm">Duration <span className="text-[var(--muted-foreground)]">(optional)</span>
               <TaskDurationSelect value={duration} onChange={setDuration} className={fieldClass} />
             </label>
+            <div className="text-sm"><span>Repeat <span className="text-[var(--muted-foreground)]">(optional)</span></span>
+              <TaskRepeatPicker value={recurrence} date={dueDate || startDate} onChange={setRecurrence} selectClassName={fieldClass} />
+            </div>
           </div>
           <fieldset><legend className="text-sm">Assignees</legend>
             <div className="mt-2 flex flex-wrap gap-2">

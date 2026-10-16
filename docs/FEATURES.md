@@ -135,10 +135,10 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Subtasks | `parentTaskId`; create + mark done (one level in list) |
 | Assignees | Multi-select workspace members |
 | Tags | Workspace tags; create + attach (default color; no color picker UI) |
-| Recurrence | Daily / weekly (interval 1 in UI); completing spawns next occurrence |
+| Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
 | Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none) |
 
-**Partial / not yet:** tag filter in list UI, checklist title edit, nested subtask drawer, custom RRULE / monthly / yearly, dedicated `/tasks/[taskId]` page.
+**Partial / not yet:** tag filter in list UI, checklist title edit, nested subtask drawer, end date / count for repeats, dedicated `/tasks/[taskId]` page.
 
 ---
 
@@ -279,7 +279,7 @@ Tracked here so architecture plans are not mistaken for shipped product:
 - Dedicated `/search`, workspace settings, per-view board/list/calendar URLs, task deep-link page
 - Project / workspace / column admin (archive, tag color picker)
 - Email invites, notifications, mentions, billing
-- Full RRULE; `blocked` status
+- Repeat end date or count; `blocked` status
 - Presence task-focus highlight; Inbox realtime
 - Light theme toggle; offline CRDT; chat / video (architecture non-goals)
 

@@ -16,5 +16,5 @@ export const COLUMN_STATUSES = ["todo", "in_progress", "done"] as const;
 export const TASK_PRIORITIES = ["none", "low", "medium", "high", "urgent"] as const;
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
-export const RECURRENCE_FREQUENCIES = ["daily", "weekly"] as const;
+export const RECURRENCE_FREQUENCIES = ["daily", "weekly", "monthly", "yearly"] as const;
 export type RecurrenceFrequency = (typeof RECURRENCE_FREQUENCIES)[number];

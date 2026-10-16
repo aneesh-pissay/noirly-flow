@@ -1,3 +1,6 @@
+import { Repeat } from "lucide-react";
+import type { RecurrenceRule } from "@/src/core/sync/types";
+import { describeRecurrence } from "@/src/features/task/recurrence";
 import {
   dueClassName,
   dueTone,
@@ -6,6 +9,18 @@ import {
   formatTime,
   startsLater,
 } from "@/src/features/task/dates";
+
+/** A repeat icon with the rule spelled out for screen readers and on hover. */
+export function TaskRepeatBadge({ rule }: { rule: RecurrenceRule | null | undefined }) {
+  if (!rule) return null;
+  const text = describeRecurrence(rule);
+  return (
+    <span title={text} className="inline-flex items-center text-[var(--muted-foreground)]">
+      <Repeat size={12} aria-hidden />
+      <span className="sr-only">{text}</span>
+    </span>
+  );
+}
 
 /** The estimate, e.g. "45m". */
 export function TaskDurationBadge({ minutes }: { minutes: number | null | undefined }) {

@@ -364,6 +364,7 @@ export const api = {
       startAt?: string | null;
       deadlineAt?: string | null;
       durationMinutes?: number | null;
+      recurrence?: Task["recurrence"];
     },
   ) {
     return request<{ task: Task }>(`/api/workspaces/${workspaceId}/tasks`, {

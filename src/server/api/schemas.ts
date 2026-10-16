@@ -1,9 +1,22 @@
 import { z } from "zod";
 import {
   COLUMN_STATUSES,
+  RECURRENCE_FREQUENCIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from "@/src/core/models/enums";
+
+const recurrenceSchema = z
+  .object({
+    frequency: z.enum(RECURRENCE_FREQUENCIES),
+    interval: z.number().int().min(1).max(365).default(1),
+    byWeekday: z.array(z.number().int().min(0).max(6)).max(7).optional(),
+    monthDay: z.number().int().min(1).max(31).optional(),
+    fromCompletion: z.boolean().optional(),
+    timeZone: z.string().max(64).optional(),
+  })
+  .nullable()
+  .optional();
 
 const durationSchema = z.number().int().min(1).max(1440).nullable().optional();
 
@@ -37,6 +50,7 @@ export const createTaskBodySchema = z.object({
   startAt: dueAtSchema,
   deadlineAt: dueAtSchema,
   durationMinutes: durationSchema,
+  recurrence: recurrenceSchema,
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -67,13 +81,7 @@ export const updateTaskBodySchema = z
     position: z.number().finite().optional(),
     tagIds: z.array(z.string().min(1)).optional(),
     assigneeIds: z.array(z.string().min(1)).optional(),
-    recurrence: z
-      .object({
-        frequency: z.enum(["daily", "weekly"]),
-        interval: z.number().int().min(1).max(30).default(1),
-      })
-      .nullable()
-      .optional(),
+    recurrence: recurrenceSchema,
     checklist: z
       .array(
         z.object({

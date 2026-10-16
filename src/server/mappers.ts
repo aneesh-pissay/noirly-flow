@@ -1,3 +1,4 @@
+import { asRecurrenceRule } from "@/src/core/recurrence/next";
 import type { Types } from "mongoose";
 import type {
   ActivityEvent,
@@ -112,7 +113,11 @@ export function mapTask(doc: {
   parentTaskId?: Types.ObjectId | null;
   recurrence?: {
     frequency: string;
-    interval?: number;
+    interval?: number | null;
+    byWeekday?: number[] | null;
+    monthDay?: number | null;
+    fromCompletion?: boolean | null;
+    timeZone?: string | null;
   } | null;
   checklist?: Array<{
     _id?: Types.ObjectId;
@@ -144,14 +149,7 @@ export function mapTask(doc: {
     assigneeIds: (doc.assigneeIds ?? []).map((id) => id.toString()),
     tagIds: (doc.tagIds ?? []).map((id) => id.toString()),
     parentTaskId: idOf(doc.parentTaskId ?? null),
-    recurrence:
-      doc.recurrence?.frequency === "daily" ||
-      doc.recurrence?.frequency === "weekly"
-        ? {
-            frequency: doc.recurrence.frequency,
-            interval: doc.recurrence.interval ?? 1,
-          }
-        : null,
+    recurrence: asRecurrenceRule(doc.recurrence),
     checklist: (doc.checklist ?? []).map(
       (item): ChecklistItem => ({
         id: item._id?.toString() ?? `${item.position}-${item.title}`,

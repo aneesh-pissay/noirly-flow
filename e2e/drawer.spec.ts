@@ -124,6 +124,38 @@ test.describe("task drawer", () => {
     await expect(taskRow(page, title)).toContainText(/1h 30m/i);
   });
 
+  test("a custom repeat is saved from the drawer and the next copy lands on its day", async ({ page, team }) => {
+    const title = `Repeats ${uid()}`;
+    // 2099-01-05 is a Monday.
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, dueAt: "2099-01-05" });
+    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "GET");
+    await page.goto(`${team.url}?task=${task.id}`);
+    await loaded;
+    const panel = drawer(page);
+    const saved = () => page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "PATCH");
+
+    let patched = saved();
+    await panel.getByLabel("Repeat", { exact: true }).selectOption("custom");
+    await patched;
+    patched = saved();
+    await panel.getByRole("button", { name: /^Thu/ }).click();
+    await patched;
+    patched = saved();
+    await panel.getByLabel("Repeat every").fill("2");
+    await panel.getByLabel("Repeat every").press("Enter");
+    await patched;
+    await expect(panel.getByText(/Every 2 weeks on Mon, Thu/)).toBeVisible();
+
+    const rule = (await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.recurrence;
+    expect(rule).toMatchObject({ frequency: "weekly", interval: 2, byWeekday: [1, 4] });
+
+    // Done on Monday the 5th → Thursday the 8th, same week.
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { status: "done" } })).ok()).toBe(true);
+    const { tasks } = await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks?projectId=${team.project.id}`)).json();
+    const next = (tasks as Array<{ id: string; title: string; dueAt: string }>).find((t) => t.title === title && t.id !== task.id)!;
+    expect(new Date(next.dueAt).getDate()).toBe(8);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });
@@ -143,8 +175,8 @@ test.describe("task drawer", () => {
     await description.fill("Ship it behind a flag.");
     await description.blur();
 
-    // Tags, checklists, repeat and subtasks were removed from the drawer.
-    for (const gone of ["Tags", "Checklist", "Repeat", "Subtasks"]) {
+    // Tags, checklists and subtasks were removed from the drawer (Repeat came back with full recurrence).
+    for (const gone of ["Tags", "Checklist", "Subtasks"]) {
       await expect(panel.getByText(gone, { exact: true })).toHaveCount(0);
     }
     await expect(panel.getByPlaceholder("Add checklist item")).toHaveCount(0);
