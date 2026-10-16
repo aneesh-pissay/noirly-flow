@@ -64,6 +64,8 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | `/settings` | Flow profile + Identity account link |
 | `/invite/[token]` | Accept invite (login with `?next=` if needed) |
 | `/w/[workspaceId]` | Redirect to first project (or empty state) |
+| `/w/[workspaceId]/today` | Overdue and due-today open tasks across all projects and the Inbox; tick to complete |
+| `/w/[workspaceId]/upcoming` | Open tasks due in the next 14 days, grouped by day |
 | `/w/[workspaceId]/inbox` | Unfiled tasks |
 | `/w/[workspaceId]/p/[projectId]` | Project tasks (list / board / calendar toggles) |
 | `/w/[workspaceId]/members` | Members + invite links |
@@ -137,7 +139,7 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Assignees | Multi-select workspace members |
 | Tags | Workspace tags; create + attach (default color; no color picker UI) |
 | Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
-| Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none) |
+| Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none); due ranges are the browser's local days, sent as `dueAfter` / `dueBefore` |
 
 **Partial / not yet:** tag filter in list UI, checklist title edit, nested subtask drawer, end date / count for repeats, dedicated `/tasks/[taskId]` page.
 
@@ -209,7 +211,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | Display name usage | Members, comments, boards |
 | Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone, or a timed event for a task with a due time, lasting its duration (30 minutes when unset); create, replace or turn off in Settings (only a hash of the token is stored) |
 
-**Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences; calendar still uses browser local time for filters.
+**Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences.
 
 ---
 

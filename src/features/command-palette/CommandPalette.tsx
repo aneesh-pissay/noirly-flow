@@ -218,6 +218,24 @@ export function CommandPalette({ workspaces }: Props) {
 
         <Command.Group heading="Navigate" className={headingClass}>
           {activeWorkspaceId ? (
+            <>
+              <Command.Item
+                value="today due overdue agenda"
+                onSelect={() => go(`/w/${activeWorkspaceId}/today`)}
+                className={itemClass}
+              >
+                Today
+              </Command.Item>
+              <Command.Item
+                value="upcoming next two weeks agenda"
+                onSelect={() => go(`/w/${activeWorkspaceId}/upcoming`)}
+                className={itemClass}
+              >
+                Upcoming
+              </Command.Item>
+            </>
+          ) : null}
+          {activeWorkspaceId ? (
             <Command.Item
               value="inbox unfiled tasks"
               onSelect={() => go(`/w/${activeWorkspaceId}/inbox`)}

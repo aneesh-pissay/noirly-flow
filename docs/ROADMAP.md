@@ -18,7 +18,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | --- | --- |
 | 0. Recent fixes | 3 / 4 |
 | 1. Date model | 6 / 6 |
-| 2. Capture and organisation | 1 / 10 |
+| 2. Capture and organisation | 2 / 10 |
 | 3. Planning and calendar | 0 / 7 |
 | 4. Productivity | 0 / 6 |
 | 5. Collaboration and automation | 0 / 8 |
@@ -46,7 +46,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 ## Phase 2 — Capture and organisation
 
 - [x] Natural-language quick add: `Pay rent every 1st 9am p1 #Home @bills` (S) — done 2026-10-16 (`@labels` wait for a tag UI)
-- [ ] **Today** and **Upcoming** views across all projects in a workspace (M)
+- [x] **Today** and **Upcoming** views across all projects in a workspace (M) — done 2026-10-16
 - [ ] Saved smart filters with a query syntax (`today & #Work & @urgent`) (M)
 - [ ] Tag filter in the list view and a tag colour picker (S)
 - [ ] Sections inside a project (list view), separate from board columns (M)

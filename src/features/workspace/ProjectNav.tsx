@@ -123,6 +123,16 @@ export function ProjectNav({ workspaceId }: Props) {
       ) : null}
       <ul className="flex flex-col gap-1">
         <li>
+          <NavLink href={`/w/${workspaceId}/today`} className={navClass(path.endsWith("/today"))}>
+            Today
+          </NavLink>
+        </li>
+        <li>
+          <NavLink href={`/w/${workspaceId}/upcoming`} className={navClass(path.endsWith("/upcoming"))}>
+            Upcoming
+          </NavLink>
+        </li>
+        <li>
           <NavLink href={inboxHref} className={navClass(inboxActive)}>
             Inbox
           </NavLink>

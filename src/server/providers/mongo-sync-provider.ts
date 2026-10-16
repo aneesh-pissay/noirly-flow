@@ -596,6 +596,10 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           filter.projectId = null;
         } else if (query.projectId) {
           filter.projectId = oid(query.projectId);
+        } else {
+          // Across the workspace: tasks of deleted projects are hidden everywhere else too.
+          const deleted = await Project.find({ workspaceId: oid(query.workspaceId), deletedAt: { $ne: null } }).select("_id").lean();
+          if (deleted.length) filter.projectId = { $nin: deleted.map((project) => project._id) };
         }
         if (query.parentTaskId === null) {
           filter.parentTaskId = null;

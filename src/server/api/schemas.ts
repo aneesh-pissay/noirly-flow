@@ -111,6 +111,10 @@ export const listTasksQuerySchema = z.object({
   priority: z.string().optional(),
   search: z.string().optional(),
   due: z.enum(["overdue", "today", "upcoming", "none"]).optional(),
+  // An exact range from the browser, so "today" is the user's today, not the
+  // server's (UTC). Wins over `due`.
+  dueAfter: z.string().datetime({ offset: true }).optional(),
+  dueBefore: z.string().datetime({ offset: true }).optional(),
 });
 
 export const reorderTasksBodySchema = z.object({

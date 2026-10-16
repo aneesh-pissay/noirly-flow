@@ -1,3 +1,4 @@
+import { dueRange, type DuePreset } from "@/src/features/task/dates";
 import type {
   ActivityEvent,
   AppNotification,
@@ -326,6 +327,9 @@ export const api = {
       priority?: string;
       search?: string;
       due?: string;
+      /** ISO instants; when set they replace `due`. */
+      dueAfter?: string;
+      dueBefore?: string;
     } = {},
   ) {
     const params = new URLSearchParams();
@@ -343,7 +347,13 @@ export const api = {
     if (query.status) params.set("status", query.status);
     if (query.priority) params.set("priority", query.priority);
     if (query.search) params.set("search", query.search);
-    if (query.due) params.set("due", query.due);
+    // Ranges are worked out here, in the user's zone; the server would use its own (UTC).
+    const range = query.dueAfter || query.dueBefore
+      ? { dueAfter: query.dueAfter, dueBefore: query.dueBefore }
+      : query.due && query.due !== "none" ? dueRange(query.due as DuePreset) : {};
+    if (range.dueAfter) params.set("dueAfter", range.dueAfter);
+    if (range.dueBefore) params.set("dueBefore", range.dueBefore);
+    if (query.due === "none") params.set("due", "none");
     const qs = params.toString();
     return request<{ tasks: Task[] }>(
       `/api/workspaces/${workspaceId}/tasks${qs ? `?${qs}` : ""}`,

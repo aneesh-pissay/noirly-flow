@@ -34,6 +34,8 @@ export async function GET(request: Request, { params }: Params) {
       priority: url.searchParams.get("priority") ?? undefined,
       search: url.searchParams.get("search") ?? undefined,
       due: url.searchParams.get("due") ?? undefined,
+      dueAfter: url.searchParams.get("dueAfter") ?? undefined,
+      dueBefore: url.searchParams.get("dueBefore") ?? undefined,
     });
     if (!parsed.success) {
       throw new ApiError(400, "invalid_request", "Invalid query");
@@ -43,7 +45,9 @@ export async function GET(request: Request, { params }: Params) {
       await assertObjectId(parsed.data.assigneeId, "assigneeId");
     }
 
-    const range = dueRange(parsed.data.due);
+    const range = parsed.data.dueAfter || parsed.data.dueBefore
+      ? { dueAfter: parsed.data.dueAfter, dueBefore: parsed.data.dueBefore }
+      : dueRange(parsed.data.due);
     const { sync } = await getSyncProvider();
     const tasks = await sync.listTasks({
       workspaceId,
