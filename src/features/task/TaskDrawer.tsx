@@ -12,6 +12,7 @@ import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
+import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import {
@@ -61,6 +62,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [dueTime, setDueTime] = useState(isoToTimeInput(initialTask?.dueAt ?? null, initialTask?.dueHasTime ?? false));
   const [startDate, setStartDate] = useState(isoToDateInput(initialTask?.startAt ?? null));
   const [deadline, setDeadline] = useState(isoToDateInput(initialTask?.deadlineAt ?? null));
+  const [duration, setDuration] = useState<number | null>(initialTask?.durationMinutes ?? null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
@@ -103,6 +105,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setDueTime(isoToTimeInput(task.dueAt, task.dueHasTime));
     setStartDate(isoToDateInput(task.startAt));
     setDeadline(isoToDateInput(task.deadlineAt));
+    setDuration(task.durationMinutes ?? null);
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -159,7 +162,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), assigneeIds, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -339,6 +342,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   }} />
                   {dateError ? <p role="alert" className="text-xs text-[var(--accent)]">{dateError}</p> : null}
                 </div>
+                <label className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  Duration
+                  <TaskDurationSelect value={duration} disabled={!canEdit} onChange={(minutes) => {
+                    setDuration(minutes);
+                    persist({ durationMinutes: minutes });
+                  }} className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                </label>
               </div>
 
               <section>

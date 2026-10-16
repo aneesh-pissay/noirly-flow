@@ -81,6 +81,8 @@ export type Task = {
   startAt: string | null;
   /** All-day hard deadline, separate from the planned due date. */
   deadlineAt: string | null;
+  /** Estimated length in minutes (1–1440), or null. */
+  durationMinutes: number | null;
   completedAt: string | null;
   position: number;
   assigneeIds: string[];
@@ -186,6 +188,7 @@ export type CreateTaskInput = {
   /** All-day start date, stored at local noon like an all-day due date. */
   startAt?: string | null;
   deadlineAt?: string | null;
+  durationMinutes?: number | null;
   assigneeIds?: string[];
   tagIds?: string[];
   parentTaskId?: string | null;

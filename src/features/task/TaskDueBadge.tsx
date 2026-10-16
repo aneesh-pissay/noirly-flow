@@ -2,9 +2,20 @@ import {
   dueClassName,
   dueTone,
   formatDue,
+  formatDuration,
   formatTime,
   startsLater,
 } from "@/src/features/task/dates";
+
+/** The estimate, e.g. "45m". */
+export function TaskDurationBadge({ minutes }: { minutes: number | null | undefined }) {
+  if (!minutes) return null;
+  return (
+    <span className="font-mono text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">
+      {formatDuration(minutes)}
+    </span>
+  );
+}
 
 /** "Starts Oct 20", only while the start date is still ahead. */
 export function TaskStartBadge({ startAt }: { startAt: string | null | undefined }) {

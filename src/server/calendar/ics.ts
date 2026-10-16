@@ -11,6 +11,8 @@ export type FeedTask = {
   dueAt: Date;
   /** True when dueAt is a specific time rather than an all-day date. */
   hasTime: boolean;
+  /** Minutes; a timed task's event lasts this long, or 30 minutes when unset. */
+  durationMinutes?: number | null;
   done: boolean;
   updatedAt: Date;
   /** "Project name" or "Inbox", plus the workspace, shown in the event notes. */
@@ -73,7 +75,7 @@ function nextDay(yyyymmdd: string) {
   return date.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
-/** Length of a timed task's event until tasks have their own duration. */
+/** Length of a timed task's event when the task has no duration. */
 const TIMED_EVENT_MS = 30 * 60_000;
 
 function stamp(date: Date) {
@@ -95,7 +97,7 @@ export function buildCalendar(input: { name: string; timeZone: string; tasks: Fe
   ];
   for (const task of input.tasks) {
     const when = task.hasTime
-      ? [`DTSTART:${stamp(task.dueAt)}`, `DTEND:${stamp(new Date(task.dueAt.getTime() + TIMED_EVENT_MS))}`]
+      ? [`DTSTART:${stamp(task.dueAt)}`, `DTEND:${stamp(new Date(task.dueAt.getTime() + (task.durationMinutes ? task.durationMinutes * 60_000 : TIMED_EVENT_MS)))}`]
       : (() => {
           const day = dateInZone(task.dueAt, input.timeZone);
           return [`DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${nextDay(day)}`];

@@ -107,6 +107,23 @@ test.describe("task drawer", () => {
     expect(Date.parse(next.deadlineAt) - Date.parse(next.dueAt)).toBe(2 * 86_400_000);
   });
 
+  test("a duration is saved from the drawer and shown in the list", async ({ page, team }) => {
+    const title = `Estimate ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id });
+    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "GET");
+    await page.goto(`${team.url}?task=${task.id}`);
+    await loaded;
+
+    const patched = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "PATCH");
+    await drawer(page).getByLabel("Duration").selectOption("90");
+    await patched;
+    expect((await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.durationMinutes).toBe(90);
+
+    await page.keyboard.press("Escape");
+    await openList(page, team.url);
+    await expect(taskRow(page, title)).toContainText(/1h 30m/i);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });

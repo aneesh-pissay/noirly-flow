@@ -5,6 +5,8 @@ import {
   TASK_STATUSES,
 } from "@/src/core/models/enums";
 
+const durationSchema = z.number().int().min(1).max(1440).nullable().optional();
+
 const dueAtSchema = z
   .union([z.string(), z.null()])
   .optional()
@@ -34,6 +36,7 @@ export const createTaskBodySchema = z.object({
   dueHasTime: z.boolean().optional(),
   startAt: dueAtSchema,
   deadlineAt: dueAtSchema,
+  durationMinutes: durationSchema,
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -57,6 +60,7 @@ export const updateTaskBodySchema = z
     dueHasTime: z.boolean().optional(),
     startAt: dueAtSchema,
     deadlineAt: dueAtSchema,
+    durationMinutes: durationSchema,
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),

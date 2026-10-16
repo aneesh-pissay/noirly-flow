@@ -112,6 +112,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | Due date | Date with an optional time (`dueHasTime`); overdue / today badges — a timed task is overdue once its time passes, an all-day one the next day |
 | Start date | Optional all-day `startAt` in the drawer and new-task dialog, never after the due date; list and board show "Starts …" until it arrives; a recurring task's next copy keeps the same gap before its due date |
 | Deadline | Optional all-day `deadlineAt`, separate from the planned due date; list and board show "Deadline …", marked once it has passed; a recurring task's next copy keeps the same gap from its due date. Not yet shown in the calendar view or `.ics` feed |
+| Duration | Optional estimate (`durationMinutes`, presets 15m–8h) in the drawer and new-task dialog; shown in list and board; a timed task's `.ics` event lasts this long (30 minutes when unset); recurring copies keep it |
 | Soft delete + Trash | `deletedAt`; **Undo** right after deleting, and `/w/[workspaceId]/trash` lists deleted tasks with **Restore** (back to its project and column, or the Inbox if the project is gone) |
 
 ### 6.2 Views
@@ -205,7 +206,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | `/settings` | Identity name / email + link to Identity `/account` |
 | Flow profile | Display name, title, timezone (fixed list), bio via `GET/PATCH /api/me` |
 | Display name usage | Members, comments, boards |
-| Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone, or a 30-minute event for a task with a due time; create, replace or turn off in Settings (only a hash of the token is stored) |
+| Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone, or a timed event for a task with a due time, lasting its duration (30 minutes when unset); create, replace or turn off in Settings (only a hash of the token is stored) |
 
 **Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences; calendar still uses browser local time for filters.
 

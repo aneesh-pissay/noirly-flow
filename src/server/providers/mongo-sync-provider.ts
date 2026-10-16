@@ -145,6 +145,7 @@ async function spawnNextOccurrence(
     dueHasTime: Boolean(source.dueHasTime),
     startAt,
     deadlineAt,
+    durationMinutes: source.durationMinutes ?? null,
     position: nextPosition(last?.position),
     assigneeIds: source.assigneeIds ?? [],
     emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
@@ -697,6 +698,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           dueHasTime: Boolean(input.dueAt && input.dueHasTime),
           startAt: input.startAt ? new Date(input.startAt) : null,
           deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
+          durationMinutes: input.durationMinutes ?? null,
           position: input.position ?? nextPosition(last?.position),
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
@@ -749,6 +751,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           dueAt: task.dueAt?.toISOString() ?? null,
           startAt: task.startAt?.toISOString() ?? null,
           deadlineAt: task.deadlineAt?.toISOString() ?? null,
+          durationMinutes: task.durationMinutes ?? null,
           assigneeIds: (task.assigneeIds ?? []).map((id) => id.toString()),
         };
         const becomingDone =
@@ -778,6 +781,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         }
         if (patch.deadlineAt !== undefined) {
           task.deadlineAt = patch.deadlineAt ? new Date(patch.deadlineAt) : null;
+        }
+        if (patch.durationMinutes !== undefined) {
+          task.durationMinutes = patch.durationMinutes ?? null;
         }
         if (patch.position !== undefined) task.position = patch.position;
         if (patch.assigneeIds !== undefined) {
@@ -923,6 +929,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           if (nextDeadline !== before.deadlineAt) {
             changes.deadlineAt = { from: before.deadlineAt, to: nextDeadline };
           }
+        }
+        if (patch.durationMinutes !== undefined && (task.durationMinutes ?? null) !== before.durationMinutes) {
+          changes.durationMinutes = { from: before.durationMinutes, to: task.durationMinutes ?? null };
         }
 
         const activity: Array<Promise<unknown>> = [];

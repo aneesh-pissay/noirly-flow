@@ -72,6 +72,8 @@ const taskSchema = new Schema(
     startAt: { type: Date, default: null },
     // A hard "must be done by" date, separate from the planned due date. All-day, at local noon.
     deadlineAt: { type: Date, default: null },
+    // How long the task should take, in minutes; null when not estimated.
+    durationMinutes: { type: Number, default: null, min: 1, max: 1440 },
     completedAt: { type: Date, default: null },
     position: { type: Number, required: true, default: 0 },
     assigneeIds: {

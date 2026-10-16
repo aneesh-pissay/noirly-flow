@@ -88,7 +88,7 @@ export async function renderFeed(token: string): Promise<string | null> {
     })
       .sort({ dueAt: 1 })
       .limit(MAX_EVENTS)
-      .select("title description dueAt dueHasTime status updatedAt workspaceId projectId")
+      .select("title description dueAt dueHasTime durationMinutes status updatedAt workspaceId projectId")
       .lean();
 
     const origin = appOrigin();
@@ -103,6 +103,7 @@ export async function renderFeed(token: string): Promise<string | null> {
         description: task.description ?? null,
         dueAt: task.dueAt!,
         hasTime: Boolean(task.dueHasTime),
+        durationMinutes: task.durationMinutes ?? null,
         done: task.status === "done",
         updatedAt: task.updatedAt,
         where: `${projectId ? projectName.get(projectId) : "Inbox"} · ${workspaceName.get(String(task.workspaceId)) ?? "Workspace"}`,

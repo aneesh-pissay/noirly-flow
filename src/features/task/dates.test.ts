@@ -4,11 +4,20 @@ import {
   dueInputToIso,
   dueRange,
   dueTone,
+  formatDuration,
   isoToDateInput,
   isoToTimeInput,
   startAfterDue,
   startsLater,
 } from "@/src/features/task/dates";
+
+describe("formatDuration", () => {
+  it("writes minutes, hours, or both", () => {
+    expect(formatDuration(45)).toBe("45m");
+    expect(formatDuration(60)).toBe("1h");
+    expect(formatDuration(90)).toBe("1h 30m");
+  });
+});
 
 describe("start date", () => {
   it("has not started while the start day is ahead", () => {

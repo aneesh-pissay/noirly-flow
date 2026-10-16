@@ -54,6 +54,17 @@ export function endOfDay(date = new Date()) {
   return next;
 }
 
+/** Durations offered in pickers, in minutes. */
+export const DURATION_PRESETS = [15, 30, 45, 60, 90, 120, 180, 240, 360, 480] as const;
+
+/** "45m", "1h", "1h 30m". */
+export function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (!hours) return `${rest}m`;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
+}
+
 /** True when an all-day start date is after today: the task hasn't started yet. */
 export function startsLater(startAt: string | null | undefined, now = new Date()): boolean {
   if (!startAt) return false;

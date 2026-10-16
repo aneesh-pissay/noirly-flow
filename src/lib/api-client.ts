@@ -363,6 +363,7 @@ export const api = {
       dueHasTime?: boolean;
       startAt?: string | null;
       deadlineAt?: string | null;
+      durationMinutes?: number | null;
     },
   ) {
     return request<{ task: Task }>(`/api/workspaces/${workspaceId}/tasks`, {
