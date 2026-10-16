@@ -60,6 +60,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [dueDate, setDueDate] = useState(isoToDateInput(initialTask?.dueAt ?? null));
   const [dueTime, setDueTime] = useState(isoToTimeInput(initialTask?.dueAt ?? null, initialTask?.dueHasTime ?? false));
   const [startDate, setStartDate] = useState(isoToDateInput(initialTask?.startAt ?? null));
+  const [deadline, setDeadline] = useState(isoToDateInput(initialTask?.deadlineAt ?? null));
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
@@ -101,6 +102,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setDueDate(isoToDateInput(task.dueAt));
     setDueTime(isoToTimeInput(task.dueAt, task.dueHasTime));
     setStartDate(isoToDateInput(task.startAt));
+    setDeadline(isoToDateInput(task.deadlineAt));
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -157,7 +159,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), assigneeIds, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), assigneeIds, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -311,6 +313,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   <span>Start date</span>
                   <TaskDatePicker value={startDate} withTime={false} name="start date" disabled={!canEdit} onChange={(value) => {
                     if (startAfterDue(value, dueDate)) { setDateError("The start date can't be after the due date."); return; }
+                    if (startAfterDue(value, deadline)) { setDateError("The start date can't be after the deadline."); return; }
                     setDateError(null);
                     setStartDate(value);
                     persist({ startAt: dateInputToIso(value) });
@@ -324,6 +327,15 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     setDueDate(value);
                     setDueTime(time);
                     persist({ dueAt: dueInputToIso(value, time), dueHasTime: Boolean(value && time) });
+                  }} />
+                </div>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Deadline</span>
+                  <TaskDatePicker value={deadline} withTime={false} name="deadline" disabled={!canEdit} onChange={(value) => {
+                    if (startAfterDue(startDate, value)) { setDateError("The deadline can't be before the start date."); return; }
+                    setDateError(null);
+                    setDeadline(value);
+                    persist({ deadlineAt: dateInputToIso(value) });
                   }} />
                   {dateError ? <p role="alert" className="text-xs text-[var(--accent)]">{dateError}</p> : null}
                 </div>

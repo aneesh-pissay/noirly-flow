@@ -31,7 +31,8 @@ export function TaskCreateDialog({ draft }: {
   const [dueDate, setDueDate] = useState("");
   const [dueTime, setDueTime] = useState("");
   const [startDate, setStartDate] = useState("");
-  const datesInvalid = startAfterDue(startDate, dueDate);
+  const [deadline, setDeadline] = useState("");
+  const datesInvalid = startAfterDue(startDate, dueDate) || startAfterDue(startDate, deadline);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState("");
@@ -39,12 +40,12 @@ export function TaskCreateDialog({ draft }: {
   const workspace = useQuery({ queryKey: qk.workspace(draft.workspaceId), queryFn: () => api.getWorkspace(draft.workspaceId) });
   const members = useQuery({ queryKey: qk.members(draft.workspaceId), queryFn: () => api.listMembers(draft.workspaceId) });
   const canWrite = Boolean(workspace.data && can(workspace.data.workspace.role, "task.write"));
-  const dirty = Boolean(title || description || dueDate || startDate || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
+  const dirty = Boolean(title || description || dueDate || startDate || deadline || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
   const create = useMutation({
     mutationFn: async () => {
       const result = await api.createTask(draft.workspaceId, {
         title: title.trim(), description: description.trim() || null, projectId: projectId || null,
-        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), assigneeIds,
+        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), assigneeIds,
       });
       const failed: string[] = [];
       for (const [index, file] of attachments.entries()) {
@@ -119,7 +120,9 @@ export function TaskCreateDialog({ draft }: {
             </label>
             <div className="text-sm sm:col-span-2"><span>Start date <span className="text-[var(--muted-foreground)]">(optional)</span></span><TaskDatePicker value={startDate} withTime={false} name="start date" onChange={(date) => setStartDate(date)} /></div>
             <div className="text-sm sm:col-span-2"><span>Due date</span><TaskDatePicker value={dueDate} time={dueTime} onChange={(date, time) => { setDueDate(date); setDueTime(time); }} />
-              {datesInvalid ? <p role="alert" className="mt-1 text-xs text-[var(--accent)]">The start date can&apos;t be after the due date.</p> : null}</div>
+</div>
+            <div className="text-sm sm:col-span-2"><span>Deadline <span className="text-[var(--muted-foreground)]">(optional)</span></span><TaskDatePicker value={deadline} withTime={false} name="deadline" onChange={(date) => setDeadline(date)} />
+              {datesInvalid ? <p role="alert" className="mt-1 text-xs text-[var(--accent)]">The start date can&apos;t be after the due date or the deadline.</p> : null}</div>
           </div>
           <fieldset><legend className="text-sm">Assignees</legend>
             <div className="mt-2 flex flex-wrap gap-2">

@@ -16,6 +16,18 @@ export function TaskStartBadge({ startAt }: { startAt: string | null | undefined
   );
 }
 
+/** "Deadline Oct 30"; marked once the deadline day has passed. */
+export function TaskDeadlineBadge({ deadlineAt }: { deadlineAt: string | null | undefined }) {
+  const label = formatDue(deadlineAt);
+  if (!label) return null;
+  const tone = dueTone(deadlineAt);
+  return (
+    <span className={`font-mono text-[11px] uppercase tracking-wide ${dueClassName(tone)}`}>
+      {tone === "overdue" ? `Deadline passed · ${label}` : tone === "today" ? "Deadline today" : `Deadline ${label}`}
+    </span>
+  );
+}
+
 export function TaskDueBadge({ dueAt, hasTime = false }: {
   dueAt: string | null | undefined;
   hasTime?: boolean;

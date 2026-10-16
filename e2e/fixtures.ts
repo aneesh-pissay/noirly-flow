@@ -31,7 +31,7 @@ export async function createTeam(request: APIRequestContext, name = `Team ${uid(
 export async function createTask(
   request: APIRequestContext,
   workspaceId: string,
-  data: { title: string; projectId?: string | null; priority?: string; status?: string; dueAt?: string | null; startAt?: string | null },
+  data: { title: string; projectId?: string | null; priority?: string; status?: string; dueAt?: string | null; startAt?: string | null; deadlineAt?: string | null },
 ) {
   return (
     await json<{ task: { id: string; title: string } }>(

@@ -79,6 +79,8 @@ export type Task = {
   /** False for an all-day due date; true when dueAt is a specific time. */
   dueHasTime: boolean;
   startAt: string | null;
+  /** All-day hard deadline, separate from the planned due date. */
+  deadlineAt: string | null;
   completedAt: string | null;
   position: number;
   assigneeIds: string[];
@@ -183,6 +185,7 @@ export type CreateTaskInput = {
   dueHasTime?: boolean;
   /** All-day start date, stored at local noon like an all-day due date. */
   startAt?: string | null;
+  deadlineAt?: string | null;
   assigneeIds?: string[];
   tagIds?: string[];
   parentTaskId?: string | null;

@@ -87,6 +87,26 @@ test.describe("task drawer", () => {
     expect(new Date(next.dueAt).getDate()).toBe(17);
   });
 
+  test("a deadline is shown, marked once passed, and moves with a recurring task", async ({ page, team }) => {
+    const id = uid();
+    const past = await createTask(page.request, team.workspace.id, { title: `Missed ${id}`, projectId: team.project.id, deadlineAt: "2020-03-01" });
+    const ahead = await createTask(page.request, team.workspace.id, { title: `Ahead ${id}`, projectId: team.project.id, dueAt: "2099-01-10", deadlineAt: "2099-01-12" });
+    await openList(page, team.url);
+    await expect(taskRow(page, `Missed ${id}`)).toContainText(/Deadline passed/i);
+    await expect(taskRow(page, `Ahead ${id}`)).toContainText(/Deadline Jan 12/i);
+
+    await page.goto(`${team.url}?task=${past.id}`);
+    await expect(drawer(page).getByText("Deadline", { exact: true })).toBeVisible();
+    await expect(drawer(page).getByRole("button", { name: /Mar 1, 2020/ })).toBeVisible();
+
+    // The next weekly copy keeps its deadline two days after its new due date.
+    expect((await page.request.patch(`/api/tasks/${ahead.id}`, { data: { recurrence: { frequency: "weekly", interval: 1 } } })).ok()).toBe(true);
+    expect((await page.request.patch(`/api/tasks/${ahead.id}`, { data: { status: "done" } })).ok()).toBe(true);
+    const { tasks } = await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks?projectId=${team.project.id}`)).json();
+    const next = (tasks as Array<{ id: string; title: string; dueAt: string; deadlineAt: string }>).find((t) => t.title === `Ahead ${id}` && t.id !== ahead.id)!;
+    expect(Date.parse(next.deadlineAt) - Date.parse(next.dueAt)).toBe(2 * 86_400_000);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });

@@ -112,10 +112,12 @@ async function spawnNextOccurrence(
   actorId: string,
 ) {
   const dueAt = nextOccurrenceDueAt(source.dueAt, rule);
-  // The next copy starts the same distance before its due date as this one did.
-  const startAt = source.startAt && source.dueAt
-    ? new Date(dueAt.getTime() - (source.dueAt.getTime() - source.startAt.getTime()))
+  // The next copy keeps its start date and deadline the same distance from its due date as this one did.
+  const shifted = (date: Date | null | undefined) => date && source.dueAt
+    ? new Date(dueAt.getTime() - (source.dueAt.getTime() - date.getTime()))
     : null;
+  const startAt = shifted(source.startAt);
+  const deadlineAt = shifted(source.deadlineAt);
   let columnId = null;
   if (source.projectId) {
     const column = await firstColumnFor(source.projectId, "todo");
@@ -142,6 +144,7 @@ async function spawnNextOccurrence(
     dueAt,
     dueHasTime: Boolean(source.dueHasTime),
     startAt,
+    deadlineAt,
     position: nextPosition(last?.position),
     assigneeIds: source.assigneeIds ?? [],
     emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
@@ -693,6 +696,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           dueAt: input.dueAt ? new Date(input.dueAt) : null,
           dueHasTime: Boolean(input.dueAt && input.dueHasTime),
           startAt: input.startAt ? new Date(input.startAt) : null,
+          deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
           position: input.position ?? nextPosition(last?.position),
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
@@ -744,6 +748,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           priority: task.priority,
           dueAt: task.dueAt?.toISOString() ?? null,
           startAt: task.startAt?.toISOString() ?? null,
+          deadlineAt: task.deadlineAt?.toISOString() ?? null,
           assigneeIds: (task.assigneeIds ?? []).map((id) => id.toString()),
         };
         const becomingDone =
@@ -770,6 +775,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         }
         if (patch.startAt !== undefined) {
           task.startAt = patch.startAt ? new Date(patch.startAt) : null;
+        }
+        if (patch.deadlineAt !== undefined) {
+          task.deadlineAt = patch.deadlineAt ? new Date(patch.deadlineAt) : null;
         }
         if (patch.position !== undefined) task.position = patch.position;
         if (patch.assigneeIds !== undefined) {
@@ -908,6 +916,12 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           const nextStart = task.startAt?.toISOString() ?? null;
           if (nextStart !== before.startAt) {
             changes.startAt = { from: before.startAt, to: nextStart };
+          }
+        }
+        if (patch.deadlineAt !== undefined) {
+          const nextDeadline = task.deadlineAt?.toISOString() ?? null;
+          if (nextDeadline !== before.deadlineAt) {
+            changes.deadlineAt = { from: before.deadlineAt, to: nextDeadline };
           }
         }
 

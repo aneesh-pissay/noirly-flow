@@ -33,6 +33,7 @@ export const createTaskBodySchema = z.object({
   dueAt: dueAtSchema,
   dueHasTime: z.boolean().optional(),
   startAt: dueAtSchema,
+  deadlineAt: dueAtSchema,
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -55,6 +56,7 @@ export const updateTaskBodySchema = z
     dueAt: dueAtSchema,
     dueHasTime: z.boolean().optional(),
     startAt: dueAtSchema,
+    deadlineAt: dueAtSchema,
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),

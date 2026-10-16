@@ -111,6 +111,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | Priority | `none` \| `low` \| `medium` \| `high` \| `urgent` |
 | Due date | Date with an optional time (`dueHasTime`); overdue / today badges — a timed task is overdue once its time passes, an all-day one the next day |
 | Start date | Optional all-day `startAt` in the drawer and new-task dialog, never after the due date; list and board show "Starts …" until it arrives; a recurring task's next copy keeps the same gap before its due date |
+| Deadline | Optional all-day `deadlineAt`, separate from the planned due date; list and board show "Deadline …", marked once it has passed; a recurring task's next copy keeps the same gap from its due date. Not yet shown in the calendar view or `.ics` feed |
 | Soft delete + Trash | `deletedAt`; **Undo** right after deleting, and `/w/[workspaceId]/trash` lists deleted tasks with **Restore** (back to its project and column, or the Inbox if the project is gone) |
 
 ### 6.2 Views

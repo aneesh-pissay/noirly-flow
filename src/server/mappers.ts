@@ -103,6 +103,7 @@ export function mapTask(doc: {
   dueAt?: Date | null;
   dueHasTime?: boolean | null;
   startAt?: Date | null;
+  deadlineAt?: Date | null;
   completedAt?: Date | null;
   position: number;
   assigneeIds?: Types.ObjectId[];
@@ -135,6 +136,7 @@ export function mapTask(doc: {
     dueAt: iso(doc.dueAt ?? null),
     dueHasTime: Boolean(doc.dueAt && doc.dueHasTime),
     startAt: iso(doc.startAt ?? null),
+    deadlineAt: iso(doc.deadlineAt ?? null),
     completedAt: iso(doc.completedAt ?? null),
     position: doc.position,
     assigneeIds: (doc.assigneeIds ?? []).map((id) => id.toString()),
