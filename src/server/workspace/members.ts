@@ -43,6 +43,21 @@ async function assertNotCreator(workspaceId: string, targetUserId: string, actio
   }
 }
 
+/**
+ * A workspace linked to a Noirly space takes its members from the space, so
+ * Flow's own invites and member changes are off until it's unlinked.
+ */
+export async function assertNotLinkedToSpace(workspaceId: Types.ObjectId | string) {
+  const workspace = await Workspace.findById(workspaceId).select("spaceId spaceName").lean();
+  if (workspace?.spaceId) {
+    throw new ApiError(
+      409,
+      "space_linked",
+      `Members come from the space "${workspace.spaceName ?? "linked space"}". Manage them in Noirly Identity.`,
+    );
+  }
+}
+
 export async function requireWorkspaceRole(
   userId: string,
   workspaceId: string,
@@ -95,6 +110,7 @@ export async function createInvite(input: {
 }) {
   return withDb(async () => {
     await requireWorkspaceRole(input.userId, input.workspaceId, "admin");
+    await assertNotLinkedToSpace(oid(input.workspaceId));
     const email = input.email?.trim().toLowerCase() || null;
     if (email) {
       const user = await FlowUser.findOne({ email }).select("_id").lean();
@@ -142,6 +158,8 @@ export async function acceptInvite(userId: string, token: string, userEmail: str
       { returnDocument: "after" },
     );
     if (!invite) throw new ApiError(400, "invalid_request", "Invite is invalid, expired, or already used");
+    // Invites made before the workspace was linked stop working once it is.
+    await assertNotLinkedToSpace(invite.workspaceId);
 
     const existing = await WorkspaceMembership.findOne({
       workspaceId: invite.workspaceId,
@@ -187,6 +205,7 @@ export async function updateMemberRole(input: {
       input.workspaceId,
       "admin",
     );
+    await assertNotLinkedToSpace(oid(input.workspaceId));
     if (input.role === "owner" && actorRole !== "owner") {
       throw new ApiError(403, "forbidden", "Only the owner can assign owner");
     }
@@ -229,6 +248,7 @@ export async function removeMember(input: {
 }) {
   return withDb(async () => {
     const actorRole = await requireWorkspaceRole(input.actorId, input.workspaceId, "admin");
+    await assertNotLinkedToSpace(oid(input.workspaceId));
     await assertNotCreator(input.workspaceId, input.targetUserId, "removed");
     const membership = await WorkspaceMembership.findOne({
       workspaceId: oid(input.workspaceId),

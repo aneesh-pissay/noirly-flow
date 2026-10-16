@@ -14,6 +14,8 @@ import type {
   Workspace,
 } from "@/src/core/sync/types";
 import type { MemberRole } from "@/src/core/models/enums";
+import type { SpaceLinkStatus } from "@/src/server/spaces/link";
+import type { SpaceSyncResult } from "@/src/server/spaces/sync";
 
 type ApiErrorBody = { error?: string; message?: string };
 
@@ -127,6 +129,30 @@ export const api = {
     return request<{ ok: boolean }>(`/api/workspaces/${workspaceId}`, {
       method: "DELETE",
     });
+  },
+  spaceStatus(workspaceId: string) {
+    return request<SpaceLinkStatus>(`/api/workspaces/${workspaceId}/space`);
+  },
+  linkSpace(workspaceId: string, spaceId: string) {
+    return request<{ result: SpaceSyncResult }>(`/api/workspaces/${workspaceId}/space`, {
+      method: "POST",
+      body: JSON.stringify({ action: "link", spaceId }),
+    });
+  },
+  createSpaceFromWorkspace(workspaceId: string, name?: string) {
+    return request<{ result: SpaceSyncResult; spaceId: string; dropped: number }>(
+      `/api/workspaces/${workspaceId}/space`,
+      { method: "POST", body: JSON.stringify({ action: "create", name }) },
+    );
+  },
+  syncSpace(workspaceId: string) {
+    return request<{ result: SpaceSyncResult }>(`/api/workspaces/${workspaceId}/space`, {
+      method: "POST",
+      body: JSON.stringify({ action: "sync" }),
+    });
+  },
+  unlinkSpace(workspaceId: string) {
+    return request<{ ok: boolean }>(`/api/workspaces/${workspaceId}/space`, { method: "DELETE" });
   },
   listMembers(workspaceId: string) {
     return request<{

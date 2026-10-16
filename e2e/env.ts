@@ -21,6 +21,9 @@ export const E2E_ENV: Record<string, string> = {
   AUTH_SECRET: E2E_AUTH_SECRET,
   // No live Identity calls: test sessions are minted locally with the test secret.
   AUTH_NOIRLY_ISSUER: "https://identity.e2e.invalid",
+  // Webhooks check their audience against this; spaces calls fail (no Identity).
+  AUTH_NOIRLY_CLIENT_ID: "noirly-flow-e2e",
+  AUTH_NOIRLY_CLIENT_SECRET: "noirly-flow-e2e-client-secret",
   AUTH_URL: E2E_BASE_URL,
   NEXT_PUBLIC_APP_URL: E2E_BASE_URL,
   // Realtime off: no WebSocket from the browser, no publishes from the server.

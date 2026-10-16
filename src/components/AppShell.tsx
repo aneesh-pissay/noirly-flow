@@ -23,6 +23,7 @@ import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
 import { useOptimisticPath } from "@/src/components/NavLink";
 import { ThemeControls } from "@/src/components/ThemeControls";
+import { AppSwitcher } from "@/src/components/AppSwitcher";
 import { NotificationBell } from "@/src/features/notifications/NotificationBell";
 import { BrandMark } from "@/src/components/BrandMark";
 import { api } from "@/src/lib/api-client";
@@ -228,6 +229,7 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
             // Search opens from the sidebar's Search button or ⌘K / Ctrl+K.
             <div className="flex items-center gap-1.5">
               <NotificationBell />
+              <AppSwitcher current="flow" />
               <ThemeControls size="sm" />
             </div>
           ),

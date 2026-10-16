@@ -1,6 +1,5 @@
 import { readLimitedText } from "@/src/server/security/body";
-import { createRemoteJWKSet, jwtVerify } from "jose";
-import { identityIssuer } from "@/src/server/auth/identity-userinfo";
+import { InvalidEventError, verifyIdentityEvent } from "@/src/server/auth/identity-events";
 import { withDb } from "@/src/server/db/mongodb";
 import { deleteFlowAccountData } from "@/src/server/users/delete-account";
 
@@ -16,12 +15,6 @@ import { deleteFlowAccountData } from "@/src/server/users/delete-account";
 
 const ACCOUNT_DELETED_EVENT = "https://noirly.dev/events/account-deleted";
 
-let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
-function identityKeys() {
-  jwks ??= createRemoteJWKSet(new URL(`${identityIssuer()}/.well-known/jwks.json`));
-  return jwks;
-}
-
 export async function POST(request: Request) {
   const audience = process.env.AUTH_NOIRLY_CLIENT_ID;
   if (!audience) {
@@ -31,20 +24,9 @@ export async function POST(request: Request) {
   let sub: string;
   try {
     const token = (await readLimitedText(request, 16384)).trim();
-    const { payload } = await jwtVerify(token, identityKeys(), {
-      issuer: identityIssuer(),
-      audience,
-      typ: "secevent+jwt",
-      algorithms: ["RS256"],
-      requiredClaims: ["exp", "iat", "sub", "jti"],
-      maxTokenAge: "5 minutes",
-    });
-    const events = payload.events as Record<string, unknown> | undefined;
-    if (!payload.sub || !events || !(ACCOUNT_DELETED_EVENT in events)) {
-      return Response.json({ error: "invalid_event" }, { status: 400 });
-    }
-    sub = payload.sub;
-  } catch {
+    sub = await verifyIdentityEvent(token, audience, ACCOUNT_DELETED_EVENT);
+  } catch (error) {
+    if (error instanceof InvalidEventError) return Response.json({ error: "invalid_event" }, { status: 400 });
     return Response.json({ error: "invalid_token" }, { status: 401 });
   }
 

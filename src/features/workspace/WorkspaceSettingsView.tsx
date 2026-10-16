@@ -9,6 +9,7 @@ import { qk } from "@/src/core/sync/query-keys";
 import type { Workspace } from "@/src/core/sync/types";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { useUIStore } from "@/src/stores/ui-store";
+import { SpaceLinkSection } from "@/src/features/workspace/SpaceLinkSection";
 
 const sectionClass = "border border-[var(--hairline)] bg-[var(--surface)] p-5";
 const kickerClass =
@@ -139,6 +140,8 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
           </p>
         ) : null}
       </section>
+
+      {!personal ? <SpaceLinkSection workspaceId={workspaceId} /> : null}
 
       {!personal && canDelete ? (
         <section className={`${sectionClass} border-red-500/40`}>

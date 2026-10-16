@@ -1,39 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, useFormStatus } from "react-dom";
 import { LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
 import { Button } from "@noirly-dev/ui";
+import { signOutAction } from "@/src/features/auth/actions";
 import { FlowBusyScreen } from "@/src/components/FlowBusyScreen";
 
+/**
+ * A server action, so sign-out is one request: the action clears the session
+ * and its redirect carries /login back in the same response. The client
+ * signOut() it replaced fetched a CSRF token, POSTed, then loaded /login.
+ */
 export function SignOutButton() {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  return (
+    <form action={signOutAction} className="w-full">
+      <SignOutSubmit />
+    </form>
+  );
+}
 
-  async function onSignOut() {
-    setBusy(true);
-    setError(null);
-    try {
-      await signOut({ callbackUrl: "/login", redirect: true });
-    } catch {
-      setBusy(false);
-      setError("Could not sign out. Please try again.");
-    }
-  }
-
+function SignOutSubmit() {
+  const { pending } = useFormStatus();
   return (
     <>
-      {error ? <p role="alert" className="text-sm text-[var(--foreground)]">{error}</p> : null}
-      {busy
+      {pending
         ? createPortal(<FlowBusyScreen label="Signing out" />, document.body)
         : null}
       <Button
-        type="button"
+        type="submit"
         variant="ghost"
         className="w-full justify-start"
-        onClick={() => void onSignOut()}
-        disabled={busy}
+        disabled={pending}
       >
         <LogOut size={16} />
         Sign out

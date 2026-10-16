@@ -7,6 +7,7 @@ import {
   jsonOk,
 } from "@/src/server/api/http";
 import { updateWorkspaceBodySchema } from "@/src/server/api/schemas";
+import { resyncLaterIfStale } from "@/src/server/spaces/link";
 
 type Params = { params: Promise<{ workspaceId: string }> };
 
@@ -19,6 +20,7 @@ export async function GET(_request: Request, { params }: Params) {
       sync.getWorkspace(workspaceId),
       sync.listProjects(workspaceId),
     ]);
+    resyncLaterIfStale(workspace);
     return jsonOk({ workspace, projects });
   } catch (error) {
     return jsonError(error);

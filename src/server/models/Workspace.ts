@@ -24,6 +24,14 @@ const workspaceSchema = new Schema(
       required: true,
       index: true,
     },
+    /**
+     * The Noirly space (Identity organization) this team follows. While set,
+     * the space's member list decides who is in this workspace and with what
+     * role; Flow's own invites and member changes are off.
+     */
+    spaceId: { type: String, default: null, index: true },
+    spaceName: { type: String, default: null },
+    spaceSyncedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

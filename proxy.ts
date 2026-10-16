@@ -8,7 +8,9 @@ export const proxy = auth(async (request) => {
   if (request.nextUrl.pathname.endsWith(".map")) return new NextResponse(null, { status: 404 });
   const api = request.nextUrl.pathname.startsWith("/api/");
   const authApi = request.nextUrl.pathname.startsWith("/api/auth/");
-  const webhook = request.nextUrl.pathname === "/api/identity/account-deleted";
+  const webhook =
+    request.nextUrl.pathname === "/api/identity/account-deleted" ||
+    request.nextUrl.pathname === "/api/identity/space-changed";
   if (api && !authApi && !webhook) {
     const bearer = /^Bearer\s+\S+$/i.test(request.headers.get("authorization") ?? "");
     if (!bearer) {

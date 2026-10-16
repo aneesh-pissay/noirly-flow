@@ -14,6 +14,9 @@ export type Workspace = {
   name: string;
   slug: string;
   ownerUserId: string;
+  /** The Noirly space this team follows; members are managed there while set. */
+  spaceId?: string | null;
+  spaceName?: string | null;
   createdAt: string;
   updatedAt: string;
 };

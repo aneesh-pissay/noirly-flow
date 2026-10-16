@@ -27,6 +27,8 @@ export function mapWorkspace(doc: {
   name: string;
   slug: string;
   ownerUserId: Types.ObjectId;
+  spaceId?: string | null;
+  spaceName?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }): Workspace {
@@ -36,6 +38,8 @@ export function mapWorkspace(doc: {
     name: doc.name,
     slug: doc.slug,
     ownerUserId: doc.ownerUserId.toString(),
+    spaceId: doc.spaceId ?? null,
+    spaceName: doc.spaceName ?? null,
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   };
