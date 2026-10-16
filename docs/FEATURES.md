@@ -106,7 +106,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | CRUD | Create / update / soft-delete with optimistic cache updates |
 | Inbox | Unfiled tasks (`projectId: null`) |
-| Quick add | Title + priority + due date and optional time |
+| Quick add | New-task dialog (also opened from Cmd+K with the query as title). Natural-language title: `Pay rent every 1st 9am p1 #Home` sets due date and time, repeat, priority (`p1`–`p4`) and project (`#name`, `#inbox`); also `today`, `tomorrow`, `next week`, `in 3 days`, weekday names, `aug 14`, `every mon and thu`, `every weekday`, `every 2 weeks after completion`. A live preview shows what was recognised; "Keep as typed" turns it off. `@labels` stay in the title (tags have no UI) |
 | Status | `todo` \| `in_progress` \| `done` \| `canceled` |
 | Priority | `none` \| `low` \| `medium` \| `high` \| `urgent` |
 | Due date | Date with an optional time (`dueHasTime`); overdue / today badges — a timed task is overdue once its time passes, an all-day one the next day |

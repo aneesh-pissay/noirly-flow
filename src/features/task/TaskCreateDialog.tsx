@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api } from "@/src/lib/api-client";
@@ -14,6 +14,8 @@ import { TaskDurationSelect } from "./TaskDurationSelect";
 import { TaskRepeatPicker } from "./TaskRepeatPicker";
 import { TaskReminderSelect } from "./TaskReminderSelect";
 import type { RecurrenceRule } from "@/src/core/sync/types";
+import { parseQuickAdd } from "./quick-add";
+import { browserZone } from "./recurrence";
 
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
@@ -39,7 +41,7 @@ export function TaskCreateDialog({ draft }: {
   const [duration, setDuration] = useState<number | null>(null);
   const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
   const [reminder, setReminder] = useState<number | null>(null);
-  const datesInvalid = startAfterDue(startDate, dueDate) || startAfterDue(startDate, deadline);
+  const [keepTyped, setKeepTyped] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState("");
@@ -47,12 +49,26 @@ export function TaskCreateDialog({ draft }: {
   const workspace = useQuery({ queryKey: qk.workspace(draft.workspaceId), queryFn: () => api.getWorkspace(draft.workspaceId) });
   const members = useQuery({ queryKey: qk.members(draft.workspaceId), queryFn: () => api.listMembers(draft.workspaceId) });
   const canWrite = Boolean(workspace.data && can(workspace.data.workspace.role, "task.write"));
+  // Quick add: dates, times, repeats, priority and #project typed into the title.
+  // What it recognises wins over the matching field; "Keep as typed" turns it off.
+  const detected = useMemo(
+    () => parseQuickAdd(title, { projects: workspace.data?.projects ?? [], timeZone: browserZone() }),
+    [title, workspace.data?.projects],
+  );
+  const quick = !keepTyped && detected.labels.length ? detected : null;
+  const finalTitle = (quick?.title ?? title).trim();
+  const finalDueDate = quick?.dueDate ?? dueDate;
+  const finalDueTime = quick?.dueTime ?? dueTime;
+  const finalPriority = quick?.priority ?? priority;
+  const finalProjectId = quick && quick.projectId !== undefined ? quick.projectId ?? "" : projectId;
+  const finalRecurrence = quick?.recurrence ?? recurrence;
+  const datesInvalid = startAfterDue(startDate, finalDueDate) || startAfterDue(startDate, deadline);
   const dirty = Boolean(title || description || dueDate || startDate || deadline || duration || recurrence || reminder !== null || assigneeIds.length || attachments.length || status !== "todo" || priority !== "none" || projectId !== (draft.projectId ?? ""));
   const create = useMutation({
     mutationFn: async () => {
       const result = await api.createTask(draft.workspaceId, {
-        title: title.trim(), description: description.trim() || null, projectId: projectId || null,
-        status, priority, dueAt: dueInputToIso(dueDate, dueTime), dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, reminderMinutes: reminder, recurrence, assigneeIds,
+        title: finalTitle, description: description.trim() || null, projectId: finalProjectId || null,
+        status, priority: finalPriority, dueAt: dueInputToIso(finalDueDate, finalDueTime), dueHasTime: Boolean(finalDueDate && finalDueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, reminderMinutes: reminder, recurrence: finalRecurrence, assigneeIds,
       });
       const failed: string[] = [];
       for (const [index, file] of attachments.entries()) {
@@ -96,15 +112,28 @@ export function TaskCreateDialog({ draft }: {
     <dialog ref={dialog} aria-labelledby="create-task-title" data-lenis-prevent
       onCancel={(event) => { event.preventDefault(); dismiss(); }}
       className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-2xl overflow-y-auto rounded-2xl border border-[var(--hairline)] bg-[var(--surface)] p-0 text-[var(--foreground)] shadow-xl backdrop:bg-black/50">
-      <form onSubmit={(event) => { event.preventDefault(); if (title.trim() && canWrite && !create.isPending) create.mutate(); }}>
+      <form onSubmit={(event) => { event.preventDefault(); if (finalTitle && canWrite && !create.isPending && !datesInvalid) create.mutate(); }}>
         <header className="flex items-center justify-between border-b border-[var(--hairline)] p-5">
           <div><h2 id="create-task-title" className="text-xl font-semibold">Create task</h2><p className="mt-1 text-sm text-[var(--muted-foreground)]">Only the title is required.</p></div>
           <button type="button" onClick={dismiss} disabled={create.isPending} className="min-h-10 px-3 disabled:opacity-50">Cancel</button>
         </header>
         <fieldset disabled={create.isPending || !canWrite} className="space-y-4 p-5 disabled:opacity-60">
           <label className="block text-sm">Title <span aria-hidden="true">*</span>
-            <input name="title" required maxLength={500} value={title} onChange={(event) => setTitle(event.target.value)} className={fieldClass} />
+            <input name="title" required maxLength={500} value={title} onChange={(event) => setTitle(event.target.value)} className={fieldClass}
+              placeholder="e.g. Pay rent every 1st 9am p1 #Home" aria-describedby="quick-add-preview" />
           </label>
+          <div id="quick-add-preview" aria-live="polite" className="-mt-2 flex flex-wrap items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
+            {quick ? (
+              <>
+                <span>Quick add:</span>
+                {quick.labels.map((label) => <span key={label} className="rounded-full border border-[var(--accent)] px-2 py-0.5 text-[var(--foreground)]">{label}</span>)}
+                {quick.title !== title.trim() ? <span>· saves as “{quick.title}”</span> : null}
+                <button type="button" onClick={() => setKeepTyped(true)} className="underline hover:text-[var(--foreground)]">Keep as typed</button>
+              </>
+            ) : keepTyped && detected.labels.length ? (
+              <><span>Quick add is off.</span><button type="button" onClick={() => setKeepTyped(false)} className="underline hover:text-[var(--foreground)]">Turn on</button></>
+            ) : null}
+          </div>
           <label className="block text-sm">Description
             <textarea name="description" rows={4} maxLength={20000} value={description} onChange={(event) => setDescription(event.target.value)} className={fieldClass} />
           </label>
@@ -134,7 +163,7 @@ export function TaskCreateDialog({ draft }: {
               <TaskDurationSelect value={duration} onChange={setDuration} className={fieldClass} />
             </label>
             <label className="text-sm">Reminder <span className="text-[var(--muted-foreground)]">(optional)</span>
-              <TaskReminderSelect value={reminder} hasTime={Boolean(dueDate && dueTime)} onChange={setReminder} className={fieldClass} />
+              <TaskReminderSelect value={reminder} hasTime={Boolean(finalDueDate && finalDueTime)} onChange={setReminder} className={fieldClass} />
             </label>
             <div className="text-sm"><span>Repeat <span className="text-[var(--muted-foreground)]">(optional)</span></span>
               <TaskRepeatPicker value={recurrence} date={dueDate || startDate} onChange={setRecurrence} selectClassName={fieldClass} />

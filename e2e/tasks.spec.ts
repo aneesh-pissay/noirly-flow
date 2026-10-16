@@ -16,6 +16,42 @@ test.describe("tasks in list view", () => {
     await expect(page.getByText(/1 open · 1 shown/)).toBeVisible();
   });
 
+  test("quick add reads dates, repeats, priority and project from the title", async ({ page, team }) => {
+    const id = uid();
+    await openList(page, team.url);
+    const tasks = async () => (await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks`)).json()).tasks as Array<Record<string, unknown>>;
+
+    await page.getByRole("button", { name: "New task", exact: true }).click();
+    let dialog = page.getByRole("dialog", { name: "Create task" });
+    await expect(dialog.getByText("Not created yet")).toBeVisible();
+    await dialog.getByRole("textbox", { name: "Title" }).fill(`Pay rent ${id} every 1st 9am p1 #${team.project.name}`);
+    const preview = dialog.locator("#quick-add-preview");
+    await expect(preview).toContainText("P1");
+    await expect(preview).toContainText(`#${team.project.name}`);
+    await expect(preview).toContainText("Every month on day 1");
+    await expect(preview).toContainText(`saves as “Pay rent ${id}”`);
+    await dialog.getByRole("button", { name: "Create task", exact: true }).click();
+    await expect(dialog).toBeHidden();
+
+    const rent = (await tasks()).find((t) => t.title === `Pay rent ${id}`)!;
+    expect(rent).toMatchObject({ priority: "high", dueHasTime: true, projectId: team.project.id, recurrence: { frequency: "monthly", monthDay: 1 } });
+    expect(new Date(rent.dueAt as string).getDate()).toBe(1);
+    expect(new Date(rent.dueAt as string).getHours()).toBe(9);
+
+    // "Keep as typed" saves the words as they are. Creating opened the new task's drawer; close it first.
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "Close task" })).toBeHidden();
+    await page.getByRole("button", { name: "New task", exact: true }).click();
+    dialog = page.getByRole("dialog", { name: "Create task" });
+    await expect(dialog.getByText("Not created yet")).toBeVisible();
+    await dialog.getByRole("textbox", { name: "Title" }).fill(`Read Monday notes tomorrow ${id}`);
+    await dialog.getByRole("button", { name: "Keep as typed" }).click();
+    await expect(dialog.locator("#quick-add-preview")).toContainText("Quick add is off.");
+    await dialog.getByRole("button", { name: "Create task", exact: true }).click();
+    await expect(dialog).toBeHidden();
+    expect((await tasks()).find((t) => t.title === `Read Monday notes tomorrow ${id}`)).toMatchObject({ dueAt: null });
+  });
+
   test("Create task is disabled until there is a title", async ({ page, team }) => {
     await openList(page, team.url);
     await page.getByRole("button", { name: "New task", exact: true }).click();
