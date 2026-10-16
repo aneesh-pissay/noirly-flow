@@ -18,6 +18,8 @@ const recurrenceSchema = z
   .nullable()
   .optional();
 
+const reminderSchema = z.number().int().min(0).max(10080).nullable().optional();
+
 const durationSchema = z.number().int().min(1).max(1440).nullable().optional();
 
 const dueAtSchema = z
@@ -50,6 +52,7 @@ export const createTaskBodySchema = z.object({
   startAt: dueAtSchema,
   deadlineAt: dueAtSchema,
   durationMinutes: durationSchema,
+  reminderMinutes: reminderSchema,
   recurrence: recurrenceSchema,
 });
 
@@ -75,6 +78,7 @@ export const updateTaskBodySchema = z
     startAt: dueAtSchema,
     deadlineAt: dueAtSchema,
     durationMinutes: durationSchema,
+    reminderMinutes: reminderSchema,
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),

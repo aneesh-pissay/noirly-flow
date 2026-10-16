@@ -106,6 +106,7 @@ export function mapTask(doc: {
   startAt?: Date | null;
   deadlineAt?: Date | null;
   durationMinutes?: number | null;
+  reminderMinutes?: number | null;
   completedAt?: Date | null;
   position: number;
   assigneeIds?: Types.ObjectId[];
@@ -144,6 +145,7 @@ export function mapTask(doc: {
     startAt: iso(doc.startAt ?? null),
     deadlineAt: iso(doc.deadlineAt ?? null),
     durationMinutes: doc.durationMinutes ?? null,
+    reminderMinutes: doc.reminderMinutes ?? null,
     completedAt: iso(doc.completedAt ?? null),
     position: doc.position,
     assigneeIds: (doc.assigneeIds ?? []).map((id) => id.toString()),

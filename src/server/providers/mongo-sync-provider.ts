@@ -15,6 +15,7 @@ import {
   asRecurrenceRule,
   nextOccurrenceDueAt,
 } from "@/src/core/recurrence/next";
+import { reminderAtFor } from "@/src/core/reminders";
 import { withDb } from "@/src/server/db/mongodb";
 import {
   ActivityEvent,
@@ -146,6 +147,8 @@ async function spawnNextOccurrence(
     startAt,
     deadlineAt,
     durationMinutes: source.durationMinutes ?? null,
+    reminderMinutes: source.reminderMinutes ?? null,
+    reminderAt: reminderAtFor(dueAt, source.dueHasTime, source.reminderMinutes),
     position: nextPosition(last?.position),
     assigneeIds: source.assigneeIds ?? [],
     emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
@@ -696,6 +699,12 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           startAt: input.startAt ? new Date(input.startAt) : null,
           deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
           durationMinutes: input.durationMinutes ?? null,
+          reminderMinutes: input.reminderMinutes ?? null,
+          reminderAt: reminderAtFor(
+            input.dueAt ? new Date(input.dueAt) : null,
+            Boolean(input.dueAt && input.dueHasTime),
+            input.reminderMinutes,
+          ),
           recurrence: asRecurrenceRule(input.recurrence),
           position: input.position ?? nextPosition(last?.position),
           assigneeIds: [...new Set(assigneeIds)].map(oid),
@@ -782,6 +791,17 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         }
         if (patch.durationMinutes !== undefined) {
           task.durationMinutes = patch.durationMinutes ?? null;
+        }
+        if (patch.reminderMinutes !== undefined) {
+          task.reminderMinutes = patch.reminderMinutes ?? null;
+        }
+        if (patch.dueAt !== undefined || patch.dueHasTime !== undefined || patch.reminderMinutes !== undefined) {
+          // A new reminder time is a new reminder: it fires again even if the old one was sent.
+          const reminderAt = reminderAtFor(task.dueAt, task.dueHasTime, task.reminderMinutes);
+          if ((reminderAt?.getTime() ?? null) !== (task.reminderAt?.getTime() ?? null)) {
+            task.reminderAt = reminderAt;
+            task.reminderSentAt = null;
+          }
         }
         if (patch.position !== undefined) task.position = patch.position;
         if (patch.assigneeIds !== undefined) {

@@ -364,6 +364,7 @@ export const api = {
       startAt?: string | null;
       deadlineAt?: string | null;
       durationMinutes?: number | null;
+      reminderMinutes?: number | null;
       recurrence?: Task["recurrence"];
     },
   ) {

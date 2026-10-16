@@ -10,8 +10,9 @@ type Kind = (typeof NOTIFICATION_KINDS)[number];
 const PAGE_SIZE = 30;
 
 /**
- * Queues in-app notifications. Never notifies the actor, skips people who are
- * no longer members, and never fails the change that caused it.
+ * Queues in-app notifications. Never notifies the actor (unless `includeActor`,
+ * for reminders a creator sets for themselves), skips people who are no longer
+ * members, and never fails the change that caused it.
  */
 export async function notify(input: {
   workspaceId: Types.ObjectId;
@@ -20,9 +21,10 @@ export async function notify(input: {
   kind: Kind;
   recipientIds: Array<string | Types.ObjectId>;
   commentId?: Types.ObjectId | null;
+  includeActor?: boolean;
 }) {
   try {
-    const ids = [...new Set(input.recipientIds.map(String))].filter((id) => id !== input.actorId);
+    const ids = [...new Set(input.recipientIds.map(String))].filter((id) => input.includeActor || id !== input.actorId);
     if (!ids.length) return;
     const members = await WorkspaceMembership.find({
       workspaceId: input.workspaceId,

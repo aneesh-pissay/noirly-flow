@@ -1,5 +1,8 @@
 import { createTask, expect, openList, taskRow, test, uid } from "./fixtures";
-import type { Page } from "@playwright/test";
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import { request as playwrightRequest, type Page } from "@playwright/test";
+import { E2E_BASE_URL, E2E_CRON_SECRET, E2E_TASK_OUTBOX } from "./env";
 
 function drawer(page: Page) {
   return page.locator("aside", { has: page.getByPlaceholder("Add a description…") });
@@ -156,6 +159,38 @@ test.describe("task drawer", () => {
     expect(new Date(next.dueAt).getDate()).toBe(8);
   });
 
+  test("a reminder needs a due time, then reaches the bell and email when it's due", async ({ page, team }) => {
+    const title = `Remind me ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, dueAt: "2099-01-05" });
+    await page.goto(`${team.url}?task=${task.id}`);
+    const reminder = drawer(page).getByLabel("Reminder");
+    await expect(reminder).toBeDisabled();
+    await expect(drawer(page).getByText("Add a due time to set a reminder.")).toBeVisible();
+
+    // Due in 10 minutes, reminded 15 minutes before: the reminder is already due.
+    const dueAt = new Date(Date.now() + 10 * 60_000).toISOString();
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { dueAt, dueHasTime: true, reminderMinutes: 15 } })).ok()).toBe(true);
+    await page.reload();
+    await expect(drawer(page).getByLabel("Reminder")).toHaveValue("15");
+
+    // The reload's bell poll may already have swept it; the cron route sweeps too.
+    const cron = await playwrightRequest.newContext({ baseURL: E2E_BASE_URL });
+    try {
+      expect((await cron.get("/api/cron/due-reminders", { headers: { Authorization: `Bearer ${E2E_CRON_SECRET}` } })).ok()).toBe(true);
+    } finally {
+      await cron.dispose();
+    }
+
+    // Nobody is assigned, so the creator is reminded, once.
+    await expect.poll(async () => {
+      const { items } = await (await page.request.get("/api/notifications")).json();
+      return (items as Array<{ kind: string; taskId: string }>).filter((n) => n.kind === "reminder" && n.taskId === task.id).length;
+    }).toBe(1);
+    const mail = (await readdir(E2E_TASK_OUTBOX)).find((name) => name.startsWith(`${task.id}-`) && name.includes("-reminder-"));
+    expect(mail).toBeTruthy();
+    expect(JSON.parse(await readFile(path.join(E2E_TASK_OUTBOX, mail!), "utf8")).subject).toBe(`Reminder: ${title}`);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });
@@ -185,7 +220,8 @@ test.describe("task drawer", () => {
 
     await panel.getByPlaceholder("Write a comment…").fill("Looks good to me");
     await panel.getByRole("button", { name: "Comment" }).click();
-    await expect(panel.getByText("Looks good to me")).toBeVisible();
+    // The posted comment, not the input that still holds the text while it saves.
+    await expect(panel.locator("p", { hasText: "Looks good to me" })).toBeVisible();
 
     // Everything reloads from the server.
     await expect

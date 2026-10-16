@@ -92,6 +92,8 @@ export type Task = {
   deadlineAt: string | null;
   /** Estimated length in minutes (1–1440), or null. */
   durationMinutes: number | null;
+  /** Minutes before a timed due date to remind (0 = at the time), or null. */
+  reminderMinutes: number | null;
   completedAt: string | null;
   position: number;
   assigneeIds: string[];
@@ -198,6 +200,7 @@ export type CreateTaskInput = {
   startAt?: string | null;
   deadlineAt?: string | null;
   durationMinutes?: number | null;
+  reminderMinutes?: number | null;
   recurrence?: RecurrenceRule | null;
   assigneeIds?: string[];
   tagIds?: string[];
@@ -207,7 +210,7 @@ export type CreateTaskInput = {
 
 export type AppNotification = {
   id: string;
-  kind: "mention" | "assigned" | "comment";
+  kind: "mention" | "assigned" | "comment" | "reminder";
   workspaceId: string;
   taskId: string;
   taskTitle: string;
