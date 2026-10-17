@@ -95,11 +95,13 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | Create project | Name in UI; default columns Todo / In progress / Done |
 | List projects | Workspace detail + Project nav |
-| Open project | `/w/.../p/[projectId]`; workspace root jumps to first project |
+| Open project | `/w/.../p/[projectId]`; workspace root jumps to the first unarchived project |
+| Rename, colour, archive, delete | Pencil on a sidebar project: rename, 8 colours (a dot before its name) or none, Archive, Delete. Archived projects leave the sidebar (listed under "Archived (n)" with Unarchive) and their tasks leave Today, Upcoming, filters and the calendar feed; the project page still opens, with a banner to unarchive. Activity: `project.archived` / `project.unarchived` |
+| Favourites | Star a project to list it under Favourites at the top of the sidebar; personal (`GET/PUT /api/me/favorite-projects`) |
 | Move tasks | Drawer can move a task between Inbox and a project (its section is cleared) |
 | Sections | Named groups in a project's list view, separate from board columns: "+ Add section" under the list, Rename / Delete on each header (deleting keeps the tasks, under No section). Pick a task's section in the drawer or new-task dialog. `GET/POST /api/projects/[projectId]/sections`, `PATCH/DELETE /api/sections/[sectionId]` (member and up) |
 
-**Not in product yet:** rename, archive, delete, description/color/`defaultView` UI, separate `/board` `/list` `/calendar` URLs (views are in-page toggles).
+**Not in product yet:** description / `defaultView` UI, separate `/board` `/list` `/calendar` URLs (views are in-page toggles).
 
 ---
 

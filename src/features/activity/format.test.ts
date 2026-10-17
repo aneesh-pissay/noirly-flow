@@ -47,6 +47,15 @@ describe("describeActivity", () => {
   });
 });
 
+describe("project archive activity", () => {
+  it("says who archived or unarchived which project", () => {
+    expect(describeActivity(event({ verb: "project.archived", metadata: { name: "Launch" } }), members))
+      .toBe("Ada archived project “Launch”");
+    expect(describeActivity(event({ verb: "project.unarchived", metadata: { name: "Launch" } }), members))
+      .toBe("Ada unarchived project “Launch”");
+  });
+});
+
 describe("activityToCsv", () => {
   it("escapes commas and quotes", () => {
     const csv = activityToCsv(

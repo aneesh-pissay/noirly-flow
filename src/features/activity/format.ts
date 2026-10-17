@@ -37,6 +37,11 @@ export function describeActivity(
       return typeof meta.from === "string" && typeof meta.to === "string"
         ? `${actor} renamed project “${meta.from}” to “${meta.to}”`
         : `${actor} renamed a project`;
+    case "project.archived":
+    case "project.unarchived": {
+      const name = typeof meta.name === "string" ? ` “${meta.name}”` : "";
+      return `${actor} ${event.verb === "project.archived" ? "archived" : "unarchived"} project${name}`;
+    }
     case "project.deleted": {
       const name = typeof meta.name === "string" ? ` “${meta.name}”` : "";
       return `${actor} deleted project${name}`;

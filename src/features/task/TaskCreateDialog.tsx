@@ -58,7 +58,7 @@ export function TaskCreateDialog({ draft }: {
   // What it recognises wins over the matching field; "Keep as typed" turns it off.
   const tags = useTags(draft.workspaceId).data?.tags;
   const detected = useMemo(
-    () => parseQuickAdd(title, { projects: workspace.data?.projects ?? [], tags: tags ?? [], timeZone: browserZone() }),
+    () => parseQuickAdd(title, { projects: (workspace.data?.projects ?? []).filter((p) => !p.archivedAt), tags: tags ?? [], timeZone: browserZone() }),
     [title, workspace.data?.projects, tags],
   );
   const quick = !keepTyped && detected.labels.length ? detected : null;
@@ -156,7 +156,7 @@ export function TaskCreateDialog({ draft }: {
             <label className="text-sm sm:col-span-2">Project
               <select value={projectId} onChange={(event) => setProjectId(event.target.value)} className={fieldClass}>
                 <option value="">Inbox</option>
-                {(workspace.data?.projects ?? []).map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+                {(workspace.data?.projects ?? []).filter((project) => !project.archivedAt || project.id === projectId).map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
               </select>
             </label>
             {finalProjectId ? (

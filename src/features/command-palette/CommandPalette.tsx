@@ -121,7 +121,7 @@ export function CommandPalette({ workspaces }: Props) {
 
   function createTask(title: string) {
     if (!activeWorkspaceId || !title || !canWrite || busy) return;
-    const projectId = onInbox ? null : activeProjectId || workspaceQuery.data?.projects[0]?.id || null;
+    const projectId = onInbox ? null : activeProjectId || workspaceQuery.data?.projects.find((p) => !p.archivedAt)?.id || null;
     useUIStore.getState().openTaskForm({ workspaceId: activeWorkspaceId, projectId, title });
   }
 

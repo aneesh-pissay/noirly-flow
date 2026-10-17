@@ -271,7 +271,7 @@ export interface SyncProvider {
   createProject(input: CreateProjectInput): Promise<Project>;
   updateProject(
     projectId: string,
-    patch: { name?: string; description?: string | null },
+    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean },
   ): Promise<Project>;
   deleteProject(projectId: string): Promise<void>;
 

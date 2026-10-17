@@ -10,6 +10,7 @@ export const qk = {
   filters: (workspaceId: string) => ["filters", workspaceId] as const,
   tags: (workspaceId: string) => ["tags", workspaceId] as const,
   sections: (projectId: string) => ["sections", projectId] as const,
+  favoriteProjects: ["favorite-projects"] as const,
   members: (workspaceId: string) => ["members", workspaceId] as const,
   space: (workspaceId: string) => ["space", workspaceId] as const,
   comments: (taskId: string) => ["comments", taskId] as const,

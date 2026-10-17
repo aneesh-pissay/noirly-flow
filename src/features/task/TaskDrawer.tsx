@@ -191,7 +191,8 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     if (!manual) save(patch);
   }
 
-  const projects = projectsQuery.data?.projects ?? [];
+  // Archived projects aren't offered as a move target, except the one the task is already in.
+  const projects = (projectsQuery.data?.projects ?? []).filter((project) => !project.archivedAt || project.id === projectId);
   const task = taskQuery.data?.task ?? initialTask;
 
   // A ?task= deep link renders the drawer on the server, where there's no
