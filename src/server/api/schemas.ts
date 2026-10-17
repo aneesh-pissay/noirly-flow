@@ -178,8 +178,10 @@ export const updateProjectBodySchema = z
   .object({
     name: z.string().trim().min(1).max(80).optional(),
     description: z.string().trim().max(2000).nullable().optional(),
+    color: z.string().regex(/^#([0-9a-fA-F]{6})$/).nullable().optional(),
+    archived: z.boolean().optional(),
   })
-  .refine((value) => value.name !== undefined || value.description !== undefined, {
+  .refine((value) => Object.values(value).some((field) => field !== undefined), {
     message: "Nothing to update",
   });
 

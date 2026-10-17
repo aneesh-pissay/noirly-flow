@@ -71,7 +71,8 @@ export async function renderFeed(token: string): Promise<string | null> {
     const workspaceIds = memberships.map((membership) => membership.workspaceId);
     const [workspaces, projects] = await Promise.all([
       Workspace.find({ _id: { $in: workspaceIds } }).select("name").lean(),
-      Project.find({ workspaceId: { $in: workspaceIds }, deletedAt: null }).select("name").lean(),
+      // Archived projects' tasks leave the calendar like deleted ones.
+      Project.find({ workspaceId: { $in: workspaceIds }, deletedAt: null, archivedAt: null }).select("name").lean(),
     ]);
     const workspaceName = new Map(workspaces.map((w) => [String(w._id), w.name]));
     const projectName = new Map(projects.map((p) => [String(p._id), p.name]));

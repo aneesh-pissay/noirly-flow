@@ -14,7 +14,7 @@ export function FirstProjectRedirect({ workspaceId }: { workspaceId: string }) {
     staleTime: 60_000,
   });
 
-  const firstProject = workspaceQuery.data?.projects[0];
+  const firstProject = workspaceQuery.data?.projects.find((project) => !project.archivedAt);
 
   useEffect(() => {
     if (!firstProject) return;

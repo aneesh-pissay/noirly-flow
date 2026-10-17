@@ -34,6 +34,8 @@ const userSchema = new Schema(
       bio: { type: String, default: null, trim: true },
       taskSaveMode: { type: String, enum: ["auto", "manual"], default: "auto" },
     },
+    /** Projects this person starred; personal, shown at the top of the sidebar. */
+    favoriteProjectIds: { type: [Schema.Types.ObjectId], ref: "Project", default: [] },
     /** Private calendar subscription link; only a hash of its secret is kept. */
     calendarFeed: {
       tokenHash: { type: String, default: null },

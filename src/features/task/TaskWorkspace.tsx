@@ -12,6 +12,7 @@ import { useUIStore } from "@/src/stores/ui-store";
 import type { Task } from "@/src/core/sync/types";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
+import { ArchivedProjectBanner } from "@/src/features/workspace/ArchivedProjectBanner";
 import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
@@ -391,6 +392,9 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
 
   return (
     <section className="flex flex-col gap-6">
+      {projectId && projectQuery.data?.project.archivedAt ? (
+        <ArchivedProjectBanner workspaceId={workspaceId} projectId={projectId} />
+      ) : null}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--muted-foreground)]">

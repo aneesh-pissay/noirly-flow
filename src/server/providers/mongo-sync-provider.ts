@@ -463,8 +463,22 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         }
         await requireMembership(userId, project.workspaceId.toString(), "member");
         const before = project.name;
+        const wasArchived = Boolean(project.archivedAt);
         if (patch.name !== undefined) project.name = patch.name.trim();
         if (patch.description !== undefined) project.description = patch.description;
+        if (patch.color !== undefined) project.color = patch.color;
+        if (patch.archived !== undefined && patch.archived !== wasArchived) {
+          project.archivedAt = patch.archived ? new Date() : null;
+          void recordActivity({
+            workspaceId: project.workspaceId,
+            projectId: project._id,
+            actorId: userId,
+            verb: patch.archived ? "project.archived" : "project.unarchived",
+            metadata: { name: project.name },
+          }).catch(() => {
+            console.error("recordActivity failed");
+          });
+        }
         await project.save();
         if (project.name !== before) {
           void recordActivity({
@@ -602,9 +616,13 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         } else if (query.projectId) {
           filter.projectId = oid(query.projectId);
         } else {
-          // Across the workspace: tasks of deleted projects are hidden everywhere else too.
-          const deleted = await Project.find({ workspaceId: oid(query.workspaceId), deletedAt: { $ne: null } }).select("_id").lean();
-          if (deleted.length) filter.projectId = { $nin: deleted.map((project) => project._id) };
+          // Across the workspace: tasks of deleted and archived projects stay out of
+          // Today, Upcoming and filters, as deleted ones are hidden everywhere else.
+          const hidden = await Project.find({
+            workspaceId: oid(query.workspaceId),
+            $or: [{ deletedAt: { $ne: null } }, { archivedAt: { $ne: null } }],
+          }).select("_id").lean();
+          if (hidden.length) filter.projectId = { $nin: hidden.map((project) => project._id) };
         }
         if (query.parentTaskId === null) {
           filter.parentTaskId = null;

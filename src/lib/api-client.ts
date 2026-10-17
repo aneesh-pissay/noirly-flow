@@ -305,7 +305,7 @@ export const api = {
   },
   updateProject(
     projectId: string,
-    patch: { name?: string; description?: string | null },
+    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean },
   ) {
     return request<{ project: Project }>(`/api/projects/${projectId}`, {
       method: "PATCH",
@@ -402,6 +402,16 @@ export const api = {
   deleteTask(taskId: string) {
     return request<{ ok: boolean }>(`/api/tasks/${taskId}`, {
       method: "DELETE",
+    });
+  },
+  /** The caller's own starred projects, across workspaces. */
+  listFavoriteProjects() {
+    return request<{ projectIds: string[] }>("/api/me/favorite-projects");
+  },
+  setFavoriteProject(projectId: string, favorite: boolean) {
+    return request<{ projectIds: string[] }>("/api/me/favorite-projects", {
+      method: "PUT",
+      body: JSON.stringify({ projectId, favorite }),
     });
   },
   listSections(projectId: string) {
