@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/src/lib/api-client";
 import { qk } from "@/src/core/sync/query-keys";
@@ -15,6 +15,15 @@ const OPEN = "todo,in_progress";
  * marks it done.
  */
 export function AgendaView({ workspaceId, mode }: { workspaceId: string; mode: AgendaMode }) {
+  // "Today" and its date are the browser's; the server renders in its own zone and locale.
+  const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
+  if (!mounted) return <p className="text-sm text-[var(--muted-foreground)]">Loading tasks…</p>;
+  return <Agenda workspaceId={workspaceId} mode={mode} />;
+}
+
+const noSubscribe = () => () => {};
+
+function Agenda({ workspaceId, mode }: { workspaceId: string; mode: AgendaMode }) {
   // The range is fixed per mount; it moves on at midnight when the page is next opened or refreshed.
   const [range] = useState(() => agendaRange(mode));
   const queryKey = qk.tasks(workspaceId, { view: mode, status: OPEN, ...range });

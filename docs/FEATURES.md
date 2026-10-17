@@ -67,6 +67,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | `/w/[workspaceId]` | Redirect to first project (or empty state) |
 | `/w/[workspaceId]/today` | Overdue and due-today open tasks across all projects and the Inbox; tick to complete |
 | `/w/[workspaceId]/upcoming` | Open tasks due in the next 14 days, grouped by day |
+| `/w/[workspaceId]/timeline` | Day or week (Mon–Sun) hour grid across all projects and the Inbox: timed tasks as blocks from their due time for their duration (30 min if unset), overlapping ones side by side; all-day tasks in a strip on top; done ones struck through; a line at the current time; prev / Today / next. Opens scrolled to 7:00 |
 | `/w/[workspaceId]/filters` | Your saved filters, and a form for a new one |
 | `/w/[workspaceId]/filters/[filterId]` | A saved filter's open matching tasks; edit or delete it |
 | `/w/[workspaceId]/inbox` | Unfiled tasks |

@@ -239,6 +239,13 @@ export function CommandPalette({ workspaces }: Props) {
                 Upcoming
               </Command.Item>
               <Command.Item
+                value="timeline day week hours schedule"
+                onSelect={() => go(`/w/${activeWorkspaceId}/timeline`)}
+                className={itemClass}
+              >
+                Timeline
+              </Command.Item>
+              <Command.Item
                 value="filters saved searches new filter"
                 onSelect={() => go(`/w/${activeWorkspaceId}/filters`)}
                 className={itemClass}
