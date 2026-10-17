@@ -27,6 +27,8 @@ const workspaceMembershipSchema = new Schema(
       enum: MEMBER_ROLES,
       required: true,
     },
+    // Minutes available per weekday, Sunday first; unset means 8h Monday to Friday.
+    capacityMinutes: { type: [Number], default: undefined },
   },
   { timestamps: true },
 );

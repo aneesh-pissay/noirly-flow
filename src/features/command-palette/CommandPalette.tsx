@@ -246,6 +246,13 @@ export function CommandPalette({ workspaces }: Props) {
                 Timeline
               </Command.Item>
               <Command.Item
+                value="capacity workload hours availability"
+                onSelect={() => go(`/w/${activeWorkspaceId}/capacity`)}
+                className={itemClass}
+              >
+                Capacity
+              </Command.Item>
+              <Command.Item
                 value="filters saved searches new filter"
                 onSelect={() => go(`/w/${activeWorkspaceId}/filters`)}
                 className={itemClass}

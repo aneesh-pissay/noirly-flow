@@ -13,6 +13,7 @@ import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { SubtaskBreadcrumb, TaskSubtasks } from "@/src/features/task/TaskSubtasks";
 import { CopyTaskLink } from "@/src/features/task/CopyTaskLink";
 import { TaskDependencies } from "@/src/features/task/TaskDependencies";
+import { CapacityWarning } from "@/src/features/capacity/CapacityWarning";
 import { SaveAsTemplateButton } from "@/src/features/templates/templates";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
@@ -435,6 +436,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     <span className="text-xs text-[var(--muted-foreground)]">Loading members…</span>
                   ) : null}
                 </div>
+                <CapacityWarning workspaceId={workspaceId} dueAt={dueInputToIso(dueDate, dueTime)} assigneeIds={assigneeIds} />
               </section>
 
               {task ? <TaskSubtasks workspaceId={workspaceId} task={task} canWrite={canEdit} /> : null}

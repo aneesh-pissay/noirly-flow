@@ -190,6 +190,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | Feature | Details |
 | --- | --- |
 | Members table | Name, email, role |
+| Capacity | `/w/[workspaceId]/capacity` (sidebar, Cmd+K): a week of people × days, each cell the open work due that day (task durations, a shared task counting for each assignee) against the person's hours, with a bar; over-capacity days in red with "Over …"; tasks without a duration counted as "+N unestimated"; click a cell for its tasks. Hours per weekday per member (default 8h Mon–Fri): set your own, or anyone's as an admin (`PUT /api/workspaces/[workspaceId]/members/[userId]/capacity`). The drawer warns under Assignees when the task's due day puts someone over |
 | Role change / remove | Admin+; cannot remove self |
 | Invite link | One-time token, 7-day expiry, hashed; roles admin / member / viewer; copy `/invite/[token]` |
 | Accept invite | Logged-in accept; unauthenticated users sent through login with return URL |

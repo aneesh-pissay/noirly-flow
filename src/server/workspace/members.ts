@@ -11,6 +11,7 @@ import {
 } from "@/src/server/models";
 import { ApiError } from "@/src/server/api/http";
 import type { MemberRole } from "@/src/core/models/enums";
+import { capacityOf } from "@/src/core/capacity";
 import { resolveFlowDisplayName } from "@/src/server/users/display-name";
 
 function oid(id: string) {
@@ -29,6 +30,8 @@ export type MemberView = {
   role: MemberRole;
   /** Created the workspace. Nobody else can change their role or remove them. */
   isCreator: boolean;
+  /** Minutes available per weekday, Sunday first. */
+  capacityMinutes: number[];
 };
 
 /**
@@ -78,6 +81,18 @@ export async function requireWorkspaceRole(
   return role;
 }
 
+/** Sets someone's hours per weekday: your own as any member, anyone's as an admin. */
+export async function setMemberCapacity(actorId: string, workspaceId: string, userId: string, minutes: number[]) {
+  await requireWorkspaceRole(actorId, workspaceId, actorId === userId ? "viewer" : "admin");
+  const updated = await WorkspaceMembership.findOneAndUpdate(
+    { workspaceId: oid(workspaceId), userId: oid(userId) },
+    { $set: { capacityMinutes: minutes } },
+    { new: true },
+  ).lean();
+  if (!updated) throw new ApiError(404, "not_found", "Not a member of this workspace");
+  return capacityOf(updated.capacityMinutes);
+}
+
 export async function listMembers(workspaceId: string): Promise<MemberView[]> {
   const [memberships, workspace] = await Promise.all([
     WorkspaceMembership.find({ workspaceId: oid(workspaceId) }).lean(),
@@ -96,6 +111,7 @@ export async function listMembers(workspaceId: string): Promise<MemberView[]> {
       displayName: resolveFlowDisplayName(user),
       role: membership.role as MemberRole,
       isCreator: membership.userId.toString() === creatorId,
+      capacityMinutes: capacityOf(membership.capacityMinutes),
     };
   });
 }

@@ -19,7 +19,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 0. Recent fixes | 3 / 4 |
 | 1. Date model | 6 / 6 |
 | 2. Capture and organisation | 10 / 10 |
-| 3. Planning and calendar | 4 / 7 |
+| 3. Planning and calendar | 5 / 7 |
 | 4. Productivity | 0 / 6 |
 | 5. Collaboration and automation | 0 / 8 |
 | 6. AI | 0 / 9 |
@@ -66,7 +66,7 @@ _Needs Phase 1._
 - [x] Gantt view (start date, duration, dependencies) (L) — done 2026-10-17 (bars run start → due by day; e2e `gantt.spec.ts` not yet run)
 - [ ] Two-way Google Calendar sync (L)
 - [ ] Two-way Outlook calendar sync (L)
-- [ ] Capacity and availability: hours per day per member, overload warnings (L)
+- [x] Capacity and availability: hours per day per member, overload warnings (L) — done 2026-10-17 (e2e `capacity.spec.ts` not yet run)
 
 ## Phase 4 — Productivity
 

@@ -166,8 +166,16 @@ export const api = {
         displayName: string;
         role: MemberRole;
         isCreator: boolean;
+        /** Minutes available per weekday, Sunday first. */
+        capacityMinutes: number[];
       }>;
     }>(`/api/workspaces/${workspaceId}/members`);
+  },
+  setMemberCapacity(workspaceId: string, userId: string, minutes: number[]) {
+    return request<{ capacityMinutes: number[] }>(`/api/workspaces/${workspaceId}/members/${userId}/capacity`, {
+      method: "PUT",
+      body: JSON.stringify({ minutes }),
+    });
   },
   updateMember(workspaceId: string, userId: string, role: MemberRole) {
     return request<{ member: { userId: string; role: MemberRole } }>(
