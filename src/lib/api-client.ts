@@ -8,6 +8,7 @@ import type {
   Comment,
   CommentMention,
   Project,
+  SavedFilter,
   Tag,
   Task,
   TaskAttachment,
@@ -396,6 +397,24 @@ export const api = {
     return request<{ ok: boolean }>(`/api/tasks/${taskId}`, {
       method: "DELETE",
     });
+  },
+  listFilters(workspaceId: string) {
+    return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);
+  },
+  createFilter(workspaceId: string, input: { name: string; query: string }) {
+    return request<{ filter: SavedFilter }>(`/api/workspaces/${workspaceId}/filters`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  updateFilter(filterId: string, patch: { name?: string; query?: string }) {
+    return request<{ filter: SavedFilter }>(`/api/filters/${filterId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  },
+  deleteFilter(filterId: string) {
+    return request<{ ok: boolean }>(`/api/filters/${filterId}`, { method: "DELETE" });
   },
   listTrash(workspaceId: string) {
     return request<{ items: TrashedTask[] }>(`/api/workspaces/${workspaceId}/trash`);

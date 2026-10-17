@@ -95,6 +95,11 @@ export function CommandPalette({ workspaces }: Props) {
     queryFn: () => api.getWorkspace(activeWorkspaceId!),
     enabled: open && Boolean(activeWorkspaceId),
   });
+  const filtersQuery = useQuery({
+    queryKey: activeWorkspaceId ? qk.filters(activeWorkspaceId) : ["filters", "none"],
+    queryFn: () => api.listFilters(activeWorkspaceId!),
+    enabled: open && Boolean(activeWorkspaceId),
+  });
   const canWrite = can(
     workspaceQuery.data?.workspace.role ?? "member",
     "task.write",
@@ -233,6 +238,23 @@ export function CommandPalette({ workspaces }: Props) {
               >
                 Upcoming
               </Command.Item>
+              <Command.Item
+                value="filters saved searches new filter"
+                onSelect={() => go(`/w/${activeWorkspaceId}/filters`)}
+                className={itemClass}
+              >
+                Filters
+              </Command.Item>
+              {(filtersQuery.data?.filters ?? []).map((filter) => (
+                <Command.Item
+                  key={filter.id}
+                  value={`filter ${filter.name} ${filter.id}`}
+                  onSelect={() => go(`/w/${activeWorkspaceId}/filters/${filter.id}`)}
+                  className={itemClass}
+                >
+                  Filter: {filter.name}
+                </Command.Item>
+              ))}
             </>
           ) : null}
           {activeWorkspaceId ? (

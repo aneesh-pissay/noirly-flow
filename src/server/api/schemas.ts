@@ -117,6 +117,16 @@ export const listTasksQuerySchema = z.object({
   dueBefore: z.string().datetime({ offset: true }).optional(),
 });
 
+export const createFilterBodySchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  query: z.string().trim().min(1).max(500),
+});
+
+export const updateFilterBodySchema = createFilterBodySchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  { message: "At least one field is required" },
+);
+
 export const reorderTasksBodySchema = z.object({
   moves: z
     .array(

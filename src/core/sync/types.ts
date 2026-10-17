@@ -208,6 +208,17 @@ export type CreateTaskInput = {
   position?: number;
 };
 
+/** A person's own saved filter in a workspace. */
+export type SavedFilter = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  query: string;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AppNotification = {
   id: string;
   kind: "mention" | "assigned" | "comment" | "reminder";

@@ -66,6 +66,8 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | `/w/[workspaceId]` | Redirect to first project (or empty state) |
 | `/w/[workspaceId]/today` | Overdue and due-today open tasks across all projects and the Inbox; tick to complete |
 | `/w/[workspaceId]/upcoming` | Open tasks due in the next 14 days, grouped by day |
+| `/w/[workspaceId]/filters` | Your saved filters, and a form for a new one |
+| `/w/[workspaceId]/filters/[filterId]` | A saved filter's open matching tasks; edit or delete it |
 | `/w/[workspaceId]/inbox` | Unfiled tasks |
 | `/w/[workspaceId]/p/[projectId]` | Project tasks (list / board / calendar toggles) |
 | `/w/[workspaceId]/members` | Members + invite links |
@@ -187,6 +189,15 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 **Not in product yet:** email invites, list / revoke pending invites, invite-by-email address.
 
 ---
+
+## 9a. Saved filters
+
+| Feature | Details |
+| --- | --- |
+| Personal filters | Name + query, per user per workspace (any role, viewers included; up to 50). Listed in the sidebar under Filters and in Cmd+K |
+| Query language | `today`, `tomorrow`, `overdue`, `no date`, `next 7 days` / `7 days`, `p1`–`p4`, `no priority`, `#Project`, `#Inbox`, `assigned to: me` / `others` / `<name>`, `no assignee`, `recurring`, `deadline` / `no deadline`, `search: text`; join with `&`, `|`, `!` and `( )` (`&` binds tighter). `@labels` are refused until tags have a UI |
+| Evaluation | In the browser over the workspace's open tasks, so days are the viewer's days; the query is checked as you type and can't be saved while it doesn't parse |
+| API | `GET/POST /api/workspaces/[workspaceId]/filters`, `PATCH/DELETE /api/filters/[filterId]` (owner only; anyone else gets 404) |
 
 ## 10. Search & keyboard
 
