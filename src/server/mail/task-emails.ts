@@ -1,14 +1,10 @@
 import "server-only";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import type { QueryFilter } from "mongoose";
-import nodemailer from "nodemailer";
 import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser, Task, WorkspaceMembership, type TaskDocument } from "@/src/server/models";
+import { indiaDue, sendTaskMail, taskMailUrl } from "./send-task-mail";
 
-const indiaDay = (date: Date) => new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
-}).format(date);
+const indiaDay = (date: Date) => indiaDue(date, false);
 
 /** Durable recipient state for assignments, completion and reminders; claims use leases. */
 export async function deliverTaskEmails(taskId?: string, reminders = false) {
@@ -78,26 +74,13 @@ export async function deliverTaskEmails(taskId?: string, reminders = false) {
             ]);
             const stillOverdue = !!(!job.completion && reminders && current?.dueAt && current.dueAt < cutoff);
             if (current && recipient && member && (job.assignmentPending || stillOverdue)) {
-              const base = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL;
-              if (!base) throw new Error("Mail origin missing");
-              const url = new URL(`/w/${current.workspaceId}/${current.projectId ? `p/${current.projectId}` : "inbox"}?task=${current._id}`, base);
-              const outbox = process.env.TASK_EMAIL_OUTBOX;
-              if (!["http:", "https:"].includes(url.protocol) || (process.env.NODE_ENV === "production" && url.protocol !== "https:" && !outbox)) throw new Error("Invalid mail origin");
+              const url = taskMailUrl(current);
               const subject = `${job.completion ? "Task completed" : job.assignmentPending ? "Task assigned to you" : "Overdue task reminder"}: ${current.title}`.replace(/[\r\n]+/g, " ").slice(0, 200);
               const text = job.completion
                 ? `This task has been completed in Noirly Flow.\n\n${current.title}\n\nYou received this email because you created this task or are assigned to it.\nOverdue reminders have stopped.\n\nOpen the task: ${url.href}`
-                : `${job.assignmentPending ? "You have been assigned a task in Noirly Flow." : "This task is overdue and still needs your attention."}\n\n${current.title}\nDue date: ${current.dueAt ? indiaDay(current.dueAt) + " (India time)" : "Not set"}\n${stillOverdue ? "This task is overdue.\n" : ""}\nOpen the task: ${url.href}\n\nDaily overdue reminders stop when the task is completed, canceled, deleted, or you are unassigned.`;
+                : `${job.assignmentPending ? "You have been assigned a task in Noirly Flow." : "This task is overdue and still needs your attention."}\n\n${current.title}\nDue: ${current.dueAt ? indiaDue(current.dueAt, Boolean(current.dueHasTime)) + " (India time)" : "Not set"}\n${stillOverdue ? "This task is overdue.\n" : ""}\nOpen the task: ${url.href}\n\nDaily overdue reminders stop when the task is completed, canceled, deleted, or you are unassigned.`;
               const key = `${current._id}-${job._id}-${job.completion ? "completed" : job.assignmentPending ? "assigned" : today}`;
-              if (outbox) {
-                await mkdir(outbox, { recursive: true });
-                await writeFile(path.join(outbox, `${key}.json`), JSON.stringify({ to: recipient.email, subject, text, url: url.href }, null, 2));
-              } else {
-                const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE, EMAIL_FROM } = process.env;
-                if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !EMAIL_FROM) throw new Error("SMTP missing");
-                const mail = nodemailer.createTransport({ host: SMTP_HOST, port: Number(SMTP_PORT), secure: SMTP_SECURE === "true", auth: { user: SMTP_USER, pass: SMTP_PASS }, connectionTimeout: 5000, greetingTimeout: 5000, socketTimeout: 10_000 });
-                try { await mail.sendMail({ from: EMAIL_FROM, to: recipient.email, subject, text, messageId: `<task-${key}@noirly-flow.invalid>` }); }
-                finally { mail.close(); }
-              }
+              await sendTaskMail({ to: recipient.email, subject, text, url, key });
               delivered++;
             }
             await Task.updateOne(filter, { $set: {

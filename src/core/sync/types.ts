@@ -63,7 +63,16 @@ export type ChecklistItem = {
 
 export type RecurrenceRule = {
   frequency: RecurrenceFrequency;
+  /** Every N days / weeks / months / years. */
   interval: number;
+  /** Weekly only: the days it lands on, 0 = Sunday … 6 = Saturday. */
+  byWeekday?: number[];
+  /** Monthly / yearly: day of the month; short months use their last day. */
+  monthDay?: number;
+  /** Count from the day it's completed instead of from the due date. */
+  fromCompletion?: boolean;
+  /** IANA zone the days are counted in (the browser's when the rule was set). */
+  timeZone?: string;
 };
 
 export type Task = {
@@ -76,7 +85,15 @@ export type Task = {
   status: TaskStatus;
   priority: TaskPriority;
   dueAt: string | null;
+  /** False for an all-day due date; true when dueAt is a specific time. */
+  dueHasTime: boolean;
   startAt: string | null;
+  /** All-day hard deadline, separate from the planned due date. */
+  deadlineAt: string | null;
+  /** Estimated length in minutes (1–1440), or null. */
+  durationMinutes: number | null;
+  /** Minutes before a timed due date to remind (0 = at the time), or null. */
+  reminderMinutes: number | null;
   completedAt: string | null;
   position: number;
   assigneeIds: string[];
@@ -178,15 +195,33 @@ export type CreateTaskInput = {
   status?: TaskStatus;
   priority?: TaskPriority;
   dueAt?: string | null;
+  dueHasTime?: boolean;
+  /** All-day start date, stored at local noon like an all-day due date. */
+  startAt?: string | null;
+  deadlineAt?: string | null;
+  durationMinutes?: number | null;
+  reminderMinutes?: number | null;
+  recurrence?: RecurrenceRule | null;
   assigneeIds?: string[];
   tagIds?: string[];
   parentTaskId?: string | null;
   position?: number;
 };
 
+/** A person's own saved filter in a workspace. */
+export type SavedFilter = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  query: string;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AppNotification = {
   id: string;
-  kind: "mention" | "assigned" | "comment";
+  kind: "mention" | "assigned" | "comment" | "reminder";
   workspaceId: string;
   taskId: string;
   taskTitle: string;

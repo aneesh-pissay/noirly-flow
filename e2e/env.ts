@@ -15,6 +15,12 @@ export const E2E_MONGODB_URI =
 /** Where the e2e server writes invite emails (see src/server/mail/invite-mail.ts). */
 export const E2E_INVITE_OUTBOX = "test-results/invite-outbox";
 
+/** Where the e2e server writes task emails (assignments, reminders). */
+export const E2E_TASK_OUTBOX = "test-results/task-outbox";
+
+/** Test-only cron secret, so tests can call /api/cron/* directly. */
+export const E2E_CRON_SECRET = "noirly-flow-e2e-cron-secret-0123456789abcdef";
+
 export const E2E_ENV: Record<string, string> = {
   NEXT_DIST_DIR: ".next-e2e",
   MONGODB_URI: E2E_MONGODB_URI,
@@ -32,7 +38,9 @@ export const E2E_ENV: Record<string, string> = {
   // Invite emails land here as files instead of going out over SMTP.
   INVITE_EMAIL_OUTBOX: E2E_INVITE_OUTBOX,
   MENTION_EMAIL_OUTBOX: "test-results/mention-outbox",
-  TASK_EMAIL_OUTBOX: "test-results/task-outbox",
+  TASK_EMAIL_OUTBOX: E2E_TASK_OUTBOX,
+  // Lets tests run the cron routes (reminder sweep) on demand.
+  CRON_SECRET: E2E_CRON_SECRET,
   // No R2 in tests: attachments go to a local folder.
   ATTACHMENTS_LOCAL_DIR: "test-results/attachments",
   // Empty values prevent Next from inheriting live R2 credentials from .env.local.

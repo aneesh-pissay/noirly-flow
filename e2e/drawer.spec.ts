@@ -1,5 +1,8 @@
 import { createTask, expect, openList, taskRow, test, uid } from "./fixtures";
-import type { Page } from "@playwright/test";
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import { request as playwrightRequest, type Page } from "@playwright/test";
+import { E2E_BASE_URL, E2E_CRON_SECRET, E2E_TASK_OUTBOX } from "./env";
 
 function drawer(page: Page) {
   return page.locator("aside", { has: page.getByPlaceholder("Add a description…") });
@@ -28,6 +31,166 @@ test.describe("task drawer", () => {
     await expect(drawer(page).locator("input").first()).toHaveValue(title);
   });
 
+  test("a due time is saved, shown in the list, and can be removed", async ({ page, team }) => {
+    const title = `Timed ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, dueAt: "2026-12-24" });
+    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "GET");
+    await page.goto(`${team.url}?task=${task.id}`);
+    await loaded;
+
+    const time = drawer(page).getByLabel("Due time (optional)");
+    const saved = () => page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "PATCH");
+    let patched = saved();
+    await time.fill("15:30");
+    await time.press("Enter");
+    await patched;
+
+    const timed = (await (await page.request.get(`/api/tasks/${task.id}`)).json()).task;
+    expect(timed.dueHasTime).toBe(true);
+    const due = new Date(timed.dueAt);
+    expect([due.getFullYear(), due.getMonth(), due.getDate(), due.getHours(), due.getMinutes()]).toEqual([2026, 11, 24, 15, 30]);
+
+    await page.keyboard.press("Escape");
+    await openList(page, team.url);
+    await expect(taskRow(page, title)).toContainText("3:30");
+
+    // A date sent without the flag, as older clients do, is all-day again.
+    await page.request.patch(`/api/tasks/${task.id}`, { data: { dueAt: "2026-12-25" } });
+    expect((await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.dueHasTime).toBe(false);
+
+    await page.goto(`${team.url}?task=${task.id}`);
+    patched = saved();
+    await time.fill("09:00");
+    await time.press("Enter");
+    await patched;
+    patched = saved();
+    await time.fill("");
+    await time.blur();
+    await patched;
+    expect((await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.dueHasTime).toBe(false);
+  });
+
+  test("a start date shows until it arrives and moves with a recurring task", async ({ page, team }) => {
+    const title = `Starts later ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, startAt: "2099-01-05", dueAt: "2099-01-10" });
+    await openList(page, team.url);
+    await expect(taskRow(page, title)).toContainText(/Starts Jan 5/i);
+
+    await page.goto(`${team.url}?task=${task.id}`);
+    await expect(drawer(page).getByText("Start date", { exact: true })).toBeVisible();
+    await expect(drawer(page).getByRole("button", { name: /Jan 5, 2099/ })).toBeVisible();
+
+    // Completing a weekly task makes the next copy, starting 5 days before its new due date.
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { recurrence: { frequency: "weekly", interval: 1 } } })).ok()).toBe(true);
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { status: "done" } })).ok()).toBe(true);
+    const { tasks } = await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks?projectId=${team.project.id}`)).json();
+    const next = (tasks as Array<{ id: string; title: string; dueAt: string; startAt: string }>).find((t) => t.title === title && t.id !== task.id)!;
+    expect(next).toBeTruthy();
+    expect(Date.parse(next.dueAt) - Date.parse(next.startAt)).toBe(5 * 86_400_000);
+    expect(new Date(next.dueAt).getDate()).toBe(17);
+  });
+
+  test("a deadline is shown, marked once passed, and moves with a recurring task", async ({ page, team }) => {
+    const id = uid();
+    const past = await createTask(page.request, team.workspace.id, { title: `Missed ${id}`, projectId: team.project.id, deadlineAt: "2020-03-01" });
+    const ahead = await createTask(page.request, team.workspace.id, { title: `Ahead ${id}`, projectId: team.project.id, dueAt: "2099-01-10", deadlineAt: "2099-01-12" });
+    await openList(page, team.url);
+    await expect(taskRow(page, `Missed ${id}`)).toContainText(/Deadline passed/i);
+    await expect(taskRow(page, `Ahead ${id}`)).toContainText(/Deadline Jan 12/i);
+
+    await page.goto(`${team.url}?task=${past.id}`);
+    await expect(drawer(page).getByText("Deadline", { exact: true })).toBeVisible();
+    await expect(drawer(page).getByRole("button", { name: /Mar 1, 2020/ })).toBeVisible();
+
+    // The next weekly copy keeps its deadline two days after its new due date.
+    expect((await page.request.patch(`/api/tasks/${ahead.id}`, { data: { recurrence: { frequency: "weekly", interval: 1 } } })).ok()).toBe(true);
+    expect((await page.request.patch(`/api/tasks/${ahead.id}`, { data: { status: "done" } })).ok()).toBe(true);
+    const { tasks } = await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks?projectId=${team.project.id}`)).json();
+    const next = (tasks as Array<{ id: string; title: string; dueAt: string; deadlineAt: string }>).find((t) => t.title === `Ahead ${id}` && t.id !== ahead.id)!;
+    expect(Date.parse(next.deadlineAt) - Date.parse(next.dueAt)).toBe(2 * 86_400_000);
+  });
+
+  test("a duration is saved from the drawer and shown in the list", async ({ page, team }) => {
+    const title = `Estimate ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id });
+    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "GET");
+    await page.goto(`${team.url}?task=${task.id}`);
+    await loaded;
+
+    const patched = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "PATCH");
+    await drawer(page).getByLabel("Duration").selectOption("90");
+    await patched;
+    expect((await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.durationMinutes).toBe(90);
+
+    await page.keyboard.press("Escape");
+    await openList(page, team.url);
+    await expect(taskRow(page, title)).toContainText(/1h 30m/i);
+  });
+
+  test("a custom repeat is saved from the drawer and the next copy lands on its day", async ({ page, team }) => {
+    const title = `Repeats ${uid()}`;
+    // 2099-01-05 is a Monday.
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, dueAt: "2099-01-05" });
+    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "GET");
+    await page.goto(`${team.url}?task=${task.id}`);
+    await loaded;
+    const panel = drawer(page);
+    const saved = () => page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "PATCH");
+
+    let patched = saved();
+    await panel.getByLabel("Repeat", { exact: true }).selectOption("custom");
+    await patched;
+    patched = saved();
+    await panel.getByRole("button", { name: /^Thu/ }).click();
+    await patched;
+    patched = saved();
+    await panel.getByLabel("Repeat every").fill("2");
+    await panel.getByLabel("Repeat every").press("Enter");
+    await patched;
+    await expect(panel.getByText(/Every 2 weeks on Mon, Thu/)).toBeVisible();
+
+    const rule = (await (await page.request.get(`/api/tasks/${task.id}`)).json()).task.recurrence;
+    expect(rule).toMatchObject({ frequency: "weekly", interval: 2, byWeekday: [1, 4] });
+
+    // Done on Monday the 5th → Thursday the 8th, same week.
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { status: "done" } })).ok()).toBe(true);
+    const { tasks } = await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks?projectId=${team.project.id}`)).json();
+    const next = (tasks as Array<{ id: string; title: string; dueAt: string }>).find((t) => t.title === title && t.id !== task.id)!;
+    expect(new Date(next.dueAt).getDate()).toBe(8);
+  });
+
+  test("a reminder needs a due time, then reaches the bell and email when it's due", async ({ page, team }) => {
+    const title = `Remind me ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id, dueAt: "2099-01-05" });
+    await page.goto(`${team.url}?task=${task.id}`);
+    const reminder = drawer(page).getByLabel("Reminder");
+    await expect(reminder).toBeDisabled();
+    await expect(drawer(page).getByText("Add a due time to set a reminder.")).toBeVisible();
+
+    // Due in 10 minutes, reminded 15 minutes before: the reminder is already due.
+    const dueAt = new Date(Date.now() + 10 * 60_000).toISOString();
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { dueAt, dueHasTime: true, reminderMinutes: 15 } })).ok()).toBe(true);
+    await page.reload();
+    await expect(drawer(page).getByLabel("Reminder")).toHaveValue("15");
+
+    // The reload's bell poll may already have swept it; the cron route sweeps too.
+    const cron = await playwrightRequest.newContext({ baseURL: E2E_BASE_URL });
+    try {
+      expect((await cron.get("/api/cron/due-reminders", { headers: { Authorization: `Bearer ${E2E_CRON_SECRET}` } })).ok()).toBe(true);
+    } finally {
+      await cron.dispose();
+    }
+
+    // Nobody is assigned, so the creator is reminded, once.
+    await expect.poll(async () => {
+      const { items } = await (await page.request.get("/api/notifications")).json();
+      return (items as Array<{ kind: string; taskId: string }>).filter((n) => n.kind === "reminder" && n.taskId === task.id).length;
+    }).toBe(1);
+    const mail = (await readdir(E2E_TASK_OUTBOX)).find((name) => name.startsWith(`${task.id}-`) && name.includes("-reminder-"));
+    expect(mail).toBeTruthy();
+    expect(JSON.parse(await readFile(path.join(E2E_TASK_OUTBOX, mail!), "utf8")).subject).toBe(`Reminder: ${title}`);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });
@@ -47,8 +210,8 @@ test.describe("task drawer", () => {
     await description.fill("Ship it behind a flag.");
     await description.blur();
 
-    // Tags, checklists, repeat and subtasks were removed from the drawer.
-    for (const gone of ["Tags", "Checklist", "Repeat", "Subtasks"]) {
+    // Tags, checklists and subtasks were removed from the drawer (Repeat came back with full recurrence).
+    for (const gone of ["Tags", "Checklist", "Subtasks"]) {
       await expect(panel.getByText(gone, { exact: true })).toHaveCount(0);
     }
     await expect(panel.getByPlaceholder("Add checklist item")).toHaveCount(0);
@@ -57,7 +220,8 @@ test.describe("task drawer", () => {
 
     await panel.getByPlaceholder("Write a comment…").fill("Looks good to me");
     await panel.getByRole("button", { name: "Comment" }).click();
-    await expect(panel.getByText("Looks good to me")).toBeVisible();
+    // The posted comment, not the input that still holds the text while it saves.
+    await expect(panel.locator("p", { hasText: "Looks good to me" })).toBeVisible();
 
     // Everything reloads from the server.
     await expect

@@ -1,9 +1,26 @@
 import { z } from "zod";
 import {
   COLUMN_STATUSES,
+  RECURRENCE_FREQUENCIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from "@/src/core/models/enums";
+
+const recurrenceSchema = z
+  .object({
+    frequency: z.enum(RECURRENCE_FREQUENCIES),
+    interval: z.number().int().min(1).max(365).default(1),
+    byWeekday: z.array(z.number().int().min(0).max(6)).max(7).optional(),
+    monthDay: z.number().int().min(1).max(31).optional(),
+    fromCompletion: z.boolean().optional(),
+    timeZone: z.string().max(64).optional(),
+  })
+  .nullable()
+  .optional();
+
+const reminderSchema = z.number().int().min(0).max(10080).nullable().optional();
+
+const durationSchema = z.number().int().min(1).max(1440).nullable().optional();
 
 const dueAtSchema = z
   .union([z.string(), z.null()])
@@ -31,6 +48,12 @@ export const createTaskBodySchema = z.object({
   status: z.enum(TASK_STATUSES).optional(),
   priority: z.enum(TASK_PRIORITIES).optional(),
   dueAt: dueAtSchema,
+  dueHasTime: z.boolean().optional(),
+  startAt: dueAtSchema,
+  deadlineAt: dueAtSchema,
+  durationMinutes: durationSchema,
+  reminderMinutes: reminderSchema,
+  recurrence: recurrenceSchema,
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -51,19 +74,18 @@ export const updateTaskBodySchema = z
     status: z.enum(TASK_STATUSES).optional(),
     priority: z.enum(TASK_PRIORITIES).optional(),
     dueAt: dueAtSchema,
+    dueHasTime: z.boolean().optional(),
+    startAt: dueAtSchema,
+    deadlineAt: dueAtSchema,
+    durationMinutes: durationSchema,
+    reminderMinutes: reminderSchema,
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),
     position: z.number().finite().optional(),
     tagIds: z.array(z.string().min(1)).optional(),
     assigneeIds: z.array(z.string().min(1)).optional(),
-    recurrence: z
-      .object({
-        frequency: z.enum(["daily", "weekly"]),
-        interval: z.number().int().min(1).max(30).default(1),
-      })
-      .nullable()
-      .optional(),
+    recurrence: recurrenceSchema,
     checklist: z
       .array(
         z.object({
@@ -89,7 +111,21 @@ export const listTasksQuerySchema = z.object({
   priority: z.string().optional(),
   search: z.string().optional(),
   due: z.enum(["overdue", "today", "upcoming", "none"]).optional(),
+  // An exact range from the browser, so "today" is the user's today, not the
+  // server's (UTC). Wins over `due`.
+  dueAfter: z.string().datetime({ offset: true }).optional(),
+  dueBefore: z.string().datetime({ offset: true }).optional(),
 });
+
+export const createFilterBodySchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  query: z.string().trim().min(1).max(500),
+});
+
+export const updateFilterBodySchema = createFilterBodySchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  { message: "At least one field is required" },
+);
 
 export const reorderTasksBodySchema = z.object({
   moves: z

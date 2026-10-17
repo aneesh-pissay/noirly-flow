@@ -64,6 +64,10 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | `/settings` | Flow profile + Identity account link |
 | `/invite/[token]` | Accept invite (login with `?next=` if needed) |
 | `/w/[workspaceId]` | Redirect to first project (or empty state) |
+| `/w/[workspaceId]/today` | Overdue and due-today open tasks across all projects and the Inbox; tick to complete |
+| `/w/[workspaceId]/upcoming` | Open tasks due in the next 14 days, grouped by day |
+| `/w/[workspaceId]/filters` | Your saved filters, and a form for a new one |
+| `/w/[workspaceId]/filters/[filterId]` | A saved filter's open matching tasks; edit or delete it |
 | `/w/[workspaceId]/inbox` | Unfiled tasks |
 | `/w/[workspaceId]/p/[projectId]` | Project tasks (list / board / calendar toggles) |
 | `/w/[workspaceId]/members` | Members + invite links |
@@ -106,10 +110,14 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | CRUD | Create / update / soft-delete with optimistic cache updates |
 | Inbox | Unfiled tasks (`projectId: null`) |
-| Quick add | Title + priority + due date |
+| Quick add | New-task dialog (also opened from Cmd+K with the query as title). Natural-language title: `Pay rent every 1st 9am p1 #Home` sets due date and time, repeat, priority (`p1`–`p4`) and project (`#name`, `#inbox`); also `today`, `tomorrow`, `next week`, `in 3 days`, weekday names, `aug 14`, `every mon and thu`, `every weekday`, `every 2 weeks after completion`. A live preview shows what was recognised; "Keep as typed" turns it off. `@labels` stay in the title (tags have no UI) |
 | Status | `todo` \| `in_progress` \| `done` \| `canceled` |
 | Priority | `none` \| `low` \| `medium` \| `high` \| `urgent` |
-| Due date | Stored + overdue / today badges |
+| Due date | Date with an optional time (`dueHasTime`); overdue / today badges — a timed task is overdue once its time passes, an all-day one the next day |
+| Start date | Optional all-day `startAt` in the drawer and new-task dialog, never after the due date; list and board show "Starts …" until it arrives; a recurring task's next copy keeps the same gap before its due date |
+| Deadline | Optional all-day `deadlineAt`, separate from the planned due date; list and board show "Deadline …", marked once it has passed; a recurring task's next copy keeps the same gap from its due date. Not yet shown in the calendar view or `.ics` feed |
+| Duration | Optional estimate (`durationMinutes`, presets 15m–8h) in the drawer and new-task dialog; shown in list and board; a timed task's `.ics` event lasts this long (30 minutes when unset); recurring copies keep it |
+| Reminders | For a task with a due time: at the time, 5/10/15/30 min, 1–2 h or 1 day before (`reminderMinutes`). When due, assignees (or the creator, if nobody is assigned) get a bell notification and an email. Sent by a sweep that runs after the bell's once-a-minute poll, and by `GET /api/cron/due-reminders` (CRON_SECRET) for an external scheduler; reminders more than 6 h late are dropped. Changing the due time or lead time re-arms it |
 | Soft delete + Trash | `deletedAt`; **Undo** right after deleting, and `/w/[workspaceId]/trash` lists deleted tasks with **Restore** (back to its project and column, or the Inbox if the project is gone) |
 
 ### 6.2 Views
@@ -118,7 +126,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | **List** | Inline status / priority / due / delete; tag + assignee chips |
 | **Board (Kanban)** | `@dnd-kit` (pointer + keyboard); cross-column maps status via `statusMapped`; optimistic reorder; canceled tasks hidden |
-| **Calendar** | Month grid by `dueAt`; undated list; prev / next month |
+| **Calendar** | Month grid by `dueAt`, all-day tasks first then timed ones by time (time shown on the chip); undated list; prev / next month |
 
 ### 6.3 Task drawer (`?task=`)
 
@@ -132,10 +140,10 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Subtasks | `parentTaskId`; create + mark done (one level in list) |
 | Assignees | Multi-select workspace members |
 | Tags | Workspace tags; create + attach (default color; no color picker UI) |
-| Recurrence | Daily / weekly (interval 1 in UI); completing spawns next occurrence |
-| Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none) |
+| Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
+| Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none); due ranges are the browser's local days, sent as `dueAfter` / `dueBefore` |
 
-**Partial / not yet:** `startAt` UI, tag filter in list UI, checklist title edit, nested subtask drawer, custom RRULE / monthly / yearly, dedicated `/tasks/[taskId]` page.
+**Partial / not yet:** tag filter in list UI, checklist title edit, nested subtask drawer, end date / count for repeats, dedicated `/tasks/[taskId]` page.
 
 ---
 
@@ -149,7 +157,7 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Workspace activity | Infinite “Load more” on `/w/.../activity` |
 | CSV export | Whole workspace log built server-side in one request (`GET /api/workspaces/[workspaceId]/activity/export`) |
 | Edit / delete comments | Authors edit their own (shown as *edited*; newly tagged people are notified); authors, admins and owners delete |
-| In-app notifications | Header bell: mentions, assignments, and comments on tasks you created or are assigned to; unread count, mark read / mark all read; polls every 60s |
+| In-app notifications | Header bell: mentions, assignments, comments on tasks you created or are assigned to, and due-time reminders; unread count, mark read / mark all read; polls every 60s |
 
 **Not in product yet:** comment threads / reactions; notification preferences.
 
@@ -182,6 +190,15 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 
 ---
 
+## 9a. Saved filters
+
+| Feature | Details |
+| --- | --- |
+| Personal filters | Name + query, per user per workspace (any role, viewers included; up to 50). Listed in the sidebar under Filters and in Cmd+K |
+| Query language | `today`, `tomorrow`, `overdue`, `no date`, `next 7 days` / `7 days`, `p1`–`p4`, `no priority`, `#Project`, `#Inbox`, `assigned to: me` / `others` / `<name>`, `no assignee`, `recurring`, `deadline` / `no deadline`, `search: text`; join with `&`, `|`, `!` and `( )` (`&` binds tighter). `@labels` are refused until tags have a UI |
+| Evaluation | In the browser over the workspace's open tasks, so days are the viewer's days; the query is checked as you type and can't be saved while it doesn't parse |
+| API | `GET/POST /api/workspaces/[workspaceId]/filters`, `PATCH/DELETE /api/filters/[filterId]` (owner only; anyone else gets 404) |
+
 ## 10. Search & keyboard
 
 | Feature | Details |
@@ -203,9 +220,9 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | `/settings` | Identity name / email + link to Identity `/account` |
 | Flow profile | Display name, title, timezone (fixed list), bio via `GET/PATCH /api/me` |
 | Display name usage | Members, comments, boards |
-| Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone; create, replace or turn off in Settings (only a hash of the token is stored) |
+| Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone, or a timed event for a task with a due time, lasting its duration (30 minutes when unset); create, replace or turn off in Settings (only a hash of the token is stored) |
 
-**Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences; calendar still uses browser local time for filters.
+**Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences.
 
 ---
 
@@ -276,7 +293,7 @@ Tracked here so architecture plans are not mistaken for shipped product:
 - Dedicated `/search`, workspace settings, per-view board/list/calendar URLs, task deep-link page
 - Project / workspace / column admin (archive, tag color picker)
 - Email invites, notifications, mentions, billing
-- Full RRULE; `blocked` status; `startAt` UI
+- Repeat end date or count; `blocked` status
 - Presence task-focus highlight; Inbox realtime
 - Light theme toggle; offline CRDT; chat / video (architecture non-goals)
 

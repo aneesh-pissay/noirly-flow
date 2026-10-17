@@ -45,6 +45,7 @@ describe("buildCalendar", () => {
         title: "Pay rent, today",
         description: null,
         dueAt: new Date("2026-12-31T06:30:00.000Z"),
+        hasTime: false,
         done: true,
         updatedAt: new Date("2026-10-14T10:00:00.000Z"),
         where: "Home · Personal",
@@ -58,5 +59,48 @@ describe("buildCalendar", () => {
     expect(ics).toContain("SUMMARY:✓ Pay rent\\, today");
     expect(ics).toContain("DTSTAMP:20261014T100000Z");
     expect(ics.endsWith("END:VCALENDAR\r\n")).toBe(true);
+  });
+
+  it("writes a timed event, in UTC, when the task has a due time", () => {
+    const ics = buildCalendar({
+      name: "Noirly Flow",
+      timeZone: "Asia/Kolkata",
+      host: "flow.example",
+      tasks: [{
+        id: "t2",
+        title: "Call the bank",
+        description: null,
+        dueAt: new Date("2026-12-31T09:30:00.000Z"),
+        hasTime: true,
+        done: false,
+        updatedAt: new Date("2026-10-14T10:00:00.000Z"),
+        where: "Inbox · Personal",
+        url: "https://flow.example/w/1/inbox?task=t2",
+      }],
+    });
+    expect(ics).toContain("DTSTART:20261231T093000Z");
+    expect(ics).toContain("DTEND:20261231T100000Z");
+    expect(ics).not.toContain("VALUE=DATE");
+  });
+
+  it("makes a timed event as long as the task's duration", () => {
+    const ics = buildCalendar({
+      name: "Noirly Flow",
+      timeZone: "Asia/Kolkata",
+      host: "flow.example",
+      tasks: [{
+        id: "t3",
+        title: "Deep work",
+        description: null,
+        dueAt: new Date("2026-12-31T09:30:00.000Z"),
+        hasTime: true,
+        durationMinutes: 90,
+        done: false,
+        updatedAt: new Date("2026-10-14T10:00:00.000Z"),
+        where: "Inbox · Personal",
+        url: "https://flow.example/w/1/inbox?task=t3",
+      }],
+    });
+    expect(ics).toContain("DTEND:20261231T110000Z");
   });
 });

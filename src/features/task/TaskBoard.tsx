@@ -41,7 +41,7 @@ import {
   type ColumnTasks,
 } from "@/src/features/task/board-order";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
-import { TaskDueBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge } from "@/src/features/task/priority";
 import type { WorkspaceMember } from "@/src/features/workspace/members";
 
@@ -629,7 +629,11 @@ function SortableTaskCard({
             <p className="text-sm text-[var(--foreground)]">{task.title}</p>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
-              <TaskDueBadge dueAt={task.dueAt} />
+              <TaskStartBadge startAt={task.startAt} />
+              <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
+              <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
+              <TaskDurationBadge minutes={task.durationMinutes} />
+              <TaskRepeatBadge rule={task.recurrence} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </button>

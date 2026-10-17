@@ -95,6 +95,11 @@ export function CommandPalette({ workspaces }: Props) {
     queryFn: () => api.getWorkspace(activeWorkspaceId!),
     enabled: open && Boolean(activeWorkspaceId),
   });
+  const filtersQuery = useQuery({
+    queryKey: activeWorkspaceId ? qk.filters(activeWorkspaceId) : ["filters", "none"],
+    queryFn: () => api.listFilters(activeWorkspaceId!),
+    enabled: open && Boolean(activeWorkspaceId),
+  });
   const canWrite = can(
     workspaceQuery.data?.workspace.role ?? "member",
     "task.write",
@@ -217,6 +222,41 @@ export function CommandPalette({ workspaces }: Props) {
         ) : null}
 
         <Command.Group heading="Navigate" className={headingClass}>
+          {activeWorkspaceId ? (
+            <>
+              <Command.Item
+                value="today due overdue agenda"
+                onSelect={() => go(`/w/${activeWorkspaceId}/today`)}
+                className={itemClass}
+              >
+                Today
+              </Command.Item>
+              <Command.Item
+                value="upcoming next two weeks agenda"
+                onSelect={() => go(`/w/${activeWorkspaceId}/upcoming`)}
+                className={itemClass}
+              >
+                Upcoming
+              </Command.Item>
+              <Command.Item
+                value="filters saved searches new filter"
+                onSelect={() => go(`/w/${activeWorkspaceId}/filters`)}
+                className={itemClass}
+              >
+                Filters
+              </Command.Item>
+              {(filtersQuery.data?.filters ?? []).map((filter) => (
+                <Command.Item
+                  key={filter.id}
+                  value={`filter ${filter.name} ${filter.id}`}
+                  onSelect={() => go(`/w/${activeWorkspaceId}/filters/${filter.id}`)}
+                  className={itemClass}
+                >
+                  Filter: {filter.name}
+                </Command.Item>
+              ))}
+            </>
+          ) : null}
           {activeWorkspaceId ? (
             <Command.Item
               value="inbox unfiled tasks"

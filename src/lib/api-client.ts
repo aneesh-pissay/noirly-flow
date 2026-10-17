@@ -1,3 +1,4 @@
+import { dueRange, type DuePreset } from "@/src/features/task/dates";
 import type {
   ActivityEvent,
   AppNotification,
@@ -7,6 +8,7 @@ import type {
   Comment,
   CommentMention,
   Project,
+  SavedFilter,
   Tag,
   Task,
   TaskAttachment,
@@ -326,6 +328,9 @@ export const api = {
       priority?: string;
       search?: string;
       due?: string;
+      /** ISO instants; when set they replace `due`. */
+      dueAfter?: string;
+      dueBefore?: string;
     } = {},
   ) {
     const params = new URLSearchParams();
@@ -343,7 +348,13 @@ export const api = {
     if (query.status) params.set("status", query.status);
     if (query.priority) params.set("priority", query.priority);
     if (query.search) params.set("search", query.search);
-    if (query.due) params.set("due", query.due);
+    // Ranges are worked out here, in the user's zone; the server would use its own (UTC).
+    const range = query.dueAfter || query.dueBefore
+      ? { dueAfter: query.dueAfter, dueBefore: query.dueBefore }
+      : query.due && query.due !== "none" ? dueRange(query.due as DuePreset) : {};
+    if (range.dueAfter) params.set("dueAfter", range.dueAfter);
+    if (range.dueBefore) params.set("dueBefore", range.dueBefore);
+    if (query.due === "none") params.set("due", "none");
     const qs = params.toString();
     return request<{ tasks: Task[] }>(
       `/api/workspaces/${workspaceId}/tasks${qs ? `?${qs}` : ""}`,
@@ -360,6 +371,12 @@ export const api = {
       status?: Task["status"];
       priority?: Task["priority"];
       dueAt?: string | null;
+      dueHasTime?: boolean;
+      startAt?: string | null;
+      deadlineAt?: string | null;
+      durationMinutes?: number | null;
+      reminderMinutes?: number | null;
+      recurrence?: Task["recurrence"];
     },
   ) {
     return request<{ task: Task }>(`/api/workspaces/${workspaceId}/tasks`, {
@@ -380,6 +397,24 @@ export const api = {
     return request<{ ok: boolean }>(`/api/tasks/${taskId}`, {
       method: "DELETE",
     });
+  },
+  listFilters(workspaceId: string) {
+    return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);
+  },
+  createFilter(workspaceId: string, input: { name: string; query: string }) {
+    return request<{ filter: SavedFilter }>(`/api/workspaces/${workspaceId}/filters`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  updateFilter(filterId: string, patch: { name?: string; query?: string }) {
+    return request<{ filter: SavedFilter }>(`/api/filters/${filterId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  },
+  deleteFilter(filterId: string) {
+    return request<{ ok: boolean }>(`/api/filters/${filterId}`, { method: "DELETE" });
   },
   listTrash(workspaceId: string) {
     return request<{ items: TrashedTask[] }>(`/api/workspaces/${workspaceId}/trash`);

@@ -10,8 +10,11 @@ import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
 import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
-import { dateInputToIso, isoToDateInput } from "@/src/features/task/dates";
+import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
+import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
+import { TaskRepeatPicker } from "@/src/features/task/TaskRepeatPicker";
+import { TaskReminderSelect } from "@/src/features/task/TaskReminderSelect";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import {
@@ -58,6 +61,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     initialTask?.priority ?? "none",
   );
   const [dueDate, setDueDate] = useState(isoToDateInput(initialTask?.dueAt ?? null));
+  const [dueTime, setDueTime] = useState(isoToTimeInput(initialTask?.dueAt ?? null, initialTask?.dueHasTime ?? false));
+  const [startDate, setStartDate] = useState(isoToDateInput(initialTask?.startAt ?? null));
+  const [deadline, setDeadline] = useState(isoToDateInput(initialTask?.deadlineAt ?? null));
+  const [duration, setDuration] = useState<number | null>(initialTask?.durationMinutes ?? null);
+  const [recurrence, setRecurrence] = useState<Task["recurrence"]>(initialTask?.recurrence ?? null);
+  const [reminder, setReminder] = useState<number | null>(initialTask?.reminderMinutes ?? null);
+  const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
   );
@@ -96,6 +106,12 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setStatus(task.status);
     setPriority(task.priority);
     setDueDate(isoToDateInput(task.dueAt));
+    setDueTime(isoToTimeInput(task.dueAt, task.dueHasTime));
+    setStartDate(isoToDateInput(task.startAt));
+    setDeadline(isoToDateInput(task.deadlineAt));
+    setDuration(task.durationMinutes ?? null);
+    setRecurrence(task.recurrence ?? null);
+    setReminder(task.reminderMinutes ?? null);
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -151,7 +167,8 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     if (!nextTitle) { setError("A task title is required."); return; }
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
-      projectId: projectId || null, dueAt: dateInputToIso(dueDate), assigneeIds, ...patch,
+      projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -302,11 +319,55 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   </select>
                 </label>
                 <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
-                  <span>Due date</span>
-                  <TaskDatePicker value={dueDate} disabled={!canEdit} onChange={(value) => {
-                    setDueDate(value);
-                    persist({ dueAt: dateInputToIso(value) });
+                  <span>Start date</span>
+                  <TaskDatePicker value={startDate} withTime={false} name="start date" disabled={!canEdit} onChange={(value) => {
+                    if (startAfterDue(value, dueDate)) { setDateError("The start date can't be after the due date."); return; }
+                    if (startAfterDue(value, deadline)) { setDateError("The start date can't be after the deadline."); return; }
+                    setDateError(null);
+                    setStartDate(value);
+                    persist({ startAt: dateInputToIso(value) });
                   }} />
+                </div>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Due date</span>
+                  <TaskDatePicker value={dueDate} time={dueTime} disabled={!canEdit} onChange={(value, time) => {
+                    if (startAfterDue(startDate, value)) { setDateError("The due date can't be before the start date."); return; }
+                    setDateError(null);
+                    setDueDate(value);
+                    setDueTime(time);
+                    persist({ dueAt: dueInputToIso(value, time), dueHasTime: Boolean(value && time) });
+                  }} />
+                </div>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Deadline</span>
+                  <TaskDatePicker value={deadline} withTime={false} name="deadline" disabled={!canEdit} onChange={(value) => {
+                    if (startAfterDue(startDate, value)) { setDateError("The deadline can't be before the start date."); return; }
+                    setDateError(null);
+                    setDeadline(value);
+                    persist({ deadlineAt: dateInputToIso(value) });
+                  }} />
+                  {dateError ? <p role="alert" className="text-xs text-[var(--accent)]">{dateError}</p> : null}
+                </div>
+                <label className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  Duration
+                  <TaskDurationSelect value={duration} disabled={!canEdit} onChange={(minutes) => {
+                    setDuration(minutes);
+                    persist({ durationMinutes: minutes });
+                  }} className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                </label>
+                <label className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  Reminder
+                  <TaskReminderSelect value={reminder} hasTime={Boolean(dueDate && dueTime)} disabled={!canEdit} onChange={(minutes) => {
+                    setReminder(minutes);
+                    persist({ reminderMinutes: minutes });
+                  }} className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                </label>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Repeat</span>
+                  <TaskRepeatPicker value={recurrence} date={dueDate || startDate} disabled={!canEdit} onChange={(rule) => {
+                    setRecurrence(rule);
+                    persist({ recurrence: rule });
+                  }} selectClassName="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 </div>
               </div>
 

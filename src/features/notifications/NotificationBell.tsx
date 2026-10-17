@@ -21,6 +21,8 @@ function describe(item: AppNotification) {
       return `${item.actorName} assigned you`;
     case "comment":
       return `${item.actorName} commented on`;
+    case "reminder":
+      return "Reminder:";
   }
 }
 
@@ -35,7 +37,7 @@ function ago(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
-/** Header bell: mentions, assignments and comments on your tasks. Polls once a minute. */
+/** Header bell: mentions, assignments, comments on your tasks, and reminders. Polls once a minute. */
 export function NotificationBell() {
   const router = useRouter();
   const queryClient = useQueryClient();

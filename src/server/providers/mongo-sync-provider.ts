@@ -15,6 +15,7 @@ import {
   asRecurrenceRule,
   nextOccurrenceDueAt,
 } from "@/src/core/recurrence/next";
+import { reminderAtFor } from "@/src/core/reminders";
 import { withDb } from "@/src/server/db/mongodb";
 import {
   ActivityEvent,
@@ -112,6 +113,12 @@ async function spawnNextOccurrence(
   actorId: string,
 ) {
   const dueAt = nextOccurrenceDueAt(source.dueAt, rule);
+  // The next copy keeps its start date and deadline the same distance from its due date as this one did.
+  const shifted = (date: Date | null | undefined) => date && source.dueAt
+    ? new Date(dueAt.getTime() - (source.dueAt.getTime() - date.getTime()))
+    : null;
+  const startAt = shifted(source.startAt);
+  const deadlineAt = shifted(source.deadlineAt);
   let columnId = null;
   if (source.projectId) {
     const column = await firstColumnFor(source.projectId, "todo");
@@ -136,15 +143,18 @@ async function spawnNextOccurrence(
     status: "todo",
     priority: source.priority,
     dueAt,
+    dueHasTime: Boolean(source.dueHasTime),
+    startAt,
+    deadlineAt,
+    durationMinutes: source.durationMinutes ?? null,
+    reminderMinutes: source.reminderMinutes ?? null,
+    reminderAt: reminderAtFor(dueAt, source.dueHasTime, source.reminderMinutes),
     position: nextPosition(last?.position),
     assigneeIds: source.assigneeIds ?? [],
     emailDeliveries: [...new Set((source.assigneeIds ?? []).map(String))].map((userId) => ({ userId: oid(userId) })),
     tagIds: source.tagIds ?? [],
     parentTaskId: source.parentTaskId ?? null,
-    recurrence: {
-      frequency: rule.frequency,
-      interval: rule.interval,
-    },
+    recurrence: rule,
     checklist: (source.checklist ?? []).map((item, index) => ({
       title: item.title,
       completed: false,
@@ -586,6 +596,10 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           filter.projectId = null;
         } else if (query.projectId) {
           filter.projectId = oid(query.projectId);
+        } else {
+          // Across the workspace: tasks of deleted projects are hidden everywhere else too.
+          const deleted = await Project.find({ workspaceId: oid(query.workspaceId), deletedAt: { $ne: null } }).select("_id").lean();
+          if (deleted.length) filter.projectId = { $nin: deleted.map((project) => project._id) };
         }
         if (query.parentTaskId === null) {
           filter.parentTaskId = null;
@@ -685,6 +699,17 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           completionDeliveries: status === "done" ? completionRecipients(oid(userId), assigneeIds.map(oid)) : [],
           priority: input.priority ?? "none",
           dueAt: input.dueAt ? new Date(input.dueAt) : null,
+          dueHasTime: Boolean(input.dueAt && input.dueHasTime),
+          startAt: input.startAt ? new Date(input.startAt) : null,
+          deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
+          durationMinutes: input.durationMinutes ?? null,
+          reminderMinutes: input.reminderMinutes ?? null,
+          reminderAt: reminderAtFor(
+            input.dueAt ? new Date(input.dueAt) : null,
+            Boolean(input.dueAt && input.dueHasTime),
+            input.reminderMinutes,
+          ),
+          recurrence: asRecurrenceRule(input.recurrence),
           position: input.position ?? nextPosition(last?.position),
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
@@ -735,6 +760,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           status: task.status,
           priority: task.priority,
           dueAt: task.dueAt?.toISOString() ?? null,
+          startAt: task.startAt?.toISOString() ?? null,
+          deadlineAt: task.deadlineAt?.toISOString() ?? null,
+          durationMinutes: task.durationMinutes ?? null,
           assigneeIds: (task.assigneeIds ?? []).map((id) => id.toString()),
         };
         const becomingDone =
@@ -754,9 +782,30 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (patch.priority !== undefined) task.priority = patch.priority;
         if (patch.dueAt !== undefined) {
           task.dueAt = patch.dueAt ? new Date(patch.dueAt) : null;
+          // A new dueAt without the flag is a plain date, as older clients send.
+          task.dueHasTime = Boolean(patch.dueAt && patch.dueHasTime);
+        } else if (patch.dueHasTime !== undefined) {
+          task.dueHasTime = Boolean(task.dueAt && patch.dueHasTime);
         }
         if (patch.startAt !== undefined) {
           task.startAt = patch.startAt ? new Date(patch.startAt) : null;
+        }
+        if (patch.deadlineAt !== undefined) {
+          task.deadlineAt = patch.deadlineAt ? new Date(patch.deadlineAt) : null;
+        }
+        if (patch.durationMinutes !== undefined) {
+          task.durationMinutes = patch.durationMinutes ?? null;
+        }
+        if (patch.reminderMinutes !== undefined) {
+          task.reminderMinutes = patch.reminderMinutes ?? null;
+        }
+        if (patch.dueAt !== undefined || patch.dueHasTime !== undefined || patch.reminderMinutes !== undefined) {
+          // A new reminder time is a new reminder: it fires again even if the old one was sent.
+          const reminderAt = reminderAtFor(task.dueAt, task.dueHasTime, task.reminderMinutes);
+          if ((reminderAt?.getTime() ?? null) !== (task.reminderAt?.getTime() ?? null)) {
+            task.reminderAt = reminderAt;
+            task.reminderSentAt = null;
+          }
         }
         if (patch.position !== undefined) task.position = patch.position;
         if (patch.assigneeIds !== undefined) {
@@ -827,12 +876,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
             : null;
         }
         if (patch.recurrence !== undefined) {
-          task.recurrence = patch.recurrence
-            ? {
-                frequency: patch.recurrence.frequency,
-                interval: patch.recurrence.interval || 1,
-              }
-            : null;
+          const rule = asRecurrenceRule(patch.recurrence);
+          task.recurrence = rule ? { ...rule, fromCompletion: Boolean(rule.fromCompletion) } : null;
         }
         if (patch.checklist !== undefined) {
           task.set(
@@ -890,6 +935,21 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           if (nextDue !== before.dueAt) {
             changes.dueAt = { from: before.dueAt, to: nextDue };
           }
+        }
+        if (patch.startAt !== undefined) {
+          const nextStart = task.startAt?.toISOString() ?? null;
+          if (nextStart !== before.startAt) {
+            changes.startAt = { from: before.startAt, to: nextStart };
+          }
+        }
+        if (patch.deadlineAt !== undefined) {
+          const nextDeadline = task.deadlineAt?.toISOString() ?? null;
+          if (nextDeadline !== before.deadlineAt) {
+            changes.deadlineAt = { from: before.deadlineAt, to: nextDeadline };
+          }
+        }
+        if (patch.durationMinutes !== undefined && (task.durationMinutes ?? null) !== before.durationMinutes) {
+          changes.durationMinutes = { from: before.durationMinutes, to: task.durationMinutes ?? null };
         }
 
         const activity: Array<Promise<unknown>> = [];

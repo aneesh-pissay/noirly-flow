@@ -1,5 +1,6 @@
 /**
- * A minimal RFC 5545 calendar of all-day events, one per task due date.
+ * A minimal RFC 5545 calendar, one event per task due date: all-day for a
+ * plain date, a short timed event when the task has a due time.
  * Pure: no database or request access, so it is unit tested directly.
  */
 
@@ -8,6 +9,10 @@ export type FeedTask = {
   title: string;
   description: string | null;
   dueAt: Date;
+  /** True when dueAt is a specific time rather than an all-day date. */
+  hasTime: boolean;
+  /** Minutes; a timed task's event lasts this long, or 30 minutes when unset. */
+  durationMinutes?: number | null;
   done: boolean;
   updatedAt: Date;
   /** "Project name" or "Inbox", plus the workspace, shown in the event notes. */
@@ -70,6 +75,9 @@ function nextDay(yyyymmdd: string) {
   return date.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
+/** Length of a timed task's event when the task has no duration. */
+const TIMED_EVENT_MS = 30 * 60_000;
+
 function stamp(date: Date) {
   return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
@@ -88,15 +96,19 @@ export function buildCalendar(input: { name: string; timeZone: string; tasks: Fe
     "X-PUBLISHED-TTL:PT1H",
   ];
   for (const task of input.tasks) {
-    const day = dateInZone(task.dueAt, input.timeZone);
+    const when = task.hasTime
+      ? [`DTSTART:${stamp(task.dueAt)}`, `DTEND:${stamp(new Date(task.dueAt.getTime() + (task.durationMinutes ? task.durationMinutes * 60_000 : TIMED_EVENT_MS)))}`]
+      : (() => {
+          const day = dateInZone(task.dueAt, input.timeZone);
+          return [`DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${nextDay(day)}`];
+        })();
     const notes = [task.where, task.description?.trim() || null, task.url].filter(Boolean).join("\n\n");
     lines.push(
       "BEGIN:VEVENT",
       `UID:${task.id}@${input.host}`,
       `DTSTAMP:${stamp(task.updatedAt)}`,
       `LAST-MODIFIED:${stamp(task.updatedAt)}`,
-      `DTSTART;VALUE=DATE:${day}`,
-      `DTEND;VALUE=DATE:${nextDay(day)}`,
+      ...when,
       `SUMMARY:${escapeText(`${task.done ? "✓ " : ""}${task.title}`)}`,
       `DESCRIPTION:${escapeText(notes)}`,
       `URL:${task.url}`,

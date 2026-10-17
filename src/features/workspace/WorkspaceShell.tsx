@@ -6,6 +6,7 @@ import { PageContainer } from "@noirly-dev/ui";
 import { api } from "@/src/lib/api-client";
 import { qk } from "@/src/core/sync/query-keys";
 import { ProjectNav } from "@/src/features/workspace/ProjectNav";
+import { FilterNav } from "@/src/features/filters/FilterNav";
 import { WorkspaceRoleProvider } from "@/src/features/workspace/WorkspaceRoleContext";
 
 export function WorkspaceShell({
@@ -53,6 +54,7 @@ export function WorkspaceShell({
         <aside className="shrink-0 border-b border-[var(--hairline)] bg-[var(--surface-2)]/40 lg:w-56 lg:border-b-0 lg:border-r">
           <div className="px-4 py-4 sm:px-6 lg:max-h-full lg:overflow-y-auto lg:py-5">
             <ProjectNav workspaceId={workspaceId} />
+            <FilterNav workspaceId={workspaceId} />
           </div>
         </aside>
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</div>

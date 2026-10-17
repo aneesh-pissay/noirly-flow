@@ -25,3 +25,4 @@ export {
   TaskAttachment,
   type TaskAttachmentDocument,
 } from "./TaskAttachment";
+export { SavedFilter, type SavedFilterDocument } from "./SavedFilter";

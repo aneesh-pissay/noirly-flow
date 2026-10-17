@@ -13,7 +13,7 @@ import type { Task } from "@/src/core/sync/types";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
-import { TaskDueBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
@@ -21,8 +21,9 @@ import { ProjectRealtime } from "@/src/features/realtime/ProjectRealtime";
 import type { WorkspaceMember } from "@/src/features/workspace/members";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import {
-  dateInputToIso,
+  dueInputToIso,
   isoToDateInput,
+  isoToTimeInput,
   type DuePreset,
 } from "@/src/features/task/dates";
 import {
@@ -562,8 +563,8 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
           onPriorityChange={(taskId, next) =>
             updateMutation.mutate({ taskId, patch: { priority: next } })
           }
-          onDueChange={(taskId, dueAt) =>
-            updateMutation.mutate({ taskId, patch: { dueAt } })
+          onDueChange={(taskId, dueAt, dueHasTime) =>
+            updateMutation.mutate({ taskId, patch: { dueAt, dueHasTime } })
           }
           onDelete={(taskId) => deleteMutation.mutate(taskId)}
         />
@@ -621,7 +622,7 @@ function TaskList({
   onOpenTask: (taskId: string) => void;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onPriorityChange: (taskId: string, priority: TaskPriority) => void;
-  onDueChange: (taskId: string, dueAt: string | null) => void;
+  onDueChange: (taskId: string, dueAt: string | null, dueHasTime: boolean) => void;
   onDelete: (taskId: string) => void;
 }) {
   if (tasks.length === 0) {
@@ -661,7 +662,11 @@ function TaskList({
             </button>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
-              <TaskDueBadge dueAt={task.dueAt} />
+              <TaskStartBadge startAt={task.startAt} />
+              <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
+              <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
+              <TaskDurationBadge minutes={task.durationMinutes} />
+              <TaskRepeatBadge rule={task.recurrence} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </div>
@@ -700,9 +705,12 @@ function TaskList({
               type="date"
               value={isoToDateInput(task.dueAt)}
               disabled={!canWrite}
-              onChange={(event) =>
-                onDueChange(task.id, dateInputToIso(event.target.value))
-              }
+              onChange={(event) => {
+                // Changing the day keeps the task's time, if it has one.
+                const time = isoToTimeInput(task.dueAt, task.dueHasTime);
+                const date = event.target.value;
+                onDueChange(task.id, dueInputToIso(date, time), Boolean(date && time));
+              }}
               className="h-9 border border-[var(--hairline)] bg-[var(--bg)] px-2 text-xs text-[var(--foreground)] disabled:opacity-50"
             />
             {canWrite ? (

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@noirly-dev/ui";
 import type { Task } from "@/src/core/sync/types";
-import { dueTone, isoToDateInput } from "@/src/features/task/dates";
+import { dueTone, formatTime, isoToDateInput } from "@/src/features/task/dates";
 import { priorityDotClassName } from "@/src/features/task/priority";
 
 type Props = {
@@ -53,8 +53,16 @@ export function TaskCalendar({ tasks, onOpenTask }: Props) {
       list.push(task);
       map.set(key, list);
     }
+    // All-day tasks first, as calendars show them, then timed tasks by time.
     for (const list of map.values()) {
-      list.sort((a, b) => a.title.localeCompare(b.title));
+      list.sort((a, b) => {
+        if (a.dueHasTime !== b.dueHasTime) return a.dueHasTime ? 1 : -1;
+        if (a.dueHasTime) {
+          const byTime = Date.parse(a.dueAt ?? "") - Date.parse(b.dueAt ?? "");
+          if (byTime) return byTime;
+        }
+        return a.title.localeCompare(b.title);
+      });
     }
     return map;
   }, [tasks]);
@@ -157,12 +165,13 @@ export function TaskCalendar({ tasks, onOpenTask }: Props) {
                 <ul className="mt-1 flex flex-col gap-1">
                   {shown.map((task) => {
                     const done = task.status === "done";
-                    const overdue = !done && dueTone(task.dueAt) === "overdue";
+                    const overdue = !done && dueTone(task.dueAt, task.dueHasTime) === "overdue";
+                    const time = task.dueHasTime && task.dueAt ? formatTime(task.dueAt) : null;
                     return (
                       <li key={task.id}>
                         <button
                           type="button"
-                          title={task.title}
+                          title={time ? `${time} · ${task.title}` : task.title}
                           onClick={() => onOpenTask(task.id)}
                           className={`flex w-full items-center gap-1.5 rounded-lg border px-1.5 py-1 text-left text-[11px] transition-colors hover:border-[var(--accent)] ${
                             done
@@ -176,6 +185,11 @@ export function TaskCalendar({ tasks, onOpenTask }: Props) {
                             aria-hidden
                             className={`size-1.5 shrink-0 rounded-full ${priorityDotClassName(task.priority)}`}
                           />
+                          {time ? (
+                            <span className="shrink-0 font-mono text-[10px] text-[var(--muted-foreground)]">
+                              {time}
+                            </span>
+                          ) : null}
                           <span className="truncate">
                             {task.title}
                           </span>

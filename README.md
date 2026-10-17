@@ -6,6 +6,7 @@ Task and project management for individuals and teams — part of the Noirly eco
 
 - **[Features (web)](./docs/FEATURES.md)** — what is implemented in the web app today
 - **[Architecture](./docs/ARCHITECTURE.md)** — target design and locked stack decisions
+- **[Roadmap](./docs/ROADMAP.md)** — what to build next, ticked off as each task ships
 
 ## Auth (current)
 
