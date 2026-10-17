@@ -121,6 +121,23 @@ export const listTasksQuerySchema = z.object({
   tag: z.string().min(1).optional(),
 });
 
+export const bulkTasksBodySchema = z
+  .object({
+    taskIds: z.array(z.string().min(1)).min(1).max(100),
+    patch: z
+      .object({
+        status: z.enum(TASK_STATUSES).optional(),
+        priority: z.enum(TASK_PRIORITIES).optional(),
+        dueAt: dueAtSchema,
+        dueHasTime: z.boolean().optional(),
+        projectId: z.string().min(1).nullable().optional(),
+      })
+      .refine((value) => Object.values(value).some((field) => field !== undefined), { message: "Nothing to change" })
+      .optional(),
+    delete: z.literal(true).optional(),
+  })
+  .refine((value) => Boolean(value.patch) !== Boolean(value.delete), { message: "Send a patch or delete, not both" });
+
 export const createSectionBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
 });

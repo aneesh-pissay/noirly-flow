@@ -432,6 +432,16 @@ export const api = {
   deleteSection(sectionId: string) {
     return request<{ ok: boolean }>(`/api/sections/${sectionId}`, { method: "DELETE" });
   },
+  /** Up to 100 tasks at once; tasks that couldn't be changed come back in `failed`. */
+  bulkTasks(
+    workspaceId: string,
+    body: { taskIds: string[]; patch?: Partial<Pick<Task, "status" | "priority" | "dueAt" | "dueHasTime" | "projectId">>; delete?: true },
+  ) {
+    return request<{ tasks: Task[]; failed: Array<{ id: string; message: string }> }>(
+      `/api/workspaces/${workspaceId}/tasks/bulk`,
+      { method: "POST", body: JSON.stringify(body) },
+    );
+  },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);
   },
