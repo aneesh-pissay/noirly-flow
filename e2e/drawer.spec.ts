@@ -191,6 +191,44 @@ test.describe("task drawer", () => {
     expect(JSON.parse(await readFile(path.join(E2E_TASK_OUTBOX, mail!), "utf8")).subject).toBe(`Reminder: ${title}`);
   });
 
+  test("subtasks nest four levels deep, open in the drawer, and go and come back with their parent", async ({ page, team }) => {
+    const id = uid();
+    const ws = team.workspace.id;
+    const top = await createTask(page.request, ws, { title: `Top ${id}`, projectId: team.project.id });
+    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${top.id}`) && r.request().method() === "GET");
+    await page.goto(`${team.url}?task=${top.id}`);
+    await loaded;
+    const panel = drawer(page);
+
+    await panel.getByPlaceholder("Add subtask").fill(`Child ${id}`);
+    await panel.getByRole("button", { name: "Add", exact: true }).first().click();
+    await expect(panel.getByRole("button", { name: `Child ${id}` })).toBeVisible();
+
+    // Open the child: the breadcrumb leads back to the top task.
+    await panel.getByRole("button", { name: `Child ${id}` }).click();
+    await expect(drawer(page).locator("input").first()).toHaveValue(`Child ${id}`);
+    await expect(drawer(page).getByRole("navigation", { name: "Parent tasks" })).toContainText(`Top ${id}`);
+
+    // Two more levels by API, then the fourth level can't take another.
+    const { tasks: kids } = await (await page.request.get(`/api/workspaces/${ws}/tasks?parentTaskId=${top.id}`)).json();
+    const child = kids[0] as { id: string };
+    const grand = await createTask(page.request, ws, { title: `Grand ${id}`, projectId: team.project.id, parentTaskId: child.id });
+    const great = await createTask(page.request, ws, { title: `Great ${id}`, projectId: team.project.id, parentTaskId: grand.id });
+    const tooDeep = await page.request.post(`/api/workspaces/${ws}/tasks`, { data: { title: "Too deep", parentTaskId: great.id } });
+    expect(tooDeep.status()).toBe(400);
+    // And no loops: the top task can't go under its own descendant.
+    expect((await page.request.patch(`/api/tasks/${top.id}`, { data: { parentTaskId: great.id } })).status()).toBe(403);
+
+    // The list row shows the count; deleting the top task takes the subtree, restoring brings it back.
+    await page.keyboard.press("Escape");
+    await openList(page, team.url);
+    await expect(taskRow(page, `Top ${id}`)).toContainText("0/1");
+    expect((await page.request.delete(`/api/tasks/${top.id}`)).ok()).toBe(true);
+    expect((await page.request.get(`/api/tasks/${great.id}`)).status()).toBe(404);
+    expect((await page.request.post(`/api/tasks/${top.id}/restore`)).ok()).toBe(true);
+    expect((await page.request.get(`/api/tasks/${great.id}`)).ok()).toBe(true);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });
@@ -210,13 +248,11 @@ test.describe("task drawer", () => {
     await description.fill("Ship it behind a flag.");
     await description.blur();
 
-    // Tags, checklists and subtasks were removed from the drawer (Repeat came back with full recurrence).
-    for (const gone of ["Tags", "Checklist", "Subtasks"]) {
-      await expect(panel.getByText(gone, { exact: true })).toHaveCount(0);
-    }
+    // Checklists stay out of the drawer; Repeat, Tags and Subtasks came back.
+    await expect(panel.getByText("Checklist", { exact: true })).toHaveCount(0);
     await expect(panel.getByPlaceholder("Add checklist item")).toHaveCount(0);
-    await expect(panel.getByPlaceholder("Add subtask")).toHaveCount(0);
-    await expect(panel.getByPlaceholder("New tag")).toHaveCount(0);
+    await expect(panel.getByPlaceholder("Add subtask")).toBeVisible();
+    await expect(panel.getByPlaceholder("New tag")).toBeVisible();
 
     await panel.getByPlaceholder("Write a comment…").fill("Looks good to me");
     await panel.getByRole("button", { name: "Comment" }).click();

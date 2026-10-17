@@ -11,7 +11,7 @@ import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { PriorityBadge } from "@/src/features/task/priority";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
 import { TaskTagChips } from "@/src/features/tags/tags";
-import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge } from "@/src/features/task/TaskDueBadge";
 import { seedTaskCache } from "@/src/features/task/task-cache";
 
 export type TaskSection = { key: string; label: string; tasks: Task[]; tone?: "alert" };
@@ -108,6 +108,7 @@ export function TaskSections({ workspaceId, sections, queryKey }: {
                     <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
                     <TaskDurationBadge minutes={task.durationMinutes} />
                     <TaskRepeatBadge rule={task.recurrence} />
+                    <TaskSubtaskBadge count={task.subtaskCount} />
                     <TaskTagChips workspaceId={task.workspaceId} tagIds={task.tagIds} />
                     <span className="font-mono text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">
                       {task.projectId ? projectName.get(task.projectId) ?? "Project" : "Inbox"}
