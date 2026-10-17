@@ -54,6 +54,7 @@ export const createTaskBodySchema = z.object({
   durationMinutes: durationSchema,
   reminderMinutes: reminderSchema,
   recurrence: recurrenceSchema,
+  tagIds: z.array(z.string().min(1)).max(20).optional(),
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -115,6 +116,7 @@ export const listTasksQuerySchema = z.object({
   // server's (UTC). Wins over `due`.
   dueAfter: z.string().datetime({ offset: true }).optional(),
   dueBefore: z.string().datetime({ offset: true }).optional(),
+  tag: z.string().min(1).optional(),
 });
 
 export const createFilterBodySchema = z.object({
@@ -148,6 +150,11 @@ export const createTagBodySchema = z.object({
     .regex(/^#([0-9a-fA-F]{6})$/)
     .optional(),
 });
+
+export const updateTagBodySchema = createTagBodySchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  { message: "At least one field is required" },
+);
 
 export const createProjectBodySchema = z.object({
   name: z.string().trim().min(1).max(80),

@@ -21,8 +21,8 @@ test.describe("saved filters", () => {
     await query.fill("today &");
     await expect(page.locator("#filter-query-help")).toHaveText("The query ends too early");
     await expect(save).toBeDisabled();
-    await query.fill("today & @work");
-    await expect(page.locator("#filter-query-help")).toHaveText("Labels aren't supported yet");
+    await query.fill("today & @nosuchtag");
+    await expect(page.locator("#filter-query-help")).toHaveText("No tag called “nosuchtag”");
 
     await query.fill(`today & p1 & #${team.project.name}`);
     await expect(save).toBeEnabled();

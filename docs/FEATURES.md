@@ -110,7 +110,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | CRUD | Create / update / soft-delete with optimistic cache updates |
 | Inbox | Unfiled tasks (`projectId: null`) |
-| Quick add | New-task dialog (also opened from Cmd+K with the query as title). Natural-language title: `Pay rent every 1st 9am p1 #Home` sets due date and time, repeat, priority (`p1`–`p4`) and project (`#name`, `#inbox`); also `today`, `tomorrow`, `next week`, `in 3 days`, weekday names, `aug 14`, `every mon and thu`, `every weekday`, `every 2 weeks after completion`. A live preview shows what was recognised; "Keep as typed" turns it off. `@labels` stay in the title (tags have no UI) |
+| Quick add | New-task dialog (also opened from Cmd+K with the query as title). Natural-language title: `Pay rent every 1st 9am p1 #Home` sets due date and time, repeat, priority (`p1`–`p4`) and project (`#name`, `#inbox`); also `today`, `tomorrow`, `next week`, `in 3 days`, weekday names, `aug 14`, `every mon and thu`, `every weekday`, `every 2 weeks after completion`. A live preview shows what was recognised; "Keep as typed" turns it off. `@name` adds a tag (made if new, marked "(new)" in the preview) |
 | Status | `todo` \| `in_progress` \| `done` \| `canceled` |
 | Priority | `none` \| `low` \| `medium` \| `high` \| `urgent` |
 | Due date | Date with an optional time (`dueHasTime`); overdue / today badges — a timed task is overdue once its time passes, an all-day one the next day |
@@ -139,11 +139,11 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Checklist | Add / toggle / remove (persisted on task) |
 | Subtasks | `parentTaskId`; create + mark done (one level in list) |
 | Assignees | Multi-select workspace members |
-| Tags | Workspace tags; create + attach (default color; no color picker UI) |
+| Tags | Drawer and new-task dialog: toggle the workspace's tags or add a new one; coloured `@tag` chips on list, board, Today/Upcoming and filter rows; "Any tag" filter in the list view; Workspace settings → Tags to rename, recolour (8 colours) or delete (taken off every task) |
 | Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
 | Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none); due ranges are the browser's local days, sent as `dueAfter` / `dueBefore` |
 
-**Partial / not yet:** tag filter in list UI, checklist title edit, nested subtask drawer, end date / count for repeats, dedicated `/tasks/[taskId]` page.
+**Partial / not yet:** checklist title edit, nested subtask drawer, end date / count for repeats, dedicated `/tasks/[taskId]` page.
 
 ---
 
@@ -195,7 +195,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | Feature | Details |
 | --- | --- |
 | Personal filters | Name + query, per user per workspace (any role, viewers included; up to 50). Listed in the sidebar under Filters and in Cmd+K |
-| Query language | `today`, `tomorrow`, `overdue`, `no date`, `next 7 days` / `7 days`, `p1`–`p4`, `no priority`, `#Project`, `#Inbox`, `assigned to: me` / `others` / `<name>`, `no assignee`, `recurring`, `deadline` / `no deadline`, `search: text`; join with `&`, `|`, `!` and `( )` (`&` binds tighter). `@labels` are refused until tags have a UI |
+| Query language | `today`, `tomorrow`, `overdue`, `no date`, `next 7 days` / `7 days`, `p1`–`p4`, `no priority`, `#Project`, `#Inbox`, `@tag`, `assigned to: me` / `others` / `<name>`, `no assignee`, `recurring`, `deadline` / `no deadline`, `search: text`; join with `&`, `|`, `!` and `( )` (`&` binds tighter) |
 | Evaluation | In the browser over the workspace's open tasks, so days are the viewer's days; the query is checked as you type and can't be saved while it doesn't parse |
 | API | `GET/POST /api/workspaces/[workspaceId]/filters`, `PATCH/DELETE /api/filters/[filterId]` (owner only; anyone else gets 404) |
 
@@ -291,7 +291,7 @@ Requires `NEXT_PUBLIC_REALTIME_WS_URL` (and matching server JWT config).
 Tracked here so architecture plans are not mistaken for shipped product:
 
 - Dedicated `/search`, workspace settings, per-view board/list/calendar URLs, task deep-link page
-- Project / workspace / column admin (archive, tag color picker)
+- Project / workspace / column admin (archive)
 - Email invites, notifications, mentions, billing
 - Repeat end date or count; `blocked` status
 - Presence task-focus highlight; Inbox realtime

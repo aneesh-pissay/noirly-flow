@@ -1220,6 +1220,38 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       });
     },
 
+    async updateTag(tagId, patch) {
+      return withDb(async () => {
+        const tag = await Tag.findById(oid(tagId));
+        if (!tag) throw new ApiError(404, "not_found", "Tag not found");
+        await requireMembership(userId, tag.workspaceId.toString(), "member");
+        if (patch.name !== undefined) {
+          const name = patch.name.trim();
+          const clash = await Tag.exists({
+            workspaceId: tag.workspaceId,
+            _id: { $ne: tag._id },
+            name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+          });
+          if (clash) throw new ApiError(409, "conflict", "A tag with that name already exists");
+          tag.name = name;
+        }
+        if (patch.color !== undefined) tag.color = patch.color;
+        await tag.save();
+        return mapTag(tag);
+      });
+    },
+
+    async deleteTag(tagId) {
+      return withDb(async () => {
+        const tag = await Tag.findById(oid(tagId)).lean();
+        if (!tag) throw new ApiError(404, "not_found", "Tag not found");
+        await requireMembership(userId, tag.workspaceId.toString(), "member");
+        // Untag every task first, so no task is left pointing at a missing tag.
+        await TaskModel.updateMany({ workspaceId: tag.workspaceId, tagIds: tag._id }, { $pull: { tagIds: tag._id } });
+        await Tag.deleteOne({ _id: tag._id });
+      });
+    },
+
     async listComments(taskId) {
       return withDb(async () => {
         await requireTaskAccess(userId, taskId);

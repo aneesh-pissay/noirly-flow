@@ -286,6 +286,8 @@ export interface SyncProvider {
   reorderTasks(input: ReorderTasksInput): Promise<Task[]>;
   listTags(workspaceId: string): Promise<Tag[]>;
   createTag(workspaceId: string, input: { name: string; color?: string }): Promise<Tag>;
+  updateTag(tagId: string, patch: { name?: string; color?: string }): Promise<Tag>;
+  deleteTag(tagId: string): Promise<void>;
 
   listComments(taskId: string): Promise<Comment[]>;
   createComment(input: { taskId: string; body: string; mentions?: CommentMention[] }): Promise<Comment>;

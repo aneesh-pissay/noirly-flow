@@ -8,7 +8,7 @@ import type { Task } from "@/src/core/sync/types";
  *   next 7 days & !#Inbox & !recurring
  *
  * Terms: today, tomorrow, overdue, no date, next N days (or "N days"),
- * p1–p4 (p4 = no priority), #project or #inbox, assigned to: me | others |
+ * p1–p4 (p4 = no priority), #project or #inbox, @tag, assigned to: me | others |
  * <name>, no assignee, recurring, deadline / no deadline, search: <text>.
  * Combine with & (and), | (or), ! (not) and parentheses; & binds tighter
  * than |. Evaluated in the browser, so days are the viewer's days.
@@ -19,6 +19,7 @@ export type FilterContext = {
   meId: string;
   projects: Array<{ id: string; name: string }>;
   members: Array<{ userId: string; displayName: string }>;
+  tags?: Array<{ id: string; name: string }>;
 };
 
 export type FilterResult =
@@ -75,7 +76,12 @@ function term(raw: string, ctx: Required<FilterContext>): Predicate | string {
     if (!project) return `No project called “${text.slice(1).trim()}”`;
     return (t) => t.projectId === project.id;
   }
-  if (text.startsWith("@")) return "Labels aren't supported yet";
+  if (text.startsWith("@")) {
+    const name = text.slice(1).trim().toLowerCase();
+    const tag = ctx.tags.find((t) => t.name.trim().toLowerCase() === name);
+    if (!tag) return `No tag called “${text.slice(1).trim()}”`;
+    return (t) => t.tagIds.includes(tag.id);
+  }
 
   const assigned = /^assigned to:? ?(.+)$/i.exec(text);
   if (assigned) {
@@ -120,7 +126,7 @@ function tokenize(query: string): Token[] {
 
 /** Parses a query into a task predicate, or the first problem with it. */
 export function compileFilter(query: string, context: FilterContext): FilterResult {
-  const ctx: Required<FilterContext> = { now: new Date(), ...context };
+  const ctx: Required<FilterContext> = { now: new Date(), tags: [], ...context };
   const tokens = tokenize(query);
   if (!tokens.length) return { ok: false, error: "Type a query, e.g. today & p1" };
   let i = 0;

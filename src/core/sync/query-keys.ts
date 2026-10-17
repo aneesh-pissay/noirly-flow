@@ -8,6 +8,7 @@ export const qk = {
     ["tasks", workspaceId, filters] as const,
   task: (taskId: string) => ["task", taskId] as const,
   filters: (workspaceId: string) => ["filters", workspaceId] as const,
+  tags: (workspaceId: string) => ["tags", workspaceId] as const,
   members: (workspaceId: string) => ["members", workspaceId] as const,
   space: (workspaceId: string) => ["space", workspaceId] as const,
   comments: (taskId: string) => ["comments", taskId] as const,

@@ -331,6 +331,8 @@ export const api = {
       /** ISO instants; when set they replace `due`. */
       dueAfter?: string;
       dueBefore?: string;
+      /** Only tasks with this tag. */
+      tag?: string;
     } = {},
   ) {
     const params = new URLSearchParams();
@@ -355,6 +357,7 @@ export const api = {
     if (range.dueAfter) params.set("dueAfter", range.dueAfter);
     if (range.dueBefore) params.set("dueBefore", range.dueBefore);
     if (query.due === "none") params.set("due", "none");
+    if (query.tag) params.set("tag", query.tag);
     const qs = params.toString();
     return request<{ tasks: Task[] }>(
       `/api/workspaces/${workspaceId}/tasks${qs ? `?${qs}` : ""}`,
@@ -377,6 +380,7 @@ export const api = {
       durationMinutes?: number | null;
       reminderMinutes?: number | null;
       recurrence?: Task["recurrence"];
+      tagIds?: string[];
     },
   ) {
     return request<{ task: Task }>(`/api/workspaces/${workspaceId}/tasks`, {
@@ -434,6 +438,15 @@ export const api = {
   },
   listTags(workspaceId: string) {
     return request<{ tags: Tag[] }>(`/api/workspaces/${workspaceId}/tags`);
+  },
+  updateTag(tagId: string, patch: { name?: string; color?: string }) {
+    return request<{ tag: Tag }>(`/api/tags/${tagId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  },
+  deleteTag(tagId: string) {
+    return request<{ ok: boolean }>(`/api/tags/${tagId}`, { method: "DELETE" });
   },
   createTag(workspaceId: string, body: { name: string; color?: string }) {
     return request<{ tag: Tag }>(`/api/workspaces/${workspaceId}/tags`, {
