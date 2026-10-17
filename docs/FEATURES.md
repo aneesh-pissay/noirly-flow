@@ -63,6 +63,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | `/inbox` | Redirect to personal workspace inbox |
 | `/settings` | Flow profile + Identity account link |
 | `/invite/[token]` | Accept invite (login with `?next=` if needed) |
+| `/w/[workspaceId]/t/[taskId]` | A task's lasting link: opens it in its project or the Inbox, wherever it is now (404 otherwise). The drawer's "Copy link" copies it; task emails and the calendar feed use it |
 | `/w/[workspaceId]` | Redirect to first project (or empty state) |
 | `/w/[workspaceId]/today` | Overdue and due-today open tasks across all projects and the Inbox; tick to complete |
 | `/w/[workspaceId]/upcoming` | Open tasks due in the next 14 days, grouped by day |
@@ -146,7 +147,7 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
 | Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none); due ranges are the browser's local days, sent as `dueAfter` / `dueBefore` |
 
-**Partial / not yet:** checklist title edit, end date / count for repeats, dedicated `/tasks/[taskId]` page.
+**Partial / not yet:** checklist title edit, end date / count for repeats.
 
 ---
 
@@ -293,7 +294,7 @@ Requires `NEXT_PUBLIC_REALTIME_WS_URL` (and matching server JWT config).
 
 Tracked here so architecture plans are not mistaken for shipped product:
 
-- Dedicated `/search`, workspace settings, per-view board/list/calendar URLs, task deep-link page
+- Dedicated `/search`, workspace settings, per-view board/list/calendar URLs
 - Project / workspace / column admin (archive)
 - Email invites, notifications, mentions, billing
 - Repeat end date or count; `blocked` status

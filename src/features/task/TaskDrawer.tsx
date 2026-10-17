@@ -11,6 +11,7 @@ import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
 import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { SubtaskBreadcrumb, TaskSubtasks } from "@/src/features/task/TaskSubtasks";
+import { CopyTaskLink } from "@/src/features/task/CopyTaskLink";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
@@ -216,6 +217,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
             Task
           </p>
+          <CopyTaskLink workspaceId={workspaceId} taskId={taskId} />
           <button
             type="button"
             onClick={close}

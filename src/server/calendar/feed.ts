@@ -97,7 +97,6 @@ export async function renderFeed(token: string): Promise<string | null> {
       const projectId = task.projectId ? String(task.projectId) : null;
       // Tasks of deleted projects are hidden everywhere else too.
       if (projectId && !projectName.has(projectId)) return [];
-      const base = projectId ? `/w/${task.workspaceId}/p/${projectId}` : `/w/${task.workspaceId}/inbox`;
       return [{
         id: String(task._id),
         title: task.title,
@@ -108,7 +107,8 @@ export async function renderFeed(token: string): Promise<string | null> {
         done: task.status === "done",
         updatedAt: task.updatedAt,
         where: `${projectId ? projectName.get(projectId) : "Inbox"} · ${workspaceName.get(String(task.workspaceId)) ?? "Workspace"}`,
-        url: `${origin}${base}?task=${task._id}`,
+        // The lasting link, so an event still opens its task after a move.
+        url: `${origin}/w/${task.workspaceId}/t/${task._id}`,
       }];
     });
 
