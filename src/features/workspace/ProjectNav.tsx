@@ -14,6 +14,7 @@ import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { NavLink, useOptimisticPath } from "@/src/components/NavLink";
 import { useUIStore } from "@/src/stores/ui-store";
 import { TAG_COLORS } from "@/src/features/tags/tags";
+import { SaveAsTemplateButton, useTemplates } from "@/src/features/templates/templates";
 
 type WorkspacePayload = {
   workspace: Workspace & { role: MemberRole };
@@ -46,11 +47,19 @@ export function ProjectNav({ workspaceId }: Props) {
     staleTime: 60_000,
   });
 
+  const projectTemplates = (useTemplates(workspaceId).data?.templates ?? []).filter((t) => t.kind === "project");
+  const [templateId, setTemplateId] = useState("");
   const createMutation = useMutation({
-    mutationFn: () => api.createProject(workspaceId, { name }),
+    // From a template: a new project with its sections and tasks.
+    mutationFn: () => (templateId ? api.applyProjectTemplate(templateId, name.trim()) : api.createProject(workspaceId, { name })),
     onSuccess: (result) => {
       setName("");
       setOpen(false);
+      setTemplateId("");
+      if (templateId) {
+        void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
+        void queryClient.invalidateQueries({ queryKey: qk.sections(result.project.id) });
+      }
       queryClient.setQueryData<WorkspacePayload>(
         qk.workspace(workspaceId),
         (old) => {
@@ -112,7 +121,7 @@ export function ProjectNav({ workspaceId }: Props) {
       </div>
       {open && canWrite ? (
         <form
-          className="mb-2 flex gap-2 px-2"
+          className="mb-2 flex flex-wrap gap-2 px-2"
           onSubmit={(event) => {
             event.preventDefault();
             if (!name.trim()) return;
@@ -132,6 +141,13 @@ export function ProjectNav({ workspaceId }: Props) {
           >
             {createMutation.isPending ? "Saving…" : "Add"}
           </Button>
+          {projectTemplates.length ? (
+            <select aria-label="Project template" value={templateId} onChange={(event) => setTemplateId(event.target.value)}
+              className="h-8 w-full rounded-lg border border-[var(--hairline)] bg-[var(--bg)] px-2 text-xs text-[var(--foreground)]">
+              <option value="">Blank project</option>
+              {projectTemplates.map((t) => <option key={t.id} value={t.id}>From “{t.name}”</option>)}
+            </select>
+          ) : null}
         </form>
       ) : null}
       {favorites.length ? (
@@ -380,6 +396,8 @@ function ProjectItem({
             >
               Archive
             </button>
+            <SaveAsTemplateButton workspaceId={workspaceId} source={{ kind: "project", projectId: project.id }} defaultName={project.name}
+              className="cursor-pointer text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50" />
             {canDelete ? (
               <button
                 type="button"

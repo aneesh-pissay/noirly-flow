@@ -11,6 +11,8 @@ import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
 import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { SubtaskBreadcrumb, TaskSubtasks } from "@/src/features/task/TaskSubtasks";
+import { CopyTaskLink } from "@/src/features/task/CopyTaskLink";
+import { SaveAsTemplateButton } from "@/src/features/templates/templates";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
@@ -216,6 +218,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
             Task
           </p>
+          <CopyTaskLink workspaceId={workspaceId} taskId={taskId} />
           <button
             type="button"
             onClick={close}
@@ -432,6 +435,10 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
               </section>
 
               {task ? <TaskSubtasks workspaceId={workspaceId} task={task} canWrite={canEdit} /> : null}
+              {task && canEdit ? (
+                <SaveAsTemplateButton workspaceId={workspaceId} source={{ kind: "task", taskId: task.id }} defaultName={task.title}
+                  className="text-xs text-[var(--muted-foreground)] underline-offset-2 hover:text-[var(--foreground)] hover:underline disabled:opacity-50" />
+              ) : null}
 
               <TaskAttachments taskId={taskId} canWrite={canWrite} />
 

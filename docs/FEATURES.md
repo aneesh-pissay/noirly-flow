@@ -63,6 +63,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | `/inbox` | Redirect to personal workspace inbox |
 | `/settings` | Flow profile + Identity account link |
 | `/invite/[token]` | Accept invite (login with `?next=` if needed) |
+| `/w/[workspaceId]/t/[taskId]` | A task's lasting link: opens it in its project or the Inbox, wherever it is now (404 otherwise). The drawer's "Copy link" copies it; task emails and the calendar feed use it |
 | `/w/[workspaceId]` | Redirect to first project (or empty state) |
 | `/w/[workspaceId]/today` | Overdue and due-today open tasks across all projects and the Inbox; tick to complete |
 | `/w/[workspaceId]/upcoming` | Open tasks due in the next 14 days, grouped by day |
@@ -98,6 +99,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | Open project | `/w/.../p/[projectId]`; workspace root jumps to the first unarchived project |
 | Rename, colour, archive, delete | Pencil on a sidebar project: rename, 8 colours (a dot before its name) or none, Archive, Delete. Archived projects leave the sidebar (listed under "Archived (n)" with Unarchive) and their tasks leave Today, Upcoming, filters and the calendar feed; the project page still opens, with a banner to unarchive. Activity: `project.archived` / `project.unarchived` |
 | Favourites | Star a project to list it under Favourites at the top of the sidebar; personal (`GET/PUT /api/me/favorite-projects`) |
+| Templates | Shared by the workspace. Save a task (with its open subtasks) from the drawer, or a project (its sections, open tasks and subtasks) from the sidebar edit menu. New task → "From template" starts from it (the form's fields win; subtasks are added); New project → "From …" makes the project with its sections and tasks. Managed in Workspace settings → Templates. Up to 200 tasks per template, 100 templates per workspace. `GET/POST /api/workspaces/[workspaceId]/templates`, `DELETE /api/templates/[templateId]`, `POST /api/templates/[templateId]/apply` |
 | Move tasks | Drawer can move a task between Inbox and a project (its section is cleared) |
 | Sections | Named groups in a project's list view, separate from board columns: "+ Add section" under the list, Rename / Delete on each header (deleting keeps the tasks, under No section). Pick a task's section in the drawer or new-task dialog. `GET/POST /api/projects/[projectId]/sections`, `PATCH/DELETE /api/sections/[sectionId]` (member and up) |
 
@@ -127,7 +129,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 
 | View | Details |
 | --- | --- |
-| **List** | Inline status / priority / due / delete; tag + assignee chips; grouped by section when the project has sections (No section first) |
+| **List** | Inline status / priority / due / delete; tag + assignee chips; grouped by section when the project has sections (No section first); "Select" for bulk edit: tick rows (or click them), then set status / priority / due date, clear due, assign to someone (or nobody), move to a project or the Inbox, or delete, for all at once (`POST /api/workspaces/[workspaceId]/tasks/bulk`, up to 100, each task through the normal update so recurrence, emails and activity still happen; failures listed per task) |
 | **Board (Kanban)** | `@dnd-kit` (pointer + keyboard); cross-column maps status via `statusMapped`; optimistic reorder; canceled tasks hidden |
 | **Calendar** | Month grid by `dueAt`, all-day tasks first then timed ones by time (time shown on the chip); undated list; prev / next month |
 
@@ -146,7 +148,7 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
 | Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none); due ranges are the browser's local days, sent as `dueAfter` / `dueBefore` |
 
-**Partial / not yet:** checklist title edit, end date / count for repeats, dedicated `/tasks/[taskId]` page.
+**Partial / not yet:** checklist title edit, end date / count for repeats.
 
 ---
 
@@ -293,7 +295,7 @@ Requires `NEXT_PUBLIC_REALTIME_WS_URL` (and matching server JWT config).
 
 Tracked here so architecture plans are not mistaken for shipped product:
 
-- Dedicated `/search`, workspace settings, per-view board/list/calendar URLs, task deep-link page
+- Dedicated `/search`, workspace settings, per-view board/list/calendar URLs
 - Project / workspace / column admin (archive)
 - Email invites, notifications, mentions, billing
 - Repeat end date or count; `blocked` status

@@ -9,6 +9,7 @@ import { qk } from "@/src/core/sync/query-keys";
 import type { Workspace } from "@/src/core/sync/types";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { TagManager } from "@/src/features/tags/tags";
+import { TemplateManager } from "@/src/features/templates/templates";
 import { useUIStore } from "@/src/stores/ui-store";
 import { SpaceLinkSection } from "@/src/features/workspace/SpaceLinkSection";
 
@@ -147,6 +148,12 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
         <p className={kickerClass}>Tags</p>
         <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Names and colours</h2>
         <TagManager workspaceId={workspaceId} canEdit={canEditTags} />
+      </section>
+
+      <section className={sectionClass}>
+        <p className={kickerClass}>Templates</p>
+        <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Task and project templates</h2>
+        <TemplateManager workspaceId={workspaceId} canEdit={canEditTags} />
       </section>
 
       {!personal ? <SpaceLinkSection workspaceId={workspaceId} /> : null}

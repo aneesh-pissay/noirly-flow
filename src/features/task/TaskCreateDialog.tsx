@@ -13,11 +13,12 @@ import { TaskDatePicker } from "./TaskDatePicker";
 import { TaskDurationSelect } from "./TaskDurationSelect";
 import { TaskRepeatPicker } from "./TaskRepeatPicker";
 import { TaskReminderSelect } from "./TaskReminderSelect";
-import type { RecurrenceRule } from "@/src/core/sync/types";
+import type { RecurrenceRule, Task } from "@/src/core/sync/types";
 import { parseQuickAdd } from "./quick-add";
 import { browserZone } from "./recurrence";
 import { TagPicker, useTags } from "@/src/features/tags/tags";
 import { SectionSelect } from "./ProjectSections";
+import { templateSize, useTemplates } from "@/src/features/templates/templates";
 
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
@@ -44,6 +45,9 @@ export function TaskCreateDialog({ draft }: {
   const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
   const [reminder, setReminder] = useState<number | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const taskTemplates = (useTemplates(draft.workspaceId).data?.templates ?? []).filter((t) => t.kind === "task");
+  const [templateId, setTemplateId] = useState("");
+  const template = taskTemplates.find((t) => t.id === templateId) ?? null;
   // Remembered with the project it was picked for, so a project change (or #project in quick add) drops it.
   const [section, setSection] = useState<{ projectId: string; id: string } | null>(null);
   const [keepTyped, setKeepTyped] = useState(false);
@@ -79,12 +83,27 @@ export function TaskCreateDialog({ draft }: {
         quickTagIds.push(known ? known.id : (await api.createTag(draft.workspaceId, { name })).tag.id);
       }
       if (quickTagIds.length) void queryClient.invalidateQueries({ queryKey: qk.tags(draft.workspaceId) });
-      const result = await api.createTask(draft.workspaceId, {
+      const fields = {
         tagIds: [...new Set([...tagIds, ...quickTagIds])],
         sectionId: section && section.projectId === finalProjectId ? section.id : null,
         title: finalTitle, description: description.trim() || null, projectId: finalProjectId || null,
         status, priority: finalPriority, dueAt: dueInputToIso(finalDueDate, finalDueTime), dueHasTime: Boolean(finalDueDate && finalDueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, reminderMinutes: reminder, recurrence: finalRecurrence, assigneeIds,
-      });
+      };
+      let result: { task: Task };
+      if (template) {
+        // The template makes the task and its subtasks; the form's own fields then go on top.
+        const applied = await api.applyTaskTemplate(template.id, {
+          projectId: fields.projectId, sectionId: fields.sectionId,
+          overrides: { title: fields.title, description: fields.description, priority: fields.priority, dueAt: fields.dueAt, dueHasTime: fields.dueHasTime, assigneeIds: fields.assigneeIds },
+        });
+        result = await api.updateTask(applied.task.id, {
+          status: fields.status, startAt: fields.startAt, deadlineAt: fields.deadlineAt, reminderMinutes: fields.reminderMinutes,
+          recurrence: fields.recurrence, tagIds: [...new Set([...applied.task.tagIds, ...fields.tagIds])],
+          ...(fields.durationMinutes ? { durationMinutes: fields.durationMinutes } : {}),
+        });
+      } else {
+        result = await api.createTask(draft.workspaceId, fields);
+      }
       const failed: string[] = [];
       for (const [index, file] of attachments.entries()) {
         setUploadProgress(`Uploading attachment ${index + 1} of ${attachments.length}…`);
@@ -133,6 +152,27 @@ export function TaskCreateDialog({ draft }: {
           <button type="button" onClick={dismiss} disabled={create.isPending} className="min-h-10 px-3 disabled:opacity-50">Cancel</button>
         </header>
         <fieldset disabled={create.isPending || !canWrite} className="space-y-4 p-5 disabled:opacity-60">
+          {taskTemplates.length ? (
+            <label className="block text-sm">From template <span className="text-[var(--muted-foreground)]">(optional)</span>
+              <select value={templateId} className={fieldClass} onChange={(event) => {
+                const chosen = taskTemplates.find((t) => t.id === event.target.value);
+                setTemplateId(event.target.value);
+                if (chosen?.kind === "task") {
+                  // Start from the template's own fields; anything changed here wins.
+                  setTitle(chosen.data.task.title);
+                  setDescription(chosen.data.task.description ?? "");
+                  setPriority(chosen.data.task.priority ?? "none");
+                  setDuration(chosen.data.task.durationMinutes ?? null);
+                }
+              }}>
+                <option value="">Blank task</option>
+                {taskTemplates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+              {template ? <span className="mt-1 block text-xs text-[var(--muted-foreground)]">
+                {templateSize(template) > 1 ? `Also adds ${templateSize(template) - 1} subtask${templateSize(template) === 2 ? "" : "s"}.` : "No subtasks."}
+              </span> : null}
+            </label>
+          ) : null}
           <label className="block text-sm">Title <span aria-hidden="true">*</span>
             <input name="title" required maxLength={500} value={title} onChange={(event) => setTitle(event.target.value)} className={fieldClass}
               placeholder="e.g. Pay rent every 1st 9am p1 #Home" aria-describedby="quick-add-preview" />

@@ -13,6 +13,7 @@ import type { Task } from "@/src/core/sync/types";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
 import { ArchivedProjectBanner } from "@/src/features/workspace/ArchivedProjectBanner";
+import { BulkActionBar } from "@/src/features/task/BulkActionBar";
 import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
@@ -97,6 +98,9 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
   const [dueFilter, setDueFilter] = useState<DuePreset | "">("");
   const [assignedToMe, setAssignedToMe] = useState(false);
   const [tagFilter, setTagFilter] = useState("");
+  // Bulk edit: "Select" puts checkboxes on list rows.
+  const [selecting, setSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const tagsQuery = useTags(workspaceId);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -361,12 +365,18 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
 
   const tasks = tasksQuery.data?.tasks ?? [];
   const sections = useSections(projectId).data?.sections ?? [];
+  // Only what's on screen can be acted on, even if filters changed after selecting.
+  const visibleIds = tasks.map((task) => task.id);
+  const selected = selectedIds.filter((id) => visibleIds.includes(id));
+  const toggleSelected = (taskId: string) =>
+    setSelectedIds((ids) => (ids.includes(taskId) ? ids.filter((id) => id !== taskId) : [...ids, taskId]));
 
   /** The list view's rows for some of the tasks (all of them, or one section's). */
   function renderList(list: Task[], emptyLabel: string) {
     return (
       <TaskList
         tasks={list}
+        selection={selecting ? { selected, toggle: toggleSelected } : undefined}
         members={membersQuery.data?.members ?? []}
         canWrite={canWrite}
         emptyLabel={emptyLabel}
@@ -547,6 +557,20 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
             ))}
           </select>
         ) : null}
+        {canWrite && view === "list" ? (
+          <button
+            type="button"
+            aria-pressed={selecting}
+            onClick={() => { setSelecting((value) => !value); setSelectedIds([]); }}
+            className={`${actionClass} ${
+              selecting
+                ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                : "border border-[var(--hairline)] text-[var(--muted-foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            Select
+          </button>
+        ) : null}
         {hasActiveFilters ? (
           <button
             type="button"
@@ -590,6 +614,17 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
           </p>
         ) : null}
       </div>
+
+      {selecting && view === "list" ? (
+        <BulkActionBar
+          workspaceId={workspaceId}
+          selectedIds={selected}
+          visibleIds={visibleIds}
+          onSelectAll={() => setSelectedIds(visibleIds)}
+          onClear={() => setSelectedIds([])}
+          onExit={() => { setSelecting(false); setSelectedIds([]); }}
+        />
+      ) : null}
 
       {tasksQuery.isLoading ? (
         <p className="text-sm text-[var(--muted-foreground)]">Loading tasks…</p>
@@ -656,6 +691,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
 
 function TaskList({
   tasks,
+  selection,
   members,
   canWrite,
   emptyLabel,
@@ -666,6 +702,8 @@ function TaskList({
   onDelete,
 }: {
   tasks: Task[];
+  /** Bulk edit: checkboxes, and a row click toggles instead of opening. */
+  selection?: { selected: string[]; toggle: (taskId: string) => void };
   members: WorkspaceMember[];
   canWrite: boolean;
   emptyLabel: string;
@@ -694,10 +732,20 @@ function TaskList({
             // row keep their own behaviour, and selecting text doesn't open.
             if ((event.target as HTMLElement).closest("button, a, input, select, textarea, label")) return;
             if (window.getSelection()?.toString()) return;
-            onOpenTask(task.id);
+            if (selection) selection.toggle(task.id);
+            else onOpenTask(task.id);
           }}
           className="flex cursor-pointer flex-col gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] sm:flex-row sm:items-center sm:justify-between"
         >
+          {selection ? (
+            <input
+              type="checkbox"
+              aria-label={`Select ${task.title}`}
+              checked={selection.selected.includes(task.id)}
+              onChange={() => selection.toggle(task.id)}
+              className="size-4 shrink-0 cursor-pointer self-start sm:self-center"
+            />
+          ) : null}
           <div className="min-w-0 flex-1">
             <button
               type="button"

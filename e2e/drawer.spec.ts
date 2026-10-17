@@ -229,6 +229,27 @@ test.describe("task drawer", () => {
     expect((await page.request.get(`/api/tasks/${great.id}`)).ok()).toBe(true);
   });
 
+  test("a task's lasting link opens it wherever it is, and nowhere else", async ({ page, team }) => {
+    const title = `Linked ${uid()}`;
+    const task = await createTask(page.request, team.workspace.id, { title, projectId: team.project.id });
+    const link = `/w/${team.workspace.id}/t/${task.id}`;
+
+    await page.goto(link);
+    await expect(page).toHaveURL(new RegExp(`/p/${team.project.id}\\?task=${task.id}$`));
+    await expect(drawer(page).locator("input").first()).toHaveValue(title);
+    await expect(drawer(page).getByRole("button", { name: "Copy link" })).toBeVisible();
+
+    // Moved to the Inbox: the same link still finds it.
+    expect((await page.request.patch(`/api/tasks/${task.id}`, { data: { projectId: null } })).ok()).toBe(true);
+    await page.goto(link);
+    await expect(page).toHaveURL(new RegExp(`/inbox\\?task=${task.id}$`));
+
+    // A wrong workspace in the link is a plain 404.
+    const other = await page.request.post("/api/workspaces", { data: { name: `Elsewhere ${uid()}` } });
+    const { workspace } = await other.json();
+    expect((await page.goto(`/w/${workspace.id}/t/${task.id}`))?.status()).toBe(404);
+  });
+
   test("title, description and comment all persist", async ({ page, team }) => {
     const id = uid();
     const task = await createTask(page.request, team.workspace.id, { title: `Old title ${id}`, projectId: team.project.id });

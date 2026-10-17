@@ -12,11 +12,14 @@ export const indiaDue = (date: Date, hasTime: boolean) => hasTime
   ? `${indiaDay(date)} ${new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: false }).format(date)}`
   : indiaDay(date);
 
-/** The link that opens a task, refusing anything but this app's own http(s) origin. */
-export function taskMailUrl(task: { _id: unknown; workspaceId: unknown; projectId?: unknown }) {
+/**
+ * The task's lasting link (/w/:id/t/:taskId, which still works after the task
+ * moves), refusing anything but this app's own http(s) origin.
+ */
+export function taskMailUrl(task: { _id: unknown; workspaceId: unknown }) {
   const base = process.env.NEXT_PUBLIC_APP_URL || process.env.AUTH_URL;
   if (!base) throw new Error("Mail origin missing");
-  const url = new URL(`/w/${task.workspaceId}/${task.projectId ? `p/${task.projectId}` : "inbox"}?task=${task._id}`, base);
+  const url = new URL(`/w/${task.workspaceId}/t/${task._id}`, base);
   if (!["http:", "https:"].includes(url.protocol) || (process.env.NODE_ENV === "production" && url.protocol !== "https:" && !process.env.TASK_EMAIL_OUTBOX)) {
     throw new Error("Invalid mail origin");
   }
