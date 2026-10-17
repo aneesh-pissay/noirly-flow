@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { api } from "@/src/lib/api-client";
@@ -15,6 +15,9 @@ import {
   addDays, allDayTasks, layoutDay, sameDay, startOfLocalDay, visibleDays, visibleRange,
   type TimelineMode,
 } from "@/src/features/timeline/layout";
+import { dropToIso } from "@/src/features/timeline/drag";
+import { useTimelineDrag, withPreview, type DragPreview } from "@/src/features/timeline/use-timeline-drag";
+import type { Task } from "@/src/core/sync/types";
 
 /** Pixels per hour on the grid. */
 const HOUR_PX = 48;
@@ -61,6 +64,46 @@ function Timeline({ workspaceId }: { workspaceId: string }) {
   const nowMinute = useNowMinute();
   const now = new Date(nowMinute * 60_000);
 
+  // Open tasks without a time, to drag onto the grid.
+  const [scheduleSearch, setScheduleSearch] = useState("");
+  const unscheduledQuery = useQuery({
+    queryKey: qk.tasks(workspaceId, { view: "to-schedule", status: "todo,in_progress" }),
+    queryFn: () => api.listTasks(workspaceId, { status: "todo,in_progress" }),
+    staleTime: 30_000,
+  });
+  const needle = scheduleSearch.trim().toLowerCase();
+  const toSchedule = (unscheduledQuery.data?.tasks ?? [])
+    .filter((task) => !task.dueHasTime && (!needle || task.title.toLowerCase().includes(needle)))
+    .sort((a, b) => (a.dueAt ? Date.parse(a.dueAt) : Infinity) - (b.dueAt ? Date.parse(b.dueAt) : Infinity))
+    .slice(0, 30);
+
+  // Dropping saves the new time (move, place) or duration (resize), shown at once.
+  const [dropError, setDropError] = useState<string | null>(null);
+  const reschedule = useMutation({
+    mutationFn: (drop: DragPreview) => api.updateTask(drop.task.id, drop.kind === "resize"
+      ? { durationMinutes: drop.end - drop.start }
+      : { dueAt: dropToIso(drop.day, drop.start), dueHasTime: true }),
+    onMutate: async (drop) => {
+      setDropError(null);
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ tasks: Task[] }>(queryKey);
+      queryClient.setQueryData<{ tasks: Task[] }>(queryKey, (old) => ({ tasks: withPreview(old?.tasks ?? [], drop) }));
+      return { previous };
+    },
+    onError: (err: Error, _drop, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+      setDropError(err.message);
+    },
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] }),
+  });
+  const { preview, begin, dragged } = useTimelineDrag({ hourPx: HOUR_PX, days, onDrop: (drop) => reschedule.mutate(drop) });
+  const shown = withPreview(tasks, preview);
+  const open = (task: Task) => {
+    if (dragged.current) return;
+    seedTaskCache(queryClient, task);
+    openTaskInDrawer(task.id);
+  };
+
   const grid = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (grid.current) grid.current.scrollTop = FIRST_HOUR * HOUR_PX;
@@ -101,7 +144,9 @@ function Timeline({ workspaceId }: { workspaceId: string }) {
       </header>
 
       {tasksQuery.isError ? <p role="alert" className="text-sm">Could not load tasks. <button type="button" className="underline" onClick={() => void tasksQuery.refetch()}>Retry</button></p> : null}
+      {dropError ? <p role="alert" className="text-sm text-[var(--accent)]">{dropError}</p> : null}
 
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_15rem]">
       <div className="overflow-x-auto rounded-[var(--r-lg)] border border-[var(--hairline)] bg-[var(--surface)]">
         <div className={mode === "week" ? "min-w-[44rem]" : undefined}>
           {/* Day headings and the all-day strip. */}
@@ -120,7 +165,7 @@ function Timeline({ workspaceId }: { workspaceId: string }) {
                     {allDay.map((task) => (
                       <li key={task.id}>
                         <button type="button" title={task.title}
-                          onClick={() => { seedTaskCache(queryClient, task); openTaskInDrawer(task.id); }}
+                          onClick={() => open(task)}
                           className={`w-full truncate rounded border border-[var(--hairline)] bg-[var(--surface-2)] px-1 text-left text-[11px] ${task.status === "done" ? "text-[var(--muted-foreground)] line-through" : "text-[var(--foreground)]"}`}>
                           {task.title}
                         </button>
@@ -143,16 +188,17 @@ function Timeline({ workspaceId }: { workspaceId: string }) {
                 ))}
               </div>
               {days.map((day) => {
-                const blocks = layoutDay(tasks, day);
+                const blocks = layoutDay(shown, day);
                 const today = sameDay(day, now);
                 return (
-                  <div key={day.toISOString()} className="relative border-l border-[var(--hairline)]"
+                  <div key={day.toISOString()} data-timeline-day={day.toISOString()} className="relative border-l border-[var(--hairline)]"
                     style={{ backgroundImage: `repeating-linear-gradient(to bottom, var(--hairline) 0 1px, transparent 1px ${HOUR_PX}px)` }}>
                     {blocks.map(({ task, start, end, lane, lanes }) => (
                       <button key={task.id} type="button"
-                        title={`${formatTime(task.dueAt!)} · ${task.title}`}
-                        onClick={() => { seedTaskCache(queryClient, task); openTaskInDrawer(task.id); }}
-                        className={`absolute overflow-hidden rounded-md border px-1.5 py-0.5 text-left text-[11px] leading-tight transition-colors hover:border-[var(--accent)] ${
+                        title={`${formatTime(task.dueAt!)} · ${task.title} — drag to move, or drag the bottom edge to change how long it takes`}
+                        onClick={() => open(task)}
+                        onPointerDown={(event) => begin(event, task, "move", { day, start })}
+                        className={`absolute cursor-grab touch-none select-none overflow-hidden rounded-md border px-1.5 py-0.5 text-left text-[11px] leading-tight transition-colors hover:border-[var(--accent)] ${preview?.task.id === task.id ? "z-20 shadow-lg ring-2 ring-[var(--accent)] " : ""}${
                           task.status === "done" ? "border-[var(--hairline)] bg-[var(--surface-2)] text-[var(--muted-foreground)] line-through" : "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--foreground)]"}`}
                         style={{
                           top: (start / 60) * HOUR_PX + 1,
@@ -168,6 +214,9 @@ function Timeline({ workspaceId }: { workspaceId: string }) {
                         <span className="block truncate text-[10px] text-[var(--muted-foreground)]">
                           {formatTime(task.dueAt!)}{task.durationMinutes ? ` · ${formatDuration(task.durationMinutes)}` : ""}
                         </span>
+                        {/* The bottom edge resizes. */}
+                        <span aria-hidden onPointerDown={(event) => begin(event, task, "resize", { day, start })}
+                          className="absolute inset-x-0 bottom-0 h-1.5 cursor-ns-resize touch-none" />
                       </button>
                     ))}
                     {today ? (
@@ -180,6 +229,28 @@ function Timeline({ workspaceId }: { workspaceId: string }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <aside aria-label="To schedule" className="rounded-[var(--r-lg)] border border-[var(--hairline)] bg-[var(--surface)] p-3">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]">To schedule</h2>
+        <p className="mt-1 text-xs text-[var(--muted-foreground)]">Drag a task onto the timeline to give it a time.</p>
+        <input value={scheduleSearch} onChange={(event) => setScheduleSearch(event.target.value)} aria-label="Find a task to schedule"
+          placeholder="Search…" className="mt-2 h-8 w-full rounded-lg border border-[var(--hairline)] bg-[var(--bg)] px-2 text-xs text-[var(--foreground)]" />
+        <ul className="mt-2 max-h-[60vh] space-y-1 overflow-y-auto" data-lenis-prevent>
+          {toSchedule.map((task) => (
+            <li key={task.id}>
+              <button type="button" title="Drag onto the timeline, or click to open"
+                onClick={() => open(task)}
+                onPointerDown={(event) => begin(event, task, "place")}
+                className={`w-full cursor-grab touch-none select-none truncate rounded-md border border-[var(--hairline)] bg-[var(--surface-2)] px-2 py-1.5 text-left text-xs text-[var(--foreground)] hover:border-[var(--accent)] ${preview?.task.id === task.id ? "opacity-50" : ""}`}>
+                {task.title}
+                {task.dueAt ? <span className="block text-[10px] text-[var(--muted-foreground)]">Due {new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(task.dueAt))}</span> : null}
+              </button>
+            </li>
+          ))}
+          {unscheduledQuery.data && !toSchedule.length ? <li className="text-xs text-[var(--muted-foreground)]">Nothing waiting for a time.</li> : null}
+        </ul>
+      </aside>
       </div>
       {tasksQuery.data && !tasks.length ? (
         <p className="text-sm text-[var(--muted-foreground)]">Nothing due {mode === "day" ? "this day" : "this week"}. Give tasks a due time to see them here.</p>

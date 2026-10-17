@@ -19,7 +19,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 0. Recent fixes | 3 / 4 |
 | 1. Date model | 6 / 6 |
 | 2. Capture and organisation | 10 / 10 |
-| 3. Planning and calendar | 2 / 7 |
+| 3. Planning and calendar | 3 / 7 |
 | 4. Productivity | 0 / 6 |
 | 5. Collaboration and automation | 0 / 8 |
 | 6. AI | 0 / 9 |
@@ -62,7 +62,7 @@ _Needs Phase 1._
 
 - [x] Dependencies and a `blocked` status; blocked tasks cannot be completed first (M) — done 2026-10-17 (blocked is worked out from open blockers, not a stored status; e2e `dependencies.spec.ts` not yet run)
 - [x] Day and week timeline views (M) — done 2026-10-17 (e2e `timeline.spec.ts` not yet run)
-- [ ] Time blocking: drag tasks onto the timeline to schedule them (L)
+- [x] Time blocking: drag tasks onto the timeline to schedule them (L) — done 2026-10-17 (e2e in `timeline.spec.ts` not yet run)
 - [ ] Gantt view (start date, duration, dependencies) (L)
 - [ ] Two-way Google Calendar sync (L)
 - [ ] Two-way Outlook calendar sync (L)
