@@ -128,7 +128,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 
 | View | Details |
 | --- | --- |
-| **List** | Inline status / priority / due / delete; tag + assignee chips; grouped by section when the project has sections (No section first); "Select" for bulk edit: tick rows (or click them), then set status / priority / due date, clear due, move to a project or the Inbox, or delete, for all at once (`POST /api/workspaces/[workspaceId]/tasks/bulk`, up to 100, each task through the normal update so recurrence, emails and activity still happen; failures listed per task) |
+| **List** | Inline status / priority / due / delete; tag + assignee chips; grouped by section when the project has sections (No section first); "Select" for bulk edit: tick rows (or click them), then set status / priority / due date, clear due, assign to someone (or nobody), move to a project or the Inbox, or delete, for all at once (`POST /api/workspaces/[workspaceId]/tasks/bulk`, up to 100, each task through the normal update so recurrence, emails and activity still happen; failures listed per task) |
 | **Board (Kanban)** | `@dnd-kit` (pointer + keyboard); cross-column maps status via `statusMapped`; optimistic reorder; canceled tasks hidden |
 | **Calendar** | Month grid by `dueAt`, all-day tasks first then timed ones by time (time shown on the chip); undated list; prev / next month |
 

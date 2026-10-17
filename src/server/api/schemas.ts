@@ -131,6 +131,7 @@ export const bulkTasksBodySchema = z
         dueAt: dueAtSchema,
         dueHasTime: z.boolean().optional(),
         projectId: z.string().min(1).nullable().optional(),
+        assigneeIds: z.array(z.string().min(1)).max(100).optional(),
       })
       .refine((value) => Object.values(value).some((field) => field !== undefined), { message: "Nothing to change" })
       .optional(),

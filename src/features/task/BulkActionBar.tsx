@@ -10,11 +10,11 @@ import { dateInputToIso } from "@/src/features/task/dates";
 
 const fieldClass = "h-9 rounded-lg border border-[var(--hairline)] bg-[var(--bg)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50";
 
-type Patch = Partial<Pick<Task, "status" | "priority" | "dueAt" | "dueHasTime" | "projectId">>;
+type Patch = Partial<Pick<Task, "status" | "priority" | "dueAt" | "dueHasTime" | "projectId" | "assigneeIds">>;
 
 /**
  * Shown while tasks are selected in the list view: set status, priority, due
- * date or project on all of them, or delete them. Each change is one request
+ * date, assignee or project on all of them, or delete them. Each change is one request
  * for the whole selection; tasks that couldn't change are named afterwards.
  */
 export function BulkActionBar({ workspaceId, selectedIds, visibleIds, onSelectAll, onClear, onExit }: {
@@ -29,6 +29,7 @@ export function BulkActionBar({ workspaceId, selectedIds, visibleIds, onSelectAl
   const [message, setMessage] = useState<string | null>(null);
   const workspace = useQuery({ queryKey: qk.workspace(workspaceId), queryFn: () => api.getWorkspace(workspaceId), staleTime: 60_000 });
   const projects = (workspace.data?.projects ?? []).filter((project) => !project.archivedAt);
+  const members = useQuery({ queryKey: qk.members(workspaceId), queryFn: () => api.listMembers(workspaceId) });
 
   const run = useMutation({
     mutationFn: (body: { patch?: Patch; delete?: true }) => api.bulkTasks(workspaceId, { taskIds: selectedIds, ...body }),
@@ -78,6 +79,12 @@ export function BulkActionBar({ workspaceId, selectedIds, visibleIds, onSelectAl
         className="h-9 rounded-lg border border-[var(--hairline)] px-2 text-xs disabled:opacity-50">
         Clear due
       </button>
+      <select aria-label="Assign to" value="" disabled={!count || run.isPending} className={fieldClass}
+        onChange={(event) => event.target.value && run.mutate({ patch: { assigneeIds: event.target.value === "none" ? [] : [event.target.value] } })}>
+        <option value="">Assign to…</option>
+        <option value="none">Nobody</option>
+        {(members.data?.members ?? []).map((member) => <option key={member.userId} value={member.userId}>{member.displayName}</option>)}
+      </select>
       <select aria-label="Move to project" value="" disabled={!count || run.isPending} className={fieldClass}
         onChange={(event) => event.target.value && run.mutate({ patch: { projectId: event.target.value === "inbox" ? null : event.target.value } })}>
         <option value="">Move to…</option>

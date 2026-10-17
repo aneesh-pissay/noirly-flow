@@ -435,7 +435,7 @@ export const api = {
   /** Up to 100 tasks at once; tasks that couldn't be changed come back in `failed`. */
   bulkTasks(
     workspaceId: string,
-    body: { taskIds: string[]; patch?: Partial<Pick<Task, "status" | "priority" | "dueAt" | "dueHasTime" | "projectId">>; delete?: true },
+    body: { taskIds: string[]; patch?: Partial<Pick<Task, "status" | "priority" | "dueAt" | "dueHasTime" | "projectId" | "assigneeIds">>; delete?: true },
   ) {
     return request<{ tasks: Task[]; failed: Array<{ id: string; message: string }> }>(
       `/api/workspaces/${workspaceId}/tasks/bulk`,

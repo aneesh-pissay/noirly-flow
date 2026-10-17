@@ -25,6 +25,11 @@ test.describe("bulk edit", () => {
     expect((await get(b.id)).priority).toBe("high");
     expect((await get(c.id)).priority).toBe("none");
 
+    await page.getByRole("checkbox", { name: `Select Alpha ${id}` }).check();
+    const me = (await (await page.request.get("/api/me")).json()).user.id;
+    await bar.getByLabel("Assign to").selectOption(me);
+    await expect.poll(async () => (await get(a.id)).assigneeIds).toEqual([me]);
+
     await bar.getByRole("button", { name: /^Select all/ }).click();
     await bar.getByLabel("Set status").selectOption("in_progress");
     await expect.poll(async () => (await get(c.id)).status).toBe("in_progress");
