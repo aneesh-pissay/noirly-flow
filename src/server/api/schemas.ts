@@ -139,6 +139,30 @@ export const bulkTasksBodySchema = z
   })
   .refine((value) => Boolean(value.patch) !== Boolean(value.delete), { message: "Send a patch or delete, not both" });
 
+export const saveTemplateBodySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("task"), taskId: z.string().min(1), name: z.string().trim().min(1).max(80) }),
+  z.object({ kind: z.literal("project"), projectId: z.string().min(1), name: z.string().trim().min(1).max(80) }),
+]);
+
+export const applyTemplateBodySchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("task"),
+    projectId: z.string().min(1).nullable(),
+    sectionId: z.string().min(1).nullable().optional(),
+    overrides: z
+      .object({
+        title: z.string().trim().min(1).max(500).optional(),
+        description: z.string().trim().max(20_000).nullable().optional(),
+        priority: z.enum(TASK_PRIORITIES).optional(),
+        dueAt: dueAtSchema,
+        dueHasTime: z.boolean().optional(),
+        assigneeIds: z.array(z.string().min(1)).max(100).optional(),
+      })
+      .optional(),
+  }),
+  z.object({ kind: z.literal("project"), name: z.string().trim().min(1).max(80) }),
+]);
+
 export const createSectionBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
 });

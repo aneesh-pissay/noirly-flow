@@ -1,4 +1,5 @@
 import { dueRange, type DuePreset } from "@/src/features/task/dates";
+import type { Template } from "@/src/core/templates";
 import type {
   ActivityEvent,
   AppNotification,
@@ -441,6 +442,30 @@ export const api = {
       `/api/workspaces/${workspaceId}/tasks/bulk`,
       { method: "POST", body: JSON.stringify(body) },
     );
+  },
+  listTemplates(workspaceId: string) {
+    return request<{ templates: Template[] }>(`/api/workspaces/${workspaceId}/templates`);
+  },
+  saveTemplate(workspaceId: string, body: { kind: "task"; taskId: string; name: string } | { kind: "project"; projectId: string; name: string }) {
+    return request<{ template: Template }>(`/api/workspaces/${workspaceId}/templates`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+  deleteTemplate(templateId: string) {
+    return request<{ ok: boolean }>(`/api/templates/${templateId}`, { method: "DELETE" });
+  },
+  applyTaskTemplate(templateId: string, body: { projectId: string | null; sectionId?: string | null; overrides?: Partial<Pick<Task, "title" | "description" | "priority" | "dueAt" | "dueHasTime" | "assigneeIds">> }) {
+    return request<{ task: Task }>(`/api/templates/${templateId}/apply`, {
+      method: "POST",
+      body: JSON.stringify({ kind: "task", ...body }),
+    });
+  },
+  applyProjectTemplate(templateId: string, name: string) {
+    return request<{ project: Project }>(`/api/templates/${templateId}/apply`, {
+      method: "POST",
+      body: JSON.stringify({ kind: "project", name }),
+    });
   },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);

@@ -18,7 +18,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | --- | --- |
 | 0. Recent fixes | 3 / 4 |
 | 1. Date model | 6 / 6 |
-| 2. Capture and organisation | 9 / 10 |
+| 2. Capture and organisation | 10 / 10 |
 | 3. Planning and calendar | 0 / 7 |
 | 4. Productivity | 0 / 6 |
 | 5. Collaboration and automation | 0 / 8 |
@@ -53,7 +53,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 - [x] Project archive, colours and favourites (S) — done 2026-10-17 (e2e `projects-organise.spec.ts` not yet run)
 - [x] Nested subtasks (more than one level) and a subtask drawer (M) — done 2026-10-17 (subtasks brought back in the drawer; e2e in `drawer.spec.ts` not yet run)
 - [x] Bulk edit: multi-select, then set status / priority / due / assignee / move / delete (M) — done 2026-10-17 (e2e `bulk.spec.ts` not yet run)
-- [ ] Project and task templates (M)
+- [x] Project and task templates (M) — done 2026-10-17 (e2e `templates.spec.ts` not yet run)
 - [x] Dedicated task page `/w/[workspaceId]/t/[taskId]` for sharing links (S) — done 2026-10-17 (e2e in `drawer.spec.ts` not yet run)
 
 ## Phase 3 — Planning and calendar
