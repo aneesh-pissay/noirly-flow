@@ -10,6 +10,7 @@ import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { ActivityFeed } from "@/src/features/activity/ActivityFeed";
 import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
+import { SubtaskBreadcrumb, TaskSubtasks } from "@/src/features/task/TaskSubtasks";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
@@ -225,6 +226,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
         </header>
 
         <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+          <SubtaskBreadcrumb task={task} />
           {canWrite ? <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--hairline)] pb-4">
             <p role="status" className="text-xs text-[var(--muted-foreground)]">
               {saveMutation.isPending ? "Saving…" : dirty ? "Unsaved changes" : manual ? "Manual saving" : "Automatic saving"}
@@ -428,6 +430,8 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   ) : null}
                 </div>
               </section>
+
+              {task ? <TaskSubtasks workspaceId={workspaceId} task={task} canWrite={canEdit} /> : null}
 
               <TaskAttachments taskId={taskId} canWrite={canWrite} />
 

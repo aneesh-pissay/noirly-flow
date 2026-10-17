@@ -140,13 +140,13 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Feature | Details |
 | --- | --- |
 | Checklist | Add / toggle / remove (persisted on task) |
-| Subtasks | `parentTaskId`; create + mark done (one level in list) |
+| Subtasks | Drawer "Subtasks": add, tick, and open a subtask in the drawer (with its own subtasks and a breadcrumb back up); four levels in all, no loops. List, board, Today/Upcoming and filter rows show done/total. Subtasks move with their parent's project, are deleted with it and come back with it from the Trash (the Trash lists the parent only) |
 | Assignees | Multi-select workspace members |
 | Tags | Drawer and new-task dialog: toggle the workspace's tags or add a new one; coloured `@tag` chips on list, board, Today/Upcoming and filter rows; "Any tag" filter in the list view; Workspace settings → Tags to rename, recolour (8 colours) or delete (taken off every task) |
 | Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
 | Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none); due ranges are the browser's local days, sent as `dueAfter` / `dueBefore` |
 
-**Partial / not yet:** checklist title edit, nested subtask drawer, end date / count for repeats, dedicated `/tasks/[taskId]` page.
+**Partial / not yet:** checklist title edit, end date / count for repeats, dedicated `/tasks/[taskId]` page.
 
 ---
 

@@ -16,6 +16,7 @@ import {
   nextOccurrenceDueAt,
 } from "@/src/core/recurrence/next";
 import { reminderAtFor } from "@/src/core/reminders";
+import { assertParentAllowed, descendantIds, subtaskCounts } from "@/src/server/subtasks";
 import { withDb } from "@/src/server/db/mongodb";
 import {
   ActivityEvent,
@@ -69,6 +70,7 @@ async function assertTaskReferences(workspaceId: string, refs: {
   if (refs.parentTaskId && (refs.parentTaskId === refs.taskId || !await TaskModel.exists({ _id: oid(refs.parentTaskId), workspaceId: workspace, deletedAt: null }))) {
     throw new ApiError(403, "forbidden", "Invalid parent task");
   }
+  if (refs.parentTaskId) await assertParentAllowed(oid(refs.parentTaskId), refs.taskId ? oid(refs.taskId) : undefined);
   const tags = [...new Set(refs.tagIds ?? [])];
   if (tags.length && await Tag.countDocuments({ _id: { $in: tags.map(oid) }, workspaceId: workspace }) !== tags.length) {
     throw new ApiError(403, "forbidden", "Tag is not in this workspace");
@@ -656,7 +658,13 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         const tasks = await TaskModel.find(filter)
           .sort({ position: 1, createdAt: 1 })
           .lean();
-        return tasks.map(mapTask);
+        // Done/total subtasks for list rows.
+        const counts = await subtaskCounts(tasks.map((task) => task._id));
+        return tasks.map((task) => {
+          const mapped = mapTask(task);
+          const count = counts.get(String(task._id));
+          return count ? { ...mapped, subtaskCount: count } : mapped;
+        });
       });
     },
 
@@ -940,6 +948,13 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
             : []);
         }
         await task.save();
+        // Subtasks live in their parent's project: they move with it.
+        if (projectChanges) {
+          const below = await descendantIds(task._id);
+          if (below.length) {
+            await TaskModel.updateMany({ _id: { $in: below } }, { $set: { projectId: task.projectId ?? null, columnId: null, sectionId: null } });
+          }
+        }
         if (spawnRule) {
           await spawnNextOccurrence(task, spawnRule, userId);
         }
@@ -1034,6 +1049,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         await requireMembership(userId, task.workspaceId.toString(), "member");
         task.deletedAt = new Date();
         await task.save();
+        // Its subtasks go with it, stamped with the same time so a restore brings them back together.
+        const below = await descendantIds(task._id);
+        if (below.length) await TaskModel.updateMany({ _id: { $in: below } }, { $set: { deletedAt: task.deletedAt } });
         // Its notifications can't be opened any more; don't leave them counted as unread.
         void Notification.updateMany({ taskId: task._id, readAt: null }, { $set: { readAt: new Date() } })
           .catch(() => console.error("notification cleanup failed"));
@@ -1055,13 +1073,17 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
     async listTrash(workspaceId) {
       return withDb(async () => {
         await requireMembership(userId, workspaceId, "viewer");
-        const tasks = await TaskModel.find({
+        const deleted = await TaskModel.find({
           workspaceId: oid(workspaceId),
           deletedAt: { $ne: null },
         })
           .sort({ deletedAt: -1 })
           .limit(TRASH_LIMIT)
           .lean();
+        // A subtask deleted with its parent is listed (and restored) through the parent.
+        const stamp = new Map(deleted.map((task) => [String(task._id), task.deletedAt?.getTime()]));
+        const tasks = deleted.filter((task) =>
+          !task.parentTaskId || stamp.get(String(task.parentTaskId)) !== task.deletedAt?.getTime());
         const projectIds = [...new Set(tasks.flatMap((task) => (task.projectId ? [task.projectId.toString()] : [])))];
         const projects = await Project.find({ _id: { $in: projectIds.map(oid) } })
           .select("name deletedAt")
@@ -1098,8 +1120,14 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (task.parentTaskId && !await TaskModel.exists({ _id: task.parentTaskId, deletedAt: null })) {
           task.parentTaskId = null;
         }
+        const deletedAt = task.deletedAt;
         task.deletedAt = null;
         await task.save();
+        // Subtasks deleted along with it come back with it, into the same project.
+        const below = await descendantIds(task._id, { deletedAt });
+        if (below.length) {
+          await TaskModel.updateMany({ _id: { $in: below } }, { $set: { deletedAt: null, projectId: task.projectId ?? null } });
+        }
         void recordActivity({
           workspaceId: task.workspaceId,
           projectId: task.projectId,

@@ -22,6 +22,17 @@ export function TaskRepeatBadge({ rule }: { rule: RecurrenceRule | null | undefi
   );
 }
 
+/** "2/5": done and total subtasks. */
+export function TaskSubtaskBadge({ count }: { count: { done: number; total: number } | undefined }) {
+  if (!count) return null;
+  return (
+    <span title={`${count.done} of ${count.total} subtasks done`} className="font-mono text-[11px] tracking-wide text-[var(--muted-foreground)]">
+      <span aria-hidden>☑ </span>{count.done}/{count.total}
+      <span className="sr-only"> subtasks done</span>
+    </span>
+  );
+}
+
 /** The estimate, e.g. "45m". */
 export function TaskDurationBadge({ minutes }: { minutes: number | null | undefined }) {
   if (!minutes) return null;

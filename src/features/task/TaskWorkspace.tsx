@@ -16,7 +16,7 @@ import { ArchivedProjectBanner } from "@/src/features/workspace/ArchivedProjectB
 import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
-import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
@@ -717,6 +717,7 @@ function TaskList({
               <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
               <TaskDurationBadge minutes={task.durationMinutes} />
               <TaskRepeatBadge rule={task.recurrence} />
+              <TaskSubtaskBadge count={task.subtaskCount} />
               <TaskTagChips workspaceId={task.workspaceId} tagIds={task.tagIds} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>

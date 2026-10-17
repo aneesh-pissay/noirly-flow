@@ -90,6 +90,8 @@ export type Task = {
   startAt: string | null;
   /** A section of the task's project, or null. */
   sectionId: string | null;
+  /** Done and total direct subtasks; only on task lists, and only when there are some. */
+  subtaskCount?: { done: number; total: number };
   /** All-day hard deadline, separate from the planned due date. */
   deadlineAt: string | null;
   /** Estimated length in minutes (1–1440), or null. */
