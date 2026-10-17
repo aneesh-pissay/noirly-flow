@@ -96,7 +96,8 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | Create project | Name in UI; default columns Todo / In progress / Done |
 | List projects | Workspace detail + Project nav |
 | Open project | `/w/.../p/[projectId]`; workspace root jumps to first project |
-| Move tasks | Drawer can move a task between Inbox and a project |
+| Move tasks | Drawer can move a task between Inbox and a project (its section is cleared) |
+| Sections | Named groups in a project's list view, separate from board columns: "+ Add section" under the list, Rename / Delete on each header (deleting keeps the tasks, under No section). Pick a task's section in the drawer or new-task dialog. `GET/POST /api/projects/[projectId]/sections`, `PATCH/DELETE /api/sections/[sectionId]` (member and up) |
 
 **Not in product yet:** rename, archive, delete, description/color/`defaultView` UI, separate `/board` `/list` `/calendar` URLs (views are in-page toggles).
 
@@ -124,7 +125,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 
 | View | Details |
 | --- | --- |
-| **List** | Inline status / priority / due / delete; tag + assignee chips |
+| **List** | Inline status / priority / due / delete; tag + assignee chips; grouped by section when the project has sections (No section first) |
 | **Board (Kanban)** | `@dnd-kit` (pointer + keyboard); cross-column maps status via `statusMapped`; optimistic reorder; canceled tasks hidden |
 | **Calendar** | Month grid by `dueAt`, all-day tasks first then timed ones by time (time shown on the chip); undated list; prev / next month |
 

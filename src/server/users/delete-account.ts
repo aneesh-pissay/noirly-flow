@@ -8,6 +8,8 @@ import {
   Project,
   ProjectMessage,
   Report,
+  SavedFilter,
+  Section,
   Tag,
   Task,
   Workspace,
@@ -40,6 +42,8 @@ export async function purgeWorkspace(workspaceId: Types.ObjectId): Promise<void>
   await purgeAttachments({ workspaceId });
   await Promise.all([
     BoardColumn.deleteMany({ projectId: { $in: projectIds } }),
+    Section.deleteMany({ workspaceId }),
+    SavedFilter.deleteMany({ workspaceId }),
     Project.deleteMany({ workspaceId }),
     Task.deleteMany({ workspaceId }),
     Tag.deleteMany({ workspaceId }),
@@ -115,6 +119,8 @@ export async function deleteFlowAccountData(identitySub: string): Promise<FlowDe
     WorkspaceInvite.deleteMany({ createdById: userId }),
     // Reports they filed, and reports about them or their content.
     Report.deleteMany({ $or: [{ reporterId: userId }, { targetUserId: userId }] }),
+    // Saved filters are personal.
+    SavedFilter.deleteMany({ userId }),
     Task.updateMany({ assigneeIds: userId }, { $pull: { assigneeIds: userId } }),
   ]);
   await FlowUser.deleteOne({ _id: userId });

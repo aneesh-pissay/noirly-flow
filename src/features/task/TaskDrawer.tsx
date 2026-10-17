@@ -16,6 +16,7 @@ import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
 import { TaskRepeatPicker } from "@/src/features/task/TaskRepeatPicker";
 import { TaskReminderSelect } from "@/src/features/task/TaskReminderSelect";
 import { TagPicker } from "@/src/features/tags/tags";
+import { SectionSelect } from "@/src/features/task/ProjectSections";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import {
@@ -69,6 +70,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [recurrence, setRecurrence] = useState<Task["recurrence"]>(initialTask?.recurrence ?? null);
   const [reminder, setReminder] = useState<number | null>(initialTask?.reminderMinutes ?? null);
   const [tagIds, setTagIds] = useState<string[]>(initialTask?.tagIds ?? []);
+  const [sectionId, setSectionId] = useState<string | null>(initialTask?.sectionId ?? null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
@@ -115,6 +117,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setRecurrence(task.recurrence ?? null);
     setReminder(task.reminderMinutes ?? null);
     setTagIds(task.tagIds ?? []);
+    setSectionId(task.sectionId ?? null);
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -171,7 +174,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -309,7 +312,9 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     onChange={(event) => {
                       const next = event.target.value;
                       setProjectId(next);
-                      persist({ projectId: next || null });
+                      // A section belongs to its project; the server clears it on a move too.
+                      setSectionId(null);
+                      persist({ projectId: next || null, sectionId: null });
                     }}
                     className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50"
                   >
@@ -321,6 +326,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     ))}
                   </select>
                 </label>
+                {projectId ? (
+                  <SectionSelect projectId={projectId} value={sectionId} disabled={!canEdit} onChange={(next) => {
+                    setSectionId(next);
+                    persist({ sectionId: next });
+                  }} labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
+                    className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                ) : null}
                 <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
                   <span>Start date</span>
                   <TaskDatePicker value={startDate} withTime={false} name="start date" disabled={!canEdit} onChange={(value) => {

@@ -26,3 +26,4 @@ export {
   type TaskAttachmentDocument,
 } from "./TaskAttachment";
 export { SavedFilter, type SavedFilterDocument } from "./SavedFilter";
+export { Section, type SectionDocument } from "./Section";

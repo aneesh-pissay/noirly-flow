@@ -55,6 +55,7 @@ export const createTaskBodySchema = z.object({
   reminderMinutes: reminderSchema,
   recurrence: recurrenceSchema,
   tagIds: z.array(z.string().min(1)).max(20).optional(),
+  sectionId: z.string().min(1).nullable().optional(),
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -82,6 +83,7 @@ export const updateTaskBodySchema = z
     reminderMinutes: reminderSchema,
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
+    sectionId: z.string().min(1).nullable().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),
     position: z.number().finite().optional(),
     tagIds: z.array(z.string().min(1)).optional(),
@@ -118,6 +120,17 @@ export const listTasksQuerySchema = z.object({
   dueBefore: z.string().datetime({ offset: true }).optional(),
   tag: z.string().min(1).optional(),
 });
+
+export const createSectionBodySchema = z.object({
+  name: z.string().trim().min(1).max(60),
+});
+
+export const updateSectionBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(60).optional(),
+    position: z.number().finite().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, { message: "At least one field is required" });
 
 export const createFilterBodySchema = z.object({
   name: z.string().trim().min(1).max(80),
