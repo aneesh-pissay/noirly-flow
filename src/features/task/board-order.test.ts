@@ -23,6 +23,7 @@ function task(partial: Partial<Task> & Pick<Task, "id" | "status">): Task {
     reminderMinutes: null,
     startAt: null,
     sectionId: null,
+    blockedByIds: [],
     completedAt: null,
     position: 1000,
     assigneeIds: [],

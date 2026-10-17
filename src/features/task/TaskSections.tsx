@@ -11,7 +11,7 @@ import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { PriorityBadge } from "@/src/features/task/priority";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
 import { TaskTagChips } from "@/src/features/tags/tags";
-import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge } from "@/src/features/task/TaskDueBadge";
 import { seedTaskCache } from "@/src/features/task/task-cache";
 
 export type TaskSection = { key: string; label: string; tasks: Task[]; tone?: "alert" };
@@ -104,6 +104,7 @@ export function TaskSections({ workspaceId, sections, queryKey }: {
                   </button>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <PriorityBadge priority={task.priority} />
+                    <TaskBlockedBadge blocked={task.blocked} />
                     <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
                     <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
                     <TaskDurationBadge minutes={task.durationMinutes} />

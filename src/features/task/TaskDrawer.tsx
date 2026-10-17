@@ -12,6 +12,7 @@ import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { SubtaskBreadcrumb, TaskSubtasks } from "@/src/features/task/TaskSubtasks";
 import { CopyTaskLink } from "@/src/features/task/CopyTaskLink";
+import { TaskDependencies } from "@/src/features/task/TaskDependencies";
 import { SaveAsTemplateButton } from "@/src/features/templates/templates";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
@@ -73,6 +74,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [recurrence, setRecurrence] = useState<Task["recurrence"]>(initialTask?.recurrence ?? null);
   const [reminder, setReminder] = useState<number | null>(initialTask?.reminderMinutes ?? null);
   const [tagIds, setTagIds] = useState<string[]>(initialTask?.tagIds ?? []);
+  const [blockedByIds, setBlockedByIds] = useState<string[]>(initialTask?.blockedByIds ?? []);
   const [sectionId, setSectionId] = useState<string | null>(initialTask?.sectionId ?? null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
@@ -120,6 +122,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setRecurrence(task.recurrence ?? null);
     setReminder(task.reminderMinutes ?? null);
     setTagIds(task.tagIds ?? []);
+    setBlockedByIds(task.blockedByIds ?? []);
     setSectionId(task.sectionId ?? null);
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
@@ -177,7 +180,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, blockedByIds, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -435,6 +438,10 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
               </section>
 
               {task ? <TaskSubtasks workspaceId={workspaceId} task={task} canWrite={canEdit} /> : null}
+              {task ? (
+                <TaskDependencies workspaceId={workspaceId} task={task} value={blockedByIds} canWrite={canEdit}
+                  onChange={(next) => { setBlockedByIds(next); persist({ blockedByIds: next }); }} />
+              ) : null}
               {task && canEdit ? (
                 <SaveAsTemplateButton workspaceId={workspaceId} source={{ kind: "task", taskId: task.id }} defaultName={task.title}
                   className="text-xs text-[var(--muted-foreground)] underline-offset-2 hover:text-[var(--foreground)] hover:underline disabled:opacity-50" />

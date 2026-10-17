@@ -17,6 +17,7 @@ import {
 } from "@/src/core/recurrence/next";
 import { reminderAtFor } from "@/src/core/reminders";
 import { assertParentAllowed, descendantIds, subtaskCounts } from "@/src/server/subtasks";
+import { assertBlockersAllowed, assertNotBlocked, openTaskIds, withBlocked } from "@/src/server/dependencies";
 import { withDb } from "@/src/server/db/mongodb";
 import {
   ActivityEvent,
@@ -660,18 +661,18 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           .lean();
         // Done/total subtasks for list rows.
         const counts = await subtaskCounts(tasks.map((task) => task._id));
-        return tasks.map((task) => {
+        return withBlocked(tasks.map((task) => {
           const mapped = mapTask(task);
           const count = counts.get(String(task._id));
           return count ? { ...mapped, subtaskCount: count } : mapped;
-        });
+        }));
       });
     },
 
     async getTask(taskId) {
       return withDb(async () => {
         const task = await requireTaskAccess(userId, taskId);
-        return mapTask(task);
+        return (await withBlocked([mapTask(task)]))[0]!;
       });
     },
 
@@ -679,6 +680,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       return withDb(async () => {
         await requireMembership(userId, input.workspaceId, "member");
         await assertTaskReferences(input.workspaceId, input);
+        await assertBlockersAllowed(oid(input.workspaceId), input.blockedByIds ?? []);
+        if (input.status === "done") await assertNotBlocked(input.blockedByIds ?? [], input.title);
         let columnId = input.columnId ? oid(input.columnId) : null;
         let status: TaskStatus = input.status ?? "todo";
 
@@ -746,6 +749,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
           tagIds: (input.tagIds ?? []).map(oid),
+          blockedByIds: (input.blockedByIds ?? []).map(oid),
           parentTaskId: input.parentTaskId ? oid(input.parentTaskId) : null,
           createdById: oid(userId),
         });
@@ -857,6 +861,10 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (patch.tagIds !== undefined) {
           task.tagIds = patch.tagIds.map(oid);
         }
+        if (patch.blockedByIds !== undefined) {
+          await assertBlockersAllowed(task.workspaceId, patch.blockedByIds, task._id);
+          task.blockedByIds = [...new Set(patch.blockedByIds)].map(oid);
+        }
         if (patch.parentTaskId !== undefined) {
           task.parentTaskId = patch.parentTaskId
             ? oid(patch.parentTaskId)
@@ -932,6 +940,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           );
         }
 
+        // A task can't be finished while something it waits on is still open.
+        if (becomingDone) await assertNotBlocked(task.blockedByIds ?? [], task.title);
         const spawnRule = becomingDone
           ? asRecurrenceRule(task.recurrence)
           : null;
@@ -1039,7 +1049,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           });
         }
 
-        return mapped;
+        return (await withBlocked([mapped]))[0]!;
       });
     },
 
@@ -1166,6 +1176,14 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         const byId = new Map(
           tasks.map((task) => [task._id.toString(), task] as const),
         );
+        // Dragging a blocked card to Done is refused like any other way of finishing it.
+        const finishing = input.moves.flatMap((move) => {
+          const task = byId.get(move.taskId);
+          return task && move.status === "done" && task.status !== "done" ? [task] : [];
+        });
+        const stillOpen = await openTaskIds(finishing.flatMap((task) => task.blockedByIds ?? []));
+        const stuck = finishing.find((task) => (task.blockedByIds ?? []).some((id) => stillOpen.has(String(id))));
+        if (stuck) throw new ApiError(409, "blocked", `“${stuck.title}” is waiting on other tasks; finish those first`);
 
         const ops: Array<{
           updateOne: {

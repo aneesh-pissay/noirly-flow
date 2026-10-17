@@ -73,6 +73,8 @@ const taskSchema = new Schema(
     // False: an all-day due date (stored at local noon). True: dueAt is the exact due time.
     dueHasTime: { type: Boolean, default: false },
     startAt: { type: Date, default: null },
+    // Tasks that must be finished before this one can be (same workspace, no loops).
+    blockedByIds: { type: [Schema.Types.ObjectId], ref: "Task", default: [] },
     // A section of the task's project (list view grouping), or null.
     sectionId: { type: Schema.Types.ObjectId, ref: "Section", default: null },
     // A hard "must be done by" date, separate from the planned due date. All-day, at local noon.

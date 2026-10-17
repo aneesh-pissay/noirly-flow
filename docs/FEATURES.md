@@ -146,6 +146,7 @@ Title, description, status, priority, project, due date, recurrence, assignees, 
 | Assignees | Multi-select workspace members |
 | Tags | Drawer and new-task dialog: toggle the workspace's tags or add a new one; coloured `@tag` chips on list, board, Today/Upcoming and filter rows; "Any tag" filter in the list view; Workspace settings → Tags to rename, recolour (8 colours) or delete (taken off every task) |
 | Recurrence | "Repeat" in the drawer and new-task dialog: daily, every weekday, weekly, monthly, yearly, or custom — every N days / weeks / months / years, chosen weekdays, counted from the due date or from completion. Days are counted in the browser's time zone saved on the rule; monthly on the 31st uses the last day of short months. Completing spawns the next occurrence; list and board show a repeat icon |
+| Dependencies | Drawer "Blocked by": search for open tasks this one waits on (up to 20, same workspace, no loops); "Blocking" lists the tasks waiting on it. While a blocker is open the task is blocked: a "Blocked" badge on rows, and finishing it is refused everywhere (drawer, list, board drag, bulk edit, API: 409). `blocked` term in saved filters. `blockedByIds` on tasks; `GET /api/tasks/[taskId]/blocking` |
 | Filters | Search, assigned to me, status, priority, due (overdue / today / upcoming / none); due ranges are the browser's local days, sent as `dueAfter` / `dueBefore` |
 
 **Partial / not yet:** checklist title edit, end date / count for repeats.
@@ -200,7 +201,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | Feature | Details |
 | --- | --- |
 | Personal filters | Name + query, per user per workspace (any role, viewers included; up to 50). Listed in the sidebar under Filters and in Cmd+K |
-| Query language | `today`, `tomorrow`, `overdue`, `no date`, `next 7 days` / `7 days`, `p1`–`p4`, `no priority`, `#Project`, `#Inbox`, `@tag`, `assigned to: me` / `others` / `<name>`, `no assignee`, `recurring`, `deadline` / `no deadline`, `search: text`; join with `&`, `|`, `!` and `( )` (`&` binds tighter) |
+| Query language | `today`, `tomorrow`, `overdue`, `no date`, `next 7 days` / `7 days`, `p1`–`p4`, `no priority`, `#Project`, `#Inbox`, `@tag`, `assigned to: me` / `others` / `<name>`, `no assignee`, `recurring`, `blocked`, `deadline` / `no deadline`, `search: text`; join with `&`, `|`, `!` and `( )` (`&` binds tighter) |
 | Evaluation | In the browser over the workspace's open tasks, so days are the viewer's days; the query is checked as you type and can't be saved while it doesn't parse |
 | API | `GET/POST /api/workspaces/[workspaceId]/filters`, `PATCH/DELETE /api/filters/[filterId]` (owner only; anyone else gets 404) |
 

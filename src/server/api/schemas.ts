@@ -56,6 +56,7 @@ export const createTaskBodySchema = z.object({
   recurrence: recurrenceSchema,
   tagIds: z.array(z.string().min(1)).max(20).optional(),
   sectionId: z.string().min(1).nullable().optional(),
+  blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -84,6 +85,7 @@ export const updateTaskBodySchema = z
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     sectionId: z.string().min(1).nullable().optional(),
+    blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
     parentTaskId: z.string().min(1).nullable().optional(),
     position: z.number().finite().optional(),
     tagIds: z.array(z.string().min(1)).optional(),

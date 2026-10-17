@@ -112,6 +112,7 @@ export function mapTask(doc: {
   position: number;
   assigneeIds?: Types.ObjectId[];
   tagIds?: Types.ObjectId[];
+  blockedByIds?: Types.ObjectId[];
   parentTaskId?: Types.ObjectId | null;
   recurrence?: {
     frequency: string;
@@ -152,6 +153,7 @@ export function mapTask(doc: {
     position: doc.position,
     assigneeIds: (doc.assigneeIds ?? []).map((id) => id.toString()),
     tagIds: (doc.tagIds ?? []).map((id) => id.toString()),
+    blockedByIds: (doc.blockedByIds ?? []).map((id) => id.toString()),
     parentTaskId: idOf(doc.parentTaskId ?? null),
     recurrence: asRecurrenceRule(doc.recurrence),
     checklist: (doc.checklist ?? []).map(

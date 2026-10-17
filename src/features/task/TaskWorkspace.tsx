@@ -17,7 +17,7 @@ import { BulkActionBar } from "@/src/features/task/BulkActionBar";
 import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
-import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
@@ -760,6 +760,7 @@ function TaskList({
             </button>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
+              <TaskBlockedBadge blocked={task.blocked} />
               <TaskStartBadge startAt={task.startAt} />
               <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
               <TaskDeadlineBadge deadlineAt={task.deadlineAt} />

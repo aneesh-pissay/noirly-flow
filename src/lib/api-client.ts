@@ -467,6 +467,10 @@ export const api = {
       body: JSON.stringify({ kind: "project", name }),
     });
   },
+  /** Tasks waiting on this one. */
+  listBlocking(taskId: string) {
+    return request<{ tasks: Array<{ id: string; title: string; status: Task["status"] }> }>(`/api/tasks/${taskId}/blocking`);
+  },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);
   },

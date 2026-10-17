@@ -90,6 +90,10 @@ export type Task = {
   startAt: string | null;
   /** A section of the task's project, or null. */
   sectionId: string | null;
+  /** Tasks that must be finished first. */
+  blockedByIds: string[];
+  /** True while one of those is still open; set on task reads. */
+  blocked?: boolean;
   /** Done and total direct subtasks; only on task lists, and only when there are some. */
   subtaskCount?: { done: number; total: number };
   /** All-day hard deadline, separate from the planned due date. */
@@ -203,6 +207,7 @@ export type CreateTaskInput = {
   /** All-day start date, stored at local noon like an all-day due date. */
   startAt?: string | null;
   sectionId?: string | null;
+  blockedByIds?: string[];
   deadlineAt?: string | null;
   durationMinutes?: number | null;
   reminderMinutes?: number | null;
