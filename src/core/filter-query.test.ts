@@ -9,11 +9,12 @@ const ctx = {
   meId: "me",
   projects: [{ id: "work", name: "Work" }, { id: "home", name: "Home Office" }],
   members: [{ userId: "sam", displayName: "Sam Lee" }],
+  tags: [{ id: "t-bills", name: "bills" }],
 };
 
 const task = (id: string, extra: Partial<Task> = {}) => ({
   id, title: id, projectId: "work", dueAt: null, dueHasTime: false, deadlineAt: null,
-  priority: "none", assigneeIds: [], recurrence: null, ...extra,
+  priority: "none", assigneeIds: [], tagIds: [], recurrence: null, ...extra,
 }) as Task;
 const at = (day: number, hour = 12) => new Date(2026, 7, day, hour).toISOString();
 
@@ -24,7 +25,7 @@ const tasks = [
   task("yesterday", { dueAt: at(13), recurrence: { frequency: "daily", interval: 1 } }),
   task("tomorrow-p2", { dueAt: at(15), priority: "medium", deadlineAt: at(16) }),
   task("next-week", { dueAt: at(20) }),
-  task("undated", { title: "Fix the leak!" }),
+  task("undated", { title: "Fix the leak!", tagIds: ["t-bills"] }),
 ];
 
 function run(query: string) {
@@ -58,6 +59,8 @@ describe("compileFilter", () => {
     expect(run("no assignee & recurring")).toEqual(["yesterday"]);
     expect(run("deadline")).toEqual(["tomorrow-p2"]);
     expect(run("search: leak!")).toEqual(["undated"]);
+    expect(run("@Bills")).toEqual(["undated"]);
+    expect(run("!@bills & no date")).toEqual([]);
   });
 
   it("explains what's wrong", () => {
@@ -66,7 +69,7 @@ describe("compileFilter", () => {
     expect(error("today &")).toBe("The query ends too early");
     expect(error("(today | p1")).toBe("Missing )");
     expect(error("#Nope")).toBe("No project called “Nope”");
-    expect(error("@urgent")).toBe("Labels aren't supported yet");
+    expect(error("@urgent")).toBe("No tag called “urgent”");
     expect(error("someday")).toBe("Unknown term “someday”");
     expect(error("today )")).toBe("Unexpected “)”");
   });

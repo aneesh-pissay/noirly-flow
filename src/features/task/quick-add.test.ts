@@ -64,6 +64,14 @@ describe("parseQuickAdd", () => {
     expect(parse("Tweet #launch")).toMatchObject({ title: "Tweet #launch" });
   });
 
+  it("reads @tags, keeping a known tag's spelling and marking new ones", () => {
+    const result = parseQuickAdd("Pay rent @Bills @home-admin @bills", { now, projects, tags: [{ name: "bills" }] });
+    expect(result.title).toBe("Pay rent");
+    expect(result.tagNames).toEqual(["bills", "home-admin"]);
+    expect(result.labels).toEqual(["@bills", "@home-admin (new)"]);
+    expect(parse("Email ana@example.com").tagNames).toBeUndefined();
+  });
+
   it("keeps the typed text when everything was a keyword", () => {
     expect(parse("tomorrow").title).toBe("tomorrow");
   });

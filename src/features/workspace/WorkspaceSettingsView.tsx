@@ -8,6 +8,7 @@ import { api } from "@/src/lib/api-client";
 import { qk } from "@/src/core/sync/query-keys";
 import type { Workspace } from "@/src/core/sync/types";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
+import { TagManager } from "@/src/features/tags/tags";
 import { useUIStore } from "@/src/stores/ui-store";
 import { SpaceLinkSection } from "@/src/features/workspace/SpaceLinkSection";
 
@@ -20,6 +21,7 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
   const queryClient = useQueryClient();
   const canRename = useCan("workspace.manage");
   const canDelete = useCan("workspace.delete");
+  const canEditTags = useCan("task.write");
 
   const workspaceQuery = useQuery({
     queryKey: qk.workspace(workspaceId),
@@ -139,6 +141,12 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
             Saved
           </p>
         ) : null}
+      </section>
+
+      <section className={sectionClass}>
+        <p className={kickerClass}>Tags</p>
+        <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Names and colours</h2>
+        <TagManager workspaceId={workspaceId} canEdit={canEditTags} />
       </section>
 
       {!personal ? <SpaceLinkSection workspaceId={workspaceId} /> : null}

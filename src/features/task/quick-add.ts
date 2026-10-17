@@ -3,8 +3,8 @@ import type { RecurrenceRule } from "@/src/core/sync/types";
 import { describeRecurrence } from "@/src/features/task/recurrence";
 
 /**
- * Natural-language quick add: pulls a due date, time, repeat, priority and
- * project out of a task title, e.g. "Pay rent every 1st 9am p1 #Home".
+ * Natural-language quick add: pulls a due date, time, repeat, priority,
+ * project and tags out of a task title, e.g. "Pay rent every 1st 9am p1 #Home @bills".
  * Deliberately conservative — a word only counts when it can't plausibly be
  * part of the title ("sat" alone is not Saturday, "may" alone is not May).
  */
@@ -17,6 +17,8 @@ export type QuickAdd = {
   /** Set when a #project matched; null means #inbox. */
   projectId?: string | null;
   recurrence?: RecurrenceRule;
+  /** Names from "@name", without the @; new ones are created when the task is. */
+  tagNames?: string[];
   /** Human-readable list of what was recognised, for a preview. */
   labels: string[];
 };
@@ -92,7 +94,7 @@ const PRIORITY: Record<string, TaskPriority> = { "1": "high", "2": "medium", "3"
 
 export function parseQuickAdd(
   input: string,
-  options: { now?: Date; projects?: Project[]; timeZone?: string } = {},
+  options: { now?: Date; projects?: Project[]; timeZone?: string; tags?: Array<{ name: string }> } = {},
 ): QuickAdd {
   const now = options.now ?? new Date();
   const today = startOf(now);
@@ -121,6 +123,15 @@ export function parseQuickAdd(
   if (priority) {
     result.priority = PRIORITY[priority[1]!];
     result.labels.push(`P${priority[1]}`);
+  }
+
+  // Tags: every "@name". A known tag keeps its own spelling; a new one is marked so.
+  const known = new Map((options.tags ?? []).map((tag) => [tag.name.toLowerCase(), tag.name]));
+  for (let tag = take("@([\\w-]{1,40})"); tag; tag = take("@([\\w-]{1,40})")) {
+    const name = known.get(tag[1]!.toLowerCase()) ?? tag[1]!;
+    if (result.tagNames?.some((n) => n.toLowerCase() === name.toLowerCase())) continue;
+    (result.tagNames ??= []).push(name);
+    result.labels.push(known.has(name.toLowerCase()) ? `@${name}` : `@${name} (new)`);
   }
 
   // Repeat. The first match wins.

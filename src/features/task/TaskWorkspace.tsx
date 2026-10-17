@@ -13,6 +13,7 @@ import type { Task } from "@/src/core/sync/types";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
+import { TaskTagChips, useTags } from "@/src/features/tags/tags";
 import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
@@ -93,6 +94,8 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "">("");
   const [dueFilter, setDueFilter] = useState<DuePreset | "">("");
   const [assignedToMe, setAssignedToMe] = useState(false);
+  const [tagFilter, setTagFilter] = useState("");
+  const tagsQuery = useTags(workspaceId);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -155,6 +158,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
       priority: priorityFilter || undefined,
       search: search || undefined,
       due: dueFilter || undefined,
+      tag: tagFilter || undefined,
     }),
     [
       projectId,
@@ -165,11 +169,12 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
       priorityFilter,
       search,
       dueFilter,
+      tagFilter,
     ],
   );
 
   const hasActiveFilters = Boolean(
-    search || statusFilter || priorityFilter || dueFilter || assignedToMe,
+    search || statusFilter || priorityFilter || dueFilter || assignedToMe || tagFilter,
   );
 
   const refetchInterval = useTaskRefetchInterval();
@@ -499,6 +504,19 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
             </option>
           ))}
         </select>
+        {tagsQuery.data?.tags.length ? (
+          <select
+            value={tagFilter}
+            aria-label="Tag"
+            onChange={(event) => setTagFilter(event.target.value)}
+            className={`${fieldClass} cursor-pointer`}
+          >
+            <option value="">Any tag</option>
+            {tagsQuery.data.tags.map((tag) => (
+              <option key={tag.id} value={tag.id}>@{tag.name}</option>
+            ))}
+          </select>
+        ) : null}
         {hasActiveFilters ? (
           <button
             type="button"
@@ -509,6 +527,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
               setPriorityFilter("");
               setDueFilter("");
               setAssignedToMe(false);
+              setTagFilter("");
             }}
             className={`${actionClass} border border-[var(--hairline)] text-[var(--muted-foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]`}
           >
@@ -667,6 +686,7 @@ function TaskList({
               <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
               <TaskDurationBadge minutes={task.durationMinutes} />
               <TaskRepeatBadge rule={task.recurrence} />
+              <TaskTagChips workspaceId={task.workspaceId} tagIds={task.tagIds} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </div>

@@ -36,6 +36,7 @@ export async function GET(request: Request, { params }: Params) {
       due: url.searchParams.get("due") ?? undefined,
       dueAfter: url.searchParams.get("dueAfter") ?? undefined,
       dueBefore: url.searchParams.get("dueBefore") ?? undefined,
+      tag: url.searchParams.get("tag") ?? undefined,
     });
     if (!parsed.success) {
       throw new ApiError(400, "invalid_request", "Invalid query");
@@ -43,6 +44,9 @@ export async function GET(request: Request, { params }: Params) {
 
     if (parsed.data.assigneeId) {
       await assertObjectId(parsed.data.assigneeId, "assigneeId");
+    }
+    if (parsed.data.tag) {
+      await assertObjectId(parsed.data.tag, "tag");
     }
 
     const range = parsed.data.dueAfter || parsed.data.dueBefore
@@ -63,6 +67,7 @@ export async function GET(request: Request, { params }: Params) {
         ? (parsed.data.priority.split(",") as TaskPriority[])
         : undefined,
       search: parsed.data.search,
+      tagIds: parsed.data.tag ? [parsed.data.tag] : undefined,
       ...range,
     });
     return jsonOk({ tasks });

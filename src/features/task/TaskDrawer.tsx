@@ -15,6 +15,7 @@ import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
 import { TaskDurationSelect } from "@/src/features/task/TaskDurationSelect";
 import { TaskRepeatPicker } from "@/src/features/task/TaskRepeatPicker";
 import { TaskReminderSelect } from "@/src/features/task/TaskReminderSelect";
+import { TagPicker } from "@/src/features/tags/tags";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import {
@@ -67,6 +68,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [duration, setDuration] = useState<number | null>(initialTask?.durationMinutes ?? null);
   const [recurrence, setRecurrence] = useState<Task["recurrence"]>(initialTask?.recurrence ?? null);
   const [reminder, setReminder] = useState<number | null>(initialTask?.reminderMinutes ?? null);
+  const [tagIds, setTagIds] = useState<string[]>(initialTask?.tagIds ?? []);
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
@@ -112,6 +114,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setDuration(task.durationMinutes ?? null);
     setRecurrence(task.recurrence ?? null);
     setReminder(task.reminderMinutes ?? null);
+    setTagIds(task.tagIds ?? []);
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -168,7 +171,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -362,6 +365,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     persist({ reminderMinutes: minutes });
                   }} className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 </label>
+                <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
+                  <span>Tags</span>
+                  <TagPicker workspaceId={workspaceId} value={tagIds} disabled={!canEdit} onChange={(next) => {
+                    setTagIds(next);
+                    persist({ tagIds: next });
+                  }} />
+                </div>
                 <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
                   <span>Repeat</span>
                   <TaskRepeatPicker value={recurrence} date={dueDate || startDate} disabled={!canEdit} onChange={(rule) => {
