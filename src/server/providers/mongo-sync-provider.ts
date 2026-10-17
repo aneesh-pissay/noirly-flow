@@ -23,6 +23,7 @@ import {
   Comment,
   Notification,
   Project,
+  Section,
   Tag,
   Task as TaskModel,
   Workspace,
@@ -52,7 +53,7 @@ type ProviderContext = {
 };
 
 async function assertTaskReferences(workspaceId: string, refs: {
-  projectId?: string | null; columnId?: string | null; parentTaskId?: string | null;
+  projectId?: string | null; columnId?: string | null; sectionId?: string | null; parentTaskId?: string | null;
   tagIds?: string[]; taskId?: string;
 }) {
   const workspace = oid(workspaceId);
@@ -61,6 +62,9 @@ async function assertTaskReferences(workspaceId: string, refs: {
   }
   if (refs.columnId && (!refs.projectId || !await BoardColumn.exists({ _id: oid(refs.columnId), projectId: oid(refs.projectId) }))) {
     throw new ApiError(403, "forbidden", "Column is not in this project");
+  }
+  if (refs.sectionId && (!refs.projectId || !await Section.exists({ _id: oid(refs.sectionId), projectId: oid(refs.projectId) }))) {
+    throw new ApiError(403, "forbidden", "Section is not in this project");
   }
   if (refs.parentTaskId && (refs.parentTaskId === refs.taskId || !await TaskModel.exists({ _id: oid(refs.parentTaskId), workspaceId: workspace, deletedAt: null }))) {
     throw new ApiError(403, "forbidden", "Invalid parent task");
@@ -146,6 +150,7 @@ async function spawnNextOccurrence(
     dueHasTime: Boolean(source.dueHasTime),
     startAt,
     deadlineAt,
+    sectionId: source.sectionId ?? null,
     durationMinutes: source.durationMinutes ?? null,
     reminderMinutes: source.reminderMinutes ?? null,
     reminderAt: reminderAtFor(dueAt, source.dueHasTime, source.reminderMinutes),
@@ -701,6 +706,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           dueAt: input.dueAt ? new Date(input.dueAt) : null,
           dueHasTime: Boolean(input.dueAt && input.dueHasTime),
           startAt: input.startAt ? new Date(input.startAt) : null,
+          sectionId: input.sectionId ? oid(input.sectionId) : null,
           deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
           durationMinutes: input.durationMinutes ?? null,
           reminderMinutes: input.reminderMinutes ?? null,
@@ -751,6 +757,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           taskId,
           projectId: nextProject,
           columnId: patch.columnId !== undefined ? patch.columnId : projectChanges ? null : task.columnId?.toString() ?? null,
+          sectionId: patch.sectionId !== undefined ? patch.sectionId : projectChanges ? null : task.sectionId?.toString() ?? null,
           parentTaskId: patch.parentTaskId !== undefined ? patch.parentTaskId : task.parentTaskId?.toString() ?? null,
           tagIds: patch.tagIds ?? task.tagIds.map((id) => id.toString()),
         });
@@ -846,6 +853,12 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         }
         if (patch.columnId !== undefined) {
           task.columnId = patch.columnId ? oid(patch.columnId) : null;
+        }
+        // Sections belong to one project: moving project leaves the old one's section behind.
+        if (patch.sectionId !== undefined) {
+          task.sectionId = patch.sectionId ? oid(patch.sectionId) : null;
+        } else if (projectChanges) {
+          task.sectionId = null;
         }
         if (patch.status !== undefined) {
           task.status = patch.status;

@@ -88,6 +88,8 @@ export type Task = {
   /** False for an all-day due date; true when dueAt is a specific time. */
   dueHasTime: boolean;
   startAt: string | null;
+  /** A section of the task's project, or null. */
+  sectionId: string | null;
   /** All-day hard deadline, separate from the planned due date. */
   deadlineAt: string | null;
   /** Estimated length in minutes (1–1440), or null. */
@@ -198,6 +200,7 @@ export type CreateTaskInput = {
   dueHasTime?: boolean;
   /** All-day start date, stored at local noon like an all-day due date. */
   startAt?: string | null;
+  sectionId?: string | null;
   deadlineAt?: string | null;
   durationMinutes?: number | null;
   reminderMinutes?: number | null;
@@ -206,6 +209,14 @@ export type CreateTaskInput = {
   tagIds?: string[];
   parentTaskId?: string | null;
   position?: number;
+};
+
+/** A named group of tasks in a project's list view. */
+export type Section = {
+  id: string;
+  projectId: string;
+  name: string;
+  position: number;
 };
 
 /** A person's own saved filter in a workspace. */

@@ -9,6 +9,7 @@ import type {
   CommentMention,
   Project,
   SavedFilter,
+  Section,
   Tag,
   Task,
   TaskAttachment,
@@ -381,6 +382,7 @@ export const api = {
       reminderMinutes?: number | null;
       recurrence?: Task["recurrence"];
       tagIds?: string[];
+      sectionId?: string | null;
     },
   ) {
     return request<{ task: Task }>(`/api/workspaces/${workspaceId}/tasks`, {
@@ -401,6 +403,24 @@ export const api = {
     return request<{ ok: boolean }>(`/api/tasks/${taskId}`, {
       method: "DELETE",
     });
+  },
+  listSections(projectId: string) {
+    return request<{ sections: Section[] }>(`/api/projects/${projectId}/sections`);
+  },
+  createSection(projectId: string, name: string) {
+    return request<{ section: Section }>(`/api/projects/${projectId}/sections`, {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    });
+  },
+  updateSection(sectionId: string, patch: { name?: string; position?: number }) {
+    return request<{ section: Section }>(`/api/sections/${sectionId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  },
+  deleteSection(sectionId: string) {
+    return request<{ ok: boolean }>(`/api/sections/${sectionId}`, { method: "DELETE" });
   },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);

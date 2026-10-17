@@ -18,7 +18,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | --- | --- |
 | 0. Recent fixes | 3 / 4 |
 | 1. Date model | 6 / 6 |
-| 2. Capture and organisation | 4 / 10 |
+| 2. Capture and organisation | 5 / 10 |
 | 3. Planning and calendar | 0 / 7 |
 | 4. Productivity | 0 / 6 |
 | 5. Collaboration and automation | 0 / 8 |
@@ -49,7 +49,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 - [x] **Today** and **Upcoming** views across all projects in a workspace (M) — done 2026-10-16
 - [x] Saved smart filters with a query syntax (`today & #Work & @urgent`) (M) — done 2026-10-17 (e2e `filters.spec.ts` not yet run)
 - [x] Tag filter in the list view and a tag colour picker (S) — done 2026-10-17 (tags brought back in the UI; e2e `tags.spec.ts` not yet run)
-- [ ] Sections inside a project (list view), separate from board columns (M)
+- [x] Sections inside a project (list view), separate from board columns (M) — done 2026-10-17 (e2e `sections.spec.ts` not yet run)
 - [ ] Project archive, colours and favourites (S)
 - [ ] Nested subtasks (more than one level) and a subtask drawer (M)
 - [ ] Bulk edit: multi-select, then set status / priority / due / assignee / move / delete (M)

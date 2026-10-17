@@ -17,6 +17,7 @@ import type { RecurrenceRule } from "@/src/core/sync/types";
 import { parseQuickAdd } from "./quick-add";
 import { browserZone } from "./recurrence";
 import { TagPicker, useTags } from "@/src/features/tags/tags";
+import { SectionSelect } from "./ProjectSections";
 
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
@@ -43,6 +44,8 @@ export function TaskCreateDialog({ draft }: {
   const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
   const [reminder, setReminder] = useState<number | null>(null);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  // Remembered with the project it was picked for, so a project change (or #project in quick add) drops it.
+  const [section, setSection] = useState<{ projectId: string; id: string } | null>(null);
   const [keepTyped, setKeepTyped] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -78,6 +81,7 @@ export function TaskCreateDialog({ draft }: {
       if (quickTagIds.length) void queryClient.invalidateQueries({ queryKey: qk.tags(draft.workspaceId) });
       const result = await api.createTask(draft.workspaceId, {
         tagIds: [...new Set([...tagIds, ...quickTagIds])],
+        sectionId: section && section.projectId === finalProjectId ? section.id : null,
         title: finalTitle, description: description.trim() || null, projectId: finalProjectId || null,
         status, priority: finalPriority, dueAt: dueInputToIso(finalDueDate, finalDueTime), dueHasTime: Boolean(finalDueDate && finalDueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, reminderMinutes: reminder, recurrence: finalRecurrence, assigneeIds,
       });
@@ -155,6 +159,11 @@ export function TaskCreateDialog({ draft }: {
                 {(workspace.data?.projects ?? []).map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
               </select>
             </label>
+            {finalProjectId ? (
+              <SectionSelect projectId={finalProjectId} value={section?.projectId === finalProjectId ? section.id : null}
+                onChange={(id) => setSection(id ? { projectId: finalProjectId, id } : null)}
+                labelClassName="text-sm sm:col-span-2" className={fieldClass} />
+            ) : null}
             <label className="text-sm">Status
               <select value={status} onChange={(event) => setStatus(event.target.value as TaskStatus)} className={fieldClass}>
                 <option value="todo">Todo</option><option value="in_progress">In progress</option><option value="done">Done</option><option value="canceled">Canceled</option>

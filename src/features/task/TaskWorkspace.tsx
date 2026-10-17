@@ -12,6 +12,7 @@ import { useUIStore } from "@/src/stores/ui-store";
 import type { Task } from "@/src/core/sync/types";
 import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
+import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
 import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
@@ -358,6 +359,31 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
   });
 
   const tasks = tasksQuery.data?.tasks ?? [];
+  const sections = useSections(projectId).data?.sections ?? [];
+
+  /** The list view's rows for some of the tasks (all of them, or one section's). */
+  function renderList(list: Task[], emptyLabel: string) {
+    return (
+      <TaskList
+        tasks={list}
+        members={membersQuery.data?.members ?? []}
+        canWrite={canWrite}
+        emptyLabel={emptyLabel}
+        onOpenTask={openTask}
+        onStatusChange={(taskId, status) =>
+          updateMutation.mutate({ taskId, patch: { status } })
+        }
+        onPriorityChange={(taskId, next) =>
+          updateMutation.mutate({ taskId, patch: { priority: next } })
+        }
+        onDueChange={(taskId, dueAt, dueHasTime) =>
+          updateMutation.mutate({ taskId, patch: { dueAt, dueHasTime } })
+        }
+        onDelete={(taskId) => deleteMutation.mutate(taskId)}
+      />
+    );
+  }
+
   const headerName = projectQuery.data?.project.name ?? projectName;
   const openCount = tasks.filter(
     (t) => t.status !== "done" && t.status !== "canceled",
@@ -565,28 +591,29 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
         <p className="text-sm text-[var(--muted-foreground)]">Loading tasks…</p>
       ) : tasksQuery.isError ? (
         <p className="text-sm text-[var(--foreground)]">Could not load tasks.</p>
+      ) : view === "list" && projectId && sections.length ? (
+        // Grouped by section: "No section" first, then each section in order.
+        <div className="flex flex-col gap-6">
+          {groupBySection(tasks, sections).map(({ section, tasks: groupTasks }) => (
+            <div key={section?.id ?? "none"} role="group" aria-label={section ? `Section ${section.name}` : "No section"}>
+              {section ? (
+                <SectionHeader workspaceId={workspaceId} section={section} count={groupTasks.length} canWrite={canWrite} />
+              ) : (
+                <NoSectionHeader count={groupTasks.length} />
+              )}
+              {renderList(groupTasks, section ? "No tasks in this section." : "No matching tasks.")}
+            </div>
+          ))}
+          {canWrite ? <AddSection projectId={projectId} /> : null}
+        </div>
       ) : view === "list" ? (
-        <TaskList
-          tasks={tasks}
-          members={membersQuery.data?.members ?? []}
-          canWrite={canWrite}
-          emptyLabel={
-            isInbox
-              ? "Inbox is empty. Add a task that is not in a project."
-              : "No matching tasks."
-          }
-          onOpenTask={openTask}
-          onStatusChange={(taskId, status) =>
-            updateMutation.mutate({ taskId, patch: { status } })
-          }
-          onPriorityChange={(taskId, next) =>
-            updateMutation.mutate({ taskId, patch: { priority: next } })
-          }
-          onDueChange={(taskId, dueAt, dueHasTime) =>
-            updateMutation.mutate({ taskId, patch: { dueAt, dueHasTime } })
-          }
-          onDelete={(taskId) => deleteMutation.mutate(taskId)}
-        />
+        <div className="flex flex-col gap-4">
+          {renderList(
+            tasks,
+            isInbox ? "Inbox is empty. Add a task that is not in a project." : "No matching tasks.",
+          )}
+          {projectId && canWrite ? <AddSection projectId={projectId} /> : null}
+        </div>
       ) : view === "calendar" ? (
         <TaskCalendar tasks={tasks} onOpenTask={openTask} />
       ) : !projectId ? (
