@@ -14,6 +14,7 @@ import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
 import { ArchivedProjectBanner } from "@/src/features/workspace/ArchivedProjectBanner";
 import { BulkActionBar } from "@/src/features/task/BulkActionBar";
+import { GanttView } from "@/src/features/gantt/GanttView";
 import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
@@ -87,7 +88,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     setSeenUrlTaskId(urlTaskId);
     setDrawerTaskId(urlTaskId);
   }
-  const [view, setView] = useState<"list" | "board" | "calendar">(
+  const [view, setView] = useState<"list" | "board" | "calendar" | "gantt">(
     projectId ? "board" : "list",
   );
   const [error, setError] = useState<string | null>(null);
@@ -145,6 +146,11 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
       if (event.key === "3") {
         event.preventDefault();
         setView("calendar");
+        return;
+      }
+      if (event.key === "4" && projectId) {
+        event.preventDefault();
+        setView("gantt");
       }
     }
     window.addEventListener("keydown", onKey);
@@ -459,6 +465,19 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
               Calendar
             </button>
             {projectId ? (
+              <button
+                type="button"
+                onClick={() => setView("gantt")}
+                className={`rounded-xl px-3 py-2 text-sm transition-colors ${
+                  view === "gantt"
+                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                    : "border border-[var(--hairline)] text-[var(--muted-foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                Gantt
+              </button>
+            ) : null}
+            {projectId ? (
               <Link
                 href={`/w/${workspaceId}/p/${projectId}/chat`}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--hairline)] px-3 py-2 text-sm text-[var(--muted-foreground)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
@@ -655,6 +674,13 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
         </div>
       ) : view === "calendar" ? (
         <TaskCalendar tasks={tasks} onOpenTask={openTask} />
+      ) : view === "gantt" && projectId ? (
+        <GanttView
+          tasks={tasks}
+          canWrite={canWrite}
+          onOpenTask={openTask}
+          onPatch={(taskId, patch) => updateMutation.mutate({ taskId, patch })}
+        />
       ) : !projectId ? (
         <p className="text-sm text-[var(--foreground)]">No project available for board.</p>
       ) : projectQuery.isPending ? (

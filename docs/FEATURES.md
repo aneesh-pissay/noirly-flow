@@ -132,6 +132,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | --- | --- |
 | **List** | Inline status / priority / due / delete; tag + assignee chips; grouped by section when the project has sections (No section first); "Select" for bulk edit: tick rows (or click them), then set status / priority / due date, clear due, assign to someone (or nobody), move to a project or the Inbox, or delete, for all at once (`POST /api/workspaces/[workspaceId]/tasks/bulk`, up to 100, each task through the normal update so recurrence, emails and activity still happen; failures listed per task) |
 | **Board (Kanban)** | `@dnd-kit` (pointer + keyboard); cross-column maps status via `statusMapped`; optimistic reorder; canceled tasks hidden |
+| **Gantt** | Project view: a bar per dated task from its start to its due date (one day if it has only one), deadline marks, "blocked by" arrows, weekends shaded, a line for today, undated tasks listed below. Drag a bar to shift both dates (keeping a due time) or an end to change that date; whole days; never past the other end |
 | **Calendar** | Month grid by `dueAt`, all-day tasks first then timed ones by time (time shown on the chip); undated list; prev / next month |
 
 ### 6.3 Task drawer (`?task=`)
@@ -214,7 +215,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | Palette actions | Create task / project from query (if permitted); jump Inbox / Activity / workspaces / Settings |
 | Search API | Debounced (≥2 chars) → `GET /api/search?q=` (tasks + workspace names, membership-scoped) |
 | Open hits | Project or inbox with `?task=` |
-| Shortcuts | `/` focuses in-page task search; `C` opens palette; `1` list, `2` board, `3` calendar (on project) |
+| Shortcuts | `/` focuses in-page task search; `C` opens palette; `1` list, `2` board, `3` calendar, `4` Gantt (on project) |
 
 **Not in product yet:** dedicated `/search` page; architecture shortcuts **N** (new project) and **Cmd+Enter** (save drawer).
 
