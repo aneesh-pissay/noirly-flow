@@ -92,6 +92,10 @@ export type Task = {
   sectionId: string | null;
   /** Tasks that must be finished first. */
   blockedByIds: string[];
+  /** A repeating task tracked as a habit. */
+  habit: boolean;
+  /** The first task of its repeating series (null for the first itself, or one that doesn't repeat). */
+  seriesId: string | null;
   /** True while one of those is still open; set on task reads. */
   blocked?: boolean;
   /** Done and total direct subtasks; only on task lists, and only when there are some. */

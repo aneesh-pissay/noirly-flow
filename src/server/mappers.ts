@@ -113,6 +113,8 @@ export function mapTask(doc: {
   assigneeIds?: Types.ObjectId[];
   tagIds?: Types.ObjectId[];
   blockedByIds?: Types.ObjectId[];
+  habit?: boolean | null;
+  seriesId?: Types.ObjectId | null;
   parentTaskId?: Types.ObjectId | null;
   recurrence?: {
     frequency: string;
@@ -154,6 +156,8 @@ export function mapTask(doc: {
     assigneeIds: (doc.assigneeIds ?? []).map((id) => id.toString()),
     tagIds: (doc.tagIds ?? []).map((id) => id.toString()),
     blockedByIds: (doc.blockedByIds ?? []).map((id) => id.toString()),
+    habit: Boolean(doc.habit),
+    seriesId: idOf(doc.seriesId ?? null),
     parentTaskId: idOf(doc.parentTaskId ?? null),
     recurrence: asRecurrenceRule(doc.recurrence),
     checklist: (doc.checklist ?? []).map(

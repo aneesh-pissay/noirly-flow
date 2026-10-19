@@ -154,6 +154,9 @@ async function spawnNextOccurrence(
     startAt,
     deadlineAt,
     sectionId: source.sectionId ?? null,
+    // Same series (and habit) as the occurrence it follows.
+    seriesId: source.seriesId ?? source._id,
+    habit: Boolean(source.habit),
     durationMinutes: source.durationMinutes ?? null,
     reminderMinutes: source.reminderMinutes ?? null,
     reminderAt: reminderAtFor(dueAt, source.dueHasTime, source.reminderMinutes),
@@ -861,6 +864,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (patch.tagIds !== undefined) {
           task.tagIds = patch.tagIds.map(oid);
         }
+        if (patch.habit !== undefined) task.habit = patch.habit;
         if (patch.blockedByIds !== undefined) {
           await assertBlockersAllowed(task.workspaceId, patch.blockedByIds, task._id);
           task.blockedByIds = [...new Set(patch.blockedByIds)].map(oid);

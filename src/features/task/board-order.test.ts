@@ -24,6 +24,8 @@ function task(partial: Partial<Task> & Pick<Task, "id" | "status">): Task {
     startAt: null,
     sectionId: null,
     blockedByIds: [],
+    habit: false,
+    seriesId: null,
     completedAt: null,
     position: 1000,
     assigneeIds: [],

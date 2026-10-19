@@ -78,6 +78,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [reminder, setReminder] = useState<number | null>(initialTask?.reminderMinutes ?? null);
   const [tagIds, setTagIds] = useState<string[]>(initialTask?.tagIds ?? []);
   const [blockedByIds, setBlockedByIds] = useState<string[]>(initialTask?.blockedByIds ?? []);
+  const [habit, setHabit] = useState(initialTask?.habit ?? false);
   const [sectionId, setSectionId] = useState<string | null>(initialTask?.sectionId ?? null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
@@ -126,6 +127,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setReminder(task.reminderMinutes ?? null);
     setTagIds(task.tagIds ?? []);
     setBlockedByIds(task.blockedByIds ?? []);
+    setHabit(task.habit ?? false);
     setSectionId(task.sectionId ?? null);
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
@@ -402,6 +404,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     setRecurrence(rule);
                     persist({ recurrence: rule });
                   }} selectClassName="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                  {recurrence ? (
+                    <label className="flex items-center gap-2 pt-1 text-xs text-[var(--muted-foreground)]">
+                      <input type="checkbox" checked={habit} disabled={!canEdit}
+                        onChange={(event) => { setHabit(event.target.checked); persist({ habit: event.target.checked }); }} />
+                      Track as a habit (streaks on the Habits page)
+                    </label>
+                  ) : null}
                 </div>
               </div>
 

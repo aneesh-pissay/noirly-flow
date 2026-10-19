@@ -86,6 +86,7 @@ export const updateTaskBodySchema = z
     columnId: z.string().min(1).nullable().optional(),
     sectionId: z.string().min(1).nullable().optional(),
     blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
+    habit: z.boolean().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),
     position: z.number().finite().optional(),
     tagIds: z.array(z.string().min(1)).optional(),

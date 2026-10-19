@@ -1,6 +1,7 @@
 import { dueRange, type DuePreset } from "@/src/features/task/dates";
 import type { Template } from "@/src/core/templates";
 import type { TimeEntryView } from "@/src/core/time-tracking";
+import type { Occurrence } from "@/src/core/habits";
 import type {
   ActivityEvent,
   AppNotification,
@@ -497,6 +498,9 @@ export const api = {
   },
   deleteTimeEntry(entryId: string) {
     return request<{ ok: boolean }>(`/api/time/${entryId}`, { method: "DELETE" });
+  },
+  listHabits(workspaceId: string) {
+    return request<{ habits: Array<{ seriesId: string; task: Task; occurrences: Occurrence[] }> }>(`/api/workspaces/${workspaceId}/habits`);
   },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);

@@ -253,6 +253,13 @@ export function CommandPalette({ workspaces }: Props) {
                 Capacity
               </Command.Item>
               <Command.Item
+                value="habits streaks"
+                onSelect={() => go(`/w/${activeWorkspaceId}/habits`)}
+                className={itemClass}
+              >
+                Habits
+              </Command.Item>
+              <Command.Item
                 value="filters saved searches new filter"
                 onSelect={() => go(`/w/${activeWorkspaceId}/filters`)}
                 className={itemClass}
