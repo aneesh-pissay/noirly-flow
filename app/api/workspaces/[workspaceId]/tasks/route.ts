@@ -37,6 +37,7 @@ export async function GET(request: Request, { params }: Params) {
       dueAfter: url.searchParams.get("dueAfter") ?? undefined,
       dueBefore: url.searchParams.get("dueBefore") ?? undefined,
       tag: url.searchParams.get("tag") ?? undefined,
+      completedAfter: url.searchParams.get("completedAfter") ?? undefined,
     });
     if (!parsed.success) {
       throw new ApiError(400, "invalid_request", "Invalid query");
@@ -68,6 +69,7 @@ export async function GET(request: Request, { params }: Params) {
         : undefined,
       search: parsed.data.search,
       tagIds: parsed.data.tag ? [parsed.data.tag] : undefined,
+      completedAfter: parsed.data.completedAfter,
       ...range,
     });
     return jsonOk({ tasks });

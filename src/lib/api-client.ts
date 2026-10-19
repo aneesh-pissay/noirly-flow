@@ -346,6 +346,8 @@ export const api = {
       dueBefore?: string;
       /** Only tasks with this tag. */
       tag?: string;
+      /** Only tasks completed at or after this instant. */
+      completedAfter?: string;
     } = {},
   ) {
     const params = new URLSearchParams();
@@ -371,6 +373,7 @@ export const api = {
     if (range.dueBefore) params.set("dueBefore", range.dueBefore);
     if (query.due === "none") params.set("due", "none");
     if (query.tag) params.set("tag", query.tag);
+    if (query.completedAfter) params.set("completedAfter", query.completedAfter);
     const qs = params.toString();
     return request<{ tasks: Task[] }>(
       `/api/workspaces/${workspaceId}/tasks${qs ? `?${qs}` : ""}`,

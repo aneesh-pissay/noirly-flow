@@ -20,7 +20,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 1. Date model | 6 / 6 |
 | 2. Capture and organisation | 10 / 10 |
 | 3. Planning and calendar | 5 / 7 |
-| 4. Productivity | 4 / 6 |
+| 4. Productivity | 5 / 6 |
 | 5. Collaboration and automation | 0 / 8 |
 | 6. AI | 0 / 9 |
 | 7. Platform and data | 0 / 7 |
@@ -74,7 +74,7 @@ _Needs Phase 1._
 - [x] Time tracking: manual entries plus a running timer (M) — done 2026-10-19
 - [x] Habits and streaks, built on recurring tasks (M) — done 2026-10-19
 - [x] Personal stats: completed per day/week, on-time rate (M) — done 2026-10-19
-- [ ] Daily and weekly review screens (S)
+- [x] Daily and weekly review screens (S) — done 2026-10-19
 - [ ] Goals and milestones that tasks roll up into (L)
 
 ## Phase 5 — Collaboration and automation

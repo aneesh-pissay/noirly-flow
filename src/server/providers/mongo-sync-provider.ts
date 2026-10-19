@@ -647,6 +647,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (query.tagIds?.length) {
           filter.tagIds = { $all: query.tagIds.map(oid) };
         }
+        if (query.completedAfter) {
+          filter.completedAt = { $gte: new Date(query.completedAfter) };
+        }
         if (query.unscheduled) {
           filter.dueAt = null;
         } else if (query.dueBefore || query.dueAfter) {

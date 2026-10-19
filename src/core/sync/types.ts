@@ -184,6 +184,8 @@ export type ListTasksQuery = {
   dueBefore?: string;
   dueAfter?: string;
   unscheduled?: boolean;
+  /** Only tasks completed at or after this instant. */
+  completedAfter?: string;
   search?: string;
   includeDeleted?: boolean;
 };

@@ -122,6 +122,7 @@ export const listTasksQuerySchema = z.object({
   dueAfter: z.string().datetime({ offset: true }).optional(),
   dueBefore: z.string().datetime({ offset: true }).optional(),
   tag: z.string().min(1).optional(),
+  completedAfter: z.string().datetime({ offset: true }).optional(),
 });
 
 export const bulkTasksBodySchema = z

@@ -196,6 +196,11 @@ export function ProjectNav({ workspaceId }: Props) {
           </NavLink>
         </li>
         <li>
+          <NavLink href={`/w/${workspaceId}/review`} className={navClass(path.endsWith("/review"))}>
+            Review
+          </NavLink>
+        </li>
+        <li>
           <NavLink href={inboxHref} className={navClass(inboxActive)}>
             Inbox
           </NavLink>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
@@ -22,10 +22,12 @@ export type TaskSection = { key: string; label: string; tasks: Task[]; tone?: "a
  * saved filters. `queryKey` is the list query the tasks came from, so a
  * completed task leaves it at once.
  */
-export function TaskSections({ workspaceId, sections, queryKey }: {
+export function TaskSections({ workspaceId, sections, queryKey, actions }: {
   workspaceId: string;
   sections: TaskSection[];
   queryKey: readonly unknown[];
+  /** Extra controls at the end of each row. */
+  actions?: (task: Task) => ReactNode;
 }) {
   const queryClient = useQueryClient();
   const canWrite = useCan("task.write");
@@ -116,6 +118,7 @@ export function TaskSections({ workspaceId, sections, queryKey }: {
                     </span>
                   </div>
                 </div>
+                {actions ? <div className="flex shrink-0 flex-wrap justify-end gap-1">{actions(task)}</div> : null}
               </li>
             ))}
           </ul>
