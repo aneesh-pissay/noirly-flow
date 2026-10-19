@@ -1,4 +1,4 @@
-import { getSyncProvider, jsonError, jsonOk } from "@/src/server/api/http";
+import { getSyncProvider, jsonError, jsonOk, refuseAccessToken } from "@/src/server/api/http";
 import { disableFeed, getFeedStatus, rotateFeed } from "@/src/server/calendar/feed";
 
 export async function GET() {
@@ -14,6 +14,7 @@ export async function GET() {
 export async function POST() {
   try {
     const { ctx } = await getSyncProvider();
+    refuseAccessToken(ctx, "Changing the calendar link");
     const { url, createdAt } = await rotateFeed(ctx.userId);
     return jsonOk({ enabled: true, createdAt, url }, 201);
   } catch (error) {
@@ -24,6 +25,7 @@ export async function POST() {
 export async function DELETE() {
   try {
     const { ctx } = await getSyncProvider();
+    refuseAccessToken(ctx, "Changing the calendar link");
     await disableFeed(ctx.userId);
     return jsonOk({ enabled: false, createdAt: null });
   } catch (error) {

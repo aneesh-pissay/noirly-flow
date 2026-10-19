@@ -5,6 +5,7 @@ import type { Occurrence } from "@/src/core/habits";
 import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
 import type { Goal } from "@/src/core/goals";
 import type { Approval } from "@/src/core/approvals";
+import type { AccessTokenView, TokenScope } from "@/src/core/access-tokens";
 import type { AutomationAction, AutomationCondition, AutomationRule, AutomationTrigger } from "@/src/core/automations";
 import type { FieldType, ProjectField } from "@/src/core/custom-fields";
 import type { PendingInvite } from "@/src/server/workspace/members";
@@ -477,6 +478,15 @@ export const api = {
   },
   deleteMilestone(goalId: string, milestoneId: string) {
     return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
+  },
+  listAccessTokens() {
+    return request<{ tokens: AccessTokenView[] }>("/api/me/tokens");
+  },
+  createAccessToken(input: { name: string; scope: TokenScope; days: number }) {
+    return request<{ token: string; accessToken: AccessTokenView }>("/api/me/tokens", { method: "POST", body: JSON.stringify(input) });
+  },
+  revokeAccessToken(tokenId: string) {
+    return request<{ ok: boolean }>(`/api/me/tokens/${tokenId}`, { method: "DELETE" });
   },
   listAutomations(projectId: string) {
     return request<{ rules: AutomationRule[] }>(`/api/projects/${projectId}/automations`);

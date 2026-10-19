@@ -241,6 +241,7 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | Flow profile | Display name, title, timezone (fixed list), bio via `GET/PATCH /api/me` |
 | Display name usage | Members, comments, boards |
 | Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone, or a timed event for a task with a due time, lasting its duration (30 minutes when unset); create, replace or turn off in Settings (only a hash of the token is stored) |
+| API tokens | Settings → API tokens: name, read-only or read-and-write, expiry (30 / 90 / 365 days or never); the secret (`nfp_r_…` / `nfp_w_…`) is shown once with a curl example, then only a hint, last used and expiry; up to 20; revoke stops it at once (only a hash is stored). A token acts as you on the whole API (see [API.md](API.md)); read-only tokens are refused writes in the proxy (`403 read_only_token`); tokens can't manage tokens, delete the account, change the calendar link or link a Space. `GET/POST /api/me/tokens`, `DELETE /api/me/tokens/[tokenId]` (signed-in browser only) |
 
 **Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences.
 

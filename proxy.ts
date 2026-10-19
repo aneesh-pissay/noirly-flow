@@ -2,6 +2,7 @@ import { safeLocalPath } from "@/src/lib/safe-path";
 import { apiRequestsPerMinute, consumeRateLimit } from "@/src/server/security/rate-limit";
 import { securePageResponse, rejectCrossOriginMutation } from "@/src/server/security/request";
 import { NextResponse } from "next/server";
+import { isAccessToken, scopeAllows, tokenScope } from "@/src/core/access-tokens";
 import { auth } from "@/auth";
 
 export const proxy = auth(async (request) => {
@@ -12,7 +13,13 @@ export const proxy = auth(async (request) => {
     request.nextUrl.pathname === "/api/identity/account-deleted" ||
     request.nextUrl.pathname === "/api/identity/space-changed";
   if (api && !authApi && !webhook) {
-    const bearer = /^Bearer\s+\S+$/i.test(request.headers.get("authorization") ?? "");
+    const authorization = request.headers.get("authorization") ?? "";
+    const bearer = /^Bearer\s+\S+$/i.test(authorization);
+    // Read-only access tokens are turned away from writes before any lookup.
+    const token = authorization.replace(/^Bearer\s+/i, "");
+    if (bearer && isAccessToken(token) && !scopeAllows(tokenScope(token) ?? "write", request.method)) {
+      return NextResponse.json({ error: "read_only_token", message: "This token can only read" }, { status: 403 });
+    }
     if (!bearer) {
       const rejection = rejectCrossOriginMutation(request, process.env.AUTH_URL);
       if (rejection) return rejection;

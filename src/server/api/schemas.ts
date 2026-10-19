@@ -272,6 +272,12 @@ export const updateAutomationBodySchema = z
   })
   .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
+export const createAccessTokenBodySchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  scope: z.enum(["read", "write"]),
+  days: z.union([z.literal(30), z.literal(90), z.literal(365), z.literal(0)]),
+});
+
 export const createSectionBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
 });

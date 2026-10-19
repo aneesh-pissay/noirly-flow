@@ -12,12 +12,16 @@ import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser } from "@/src/server/models";
 import { createMongoSyncProvider } from "@/src/server/providers/mongo-sync-provider";
 import { withAutomations } from "@/src/server/automations";
+import { resolveAccessToken } from "@/src/server/access-tokens";
+import { isAccessToken } from "@/src/core/access-tokens";
 
 export type FlowSessionContext = {
   identitySub: string;
   userId: string;
   email: string;
   displayName: string;
+  /** How the request signed in: browser session, Identity bearer (mobile), or a personal access token. */
+  via?: "session" | "identity" | "token";
 };
 
 export type PersonalWorkspaceSummary = {
@@ -66,6 +70,11 @@ async function resolveFromBearer(
   };
 }
 
+/** Some account-level actions need a person, not a script: refuse personal access tokens. */
+export function refuseAccessToken(ctx: FlowSessionContext, what: string) {
+  if (ctx.via === "token") throw new ApiError(403, "forbidden", `${what} isn't available with an access token`);
+}
+
 /**
  * One bootstrap + provider per request. Cookie sessions get a personal
  * workspace; Bearer (mobile) gets ctx only. Layout, pages, and API routes
@@ -76,7 +85,9 @@ export const getSyncProvider = cache(async () => {
   const bearer = extractBearerToken(headerStore.get("authorization"));
 
   if (bearer) {
-    const ctx = await resolveFromBearer(bearer);
+    const ctx: FlowSessionContext = isAccessToken(bearer)
+      ? { ...(await resolveAccessToken(bearer)).ctx, via: "token" }
+      : { ...(await resolveFromBearer(bearer)), via: "identity" };
     await enforceAccountRateLimit(ctx.userId);
     return {
       ctx,
@@ -103,6 +114,7 @@ export const getSyncProvider = cache(async () => {
     userId: account.user.id,
     email: account.user.email,
     displayName: account.user.displayName,
+    via: "session",
   };
 
   return {
