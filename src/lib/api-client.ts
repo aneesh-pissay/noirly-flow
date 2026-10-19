@@ -1,5 +1,6 @@
 import { dueRange, type DuePreset } from "@/src/features/task/dates";
 import type { Template } from "@/src/core/templates";
+import type { TimeEntryView } from "@/src/core/time-tracking";
 import type {
   ActivityEvent,
   AppNotification,
@@ -478,6 +479,24 @@ export const api = {
   /** Tasks waiting on this one. */
   listBlocking(taskId: string) {
     return request<{ tasks: Array<{ id: string; title: string; status: Task["status"] }> }>(`/api/tasks/${taskId}/blocking`);
+  },
+  listTaskTime(taskId: string) {
+    return request<{ entries: TimeEntryView[]; totalMinutes: number }>(`/api/tasks/${taskId}/time`);
+  },
+  addTime(taskId: string, body: { minutes: number; note?: string | null }) {
+    return request<{ entry: TimeEntryView }>(`/api/tasks/${taskId}/time`, { method: "POST", body: JSON.stringify(body) });
+  },
+  startTimer(taskId: string) {
+    return request<{ entry: TimeEntryView }>(`/api/tasks/${taskId}/time/start`, { method: "POST" });
+  },
+  stopTimer() {
+    return request<{ entry: TimeEntryView | null }>("/api/me/time/stop", { method: "POST" });
+  },
+  runningTimer() {
+    return request<{ running: { entry: TimeEntryView; taskTitle: string; workspaceId: string } | null }>("/api/me/time");
+  },
+  deleteTimeEntry(entryId: string) {
+    return request<{ ok: boolean }>(`/api/time/${entryId}`, { method: "DELETE" });
   },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);

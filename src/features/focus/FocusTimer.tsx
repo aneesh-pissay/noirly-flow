@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Pause, Play, Square, Timer } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/src/lib/api-client";
+import { qk } from "@/src/core/sync/query-keys";
 import { useFocusStore } from "@/src/features/focus/focus-store";
 import { BREAK_MINUTES, FOCUS_PRESETS, formatClock, remainingMs } from "@/src/features/focus/focus";
 
@@ -34,6 +37,22 @@ function notify(title: string, body: string) {
   } catch {
     /* The in-page message still says it. */
   }
+}
+
+/** After a focus session: put its minutes on the task as tracked time. */
+function LogFocusTime({ taskId, minutes }: { taskId: string; minutes: number }) {
+  const queryClient = useQueryClient();
+  const log = useMutation({
+    mutationFn: () => api.addTime(taskId, { minutes, note: "Focus session" }),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: qk.taskTime(taskId) }),
+  });
+  if (log.isSuccess) return <span className="self-center text-xs text-[var(--muted-foreground)]">Logged {minutes} min</span>;
+  return (
+    <button type="button" disabled={log.isPending} onClick={() => log.mutate()}
+      className="h-8 rounded-lg border border-[var(--accent)] px-3 text-xs text-[var(--accent)] disabled:opacity-50">
+      {log.isError ? "Couldn't log — retry" : `Log ${minutes} min`}
+    </button>
+  );
 }
 
 /** Drawer: start a focus session on this task. */
@@ -96,6 +115,7 @@ export function FocusTimer() {
             {session.phase === "focus" ? "Focus session done." : "Break's over."}
           </p>
           <div className="flex flex-wrap gap-2">
+            {session.phase === "focus" ? <LogFocusTime taskId={session.taskId} minutes={Math.round(session.durationMs / 60_000)} /> : null}
             {session.phase === "focus" ? (
               <button type="button" onClick={() => start(task, BREAK_MINUTES, "break")}
                 className="h-8 rounded-lg bg-[var(--accent)] px-3 text-xs text-[var(--accent-ink)]">{BREAK_MINUTES}-min break</button>

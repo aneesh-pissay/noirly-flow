@@ -20,6 +20,7 @@ import { SignOutButton } from "@/src/features/auth/SignOutButton";
 import { CommandPalette } from "@/src/features/command-palette/CommandPalette";
 import { TaskCreateDialog } from "@/src/features/task/TaskCreateDialog";
 import { FocusTimer } from "@/src/features/focus/FocusTimer";
+import { RunningTimerChip } from "@/src/features/time/TaskTime";
 import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
 import { useOptimisticPath } from "@/src/components/NavLink";
@@ -229,6 +230,7 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
           actions: (
             // Search opens from the sidebar's Search button or ⌘K / Ctrl+K.
             <div className="flex items-center gap-1.5">
+              <RunningTimerChip />
               <NotificationBell />
               <AppSwitcher current="flow" />
               <ThemeControls size="sm" />

@@ -13,6 +13,7 @@ import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { SubtaskBreadcrumb, TaskSubtasks } from "@/src/features/task/TaskSubtasks";
 import { CopyTaskLink } from "@/src/features/task/CopyTaskLink";
 import { StartFocus } from "@/src/features/focus/FocusTimer";
+import { TaskTime } from "@/src/features/time/TaskTime";
 import { TaskDependencies } from "@/src/features/task/TaskDependencies";
 import { CapacityWarning } from "@/src/features/capacity/CapacityWarning";
 import { SaveAsTemplateButton } from "@/src/features/templates/templates";
@@ -446,6 +447,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   <StartFocus task={task} />
                 </section>
               ) : null}
+              <TaskTime taskId={taskId} canWrite={canEdit} />
               {task ? <TaskSubtasks workspaceId={workspaceId} task={task} canWrite={canEdit} /> : null}
               {task ? (
                 <TaskDependencies workspaceId={workspaceId} task={task} value={blockedByIds} canWrite={canEdit}
