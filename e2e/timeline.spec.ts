@@ -76,11 +76,14 @@ test.describe("timeline", () => {
     const block = page.getByRole("button", { name: new RegExp(`Standup ${id}`) });
     await expect(block).toBeVisible();
     await expect(block).toContainText("1h");
-    await expect(page.getByRole("button", { name: `Errands ${id}` })).toBeVisible();
+    // In the day's all-day strip (it's also offered in "To schedule").
+    await expect(page.getByRole("group", { name: /\d{4}/ }).getByRole("button", { name: `Errands ${id}` })).toBeVisible();
 
     // A block opens the task.
     await block.click();
     await expect(page).toHaveURL(new RegExp(`[?&]task=${meeting.id}`));
+    // …and the drawer really shows it, not just the URL.
+    await expect(page.locator("aside").getByRole("textbox", { name: "Task title" })).toHaveValue(`Standup ${id}`);
     await page.keyboard.press("Escape");
 
     await page.getByRole("button", { name: "Next day" }).click();

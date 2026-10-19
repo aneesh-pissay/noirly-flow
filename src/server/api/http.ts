@@ -1,4 +1,4 @@
-import { consumeRateLimit } from "@/src/server/security/rate-limit";
+import { apiRequestsPerMinute, consumeRateLimit } from "@/src/server/security/rate-limit";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { Types } from "mongoose";
@@ -166,6 +166,6 @@ export async function findFlowUserIdByIdentitySub(identitySub: string) {
 }
 
 async function enforceAccountRateLimit(id: string) {
-  const limit = await consumeRateLimit(`flow-account:${id}`, 300, 60);
+  const limit = await consumeRateLimit(`flow-account:${id}`, apiRequestsPerMinute(), 60);
   if (!limit.allowed) throw new ApiError(429, "rate_limited", "Too many requests. Try again shortly.");
 }

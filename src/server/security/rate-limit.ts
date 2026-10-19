@@ -9,6 +9,16 @@ const schema = new Schema({
 });
 const Counter = models.SecurityRateCounter || model("SecurityRateCounter", schema);
 
+/**
+ * Requests a minute allowed per IP and per account on the API: 300, unless
+ * API_RATE_LIMIT_PER_MINUTE says otherwise (the e2e server raises it, since
+ * every test shares one IP and two accounts).
+ */
+export function apiRequestsPerMinute() {
+  const configured = Number(process.env.API_RATE_LIMIT_PER_MINUTE);
+  return Number.isInteger(configured) && configured > 0 ? configured : 300;
+}
+
 /** Atomic, shared fixed-window counters. No raw IP addresses/emails are persisted. */
 export async function consumeRateLimit(key: string, limit: number, seconds: number) {
   await connectMongo();

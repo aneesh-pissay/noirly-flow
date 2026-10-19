@@ -63,7 +63,7 @@ Noirly Flow is a dark-mode task and project manager for individuals and teams. A
 | `/inbox` | Redirect to personal workspace inbox |
 | `/settings` | Flow profile + Identity account link |
 | `/invite/[token]` | Accept invite (login with `?next=` if needed) |
-| `/w/[workspaceId]/t/[taskId]` | A task's lasting link: opens it in its project or the Inbox, wherever it is now (404 otherwise). The drawer's "Copy link" copies it; task emails and the calendar feed use it |
+| `/w/[workspaceId]/t/[taskId]` | A task's lasting link: opens it in its project or the Inbox, wherever it is now (the Not found page otherwise). The drawer's "Copy link" copies it; task emails and the calendar feed use it |
 | `/w/[workspaceId]` | Redirect to first project (or empty state) |
 | `/w/[workspaceId]/today` | Overdue and due-today open tasks across all projects and the Inbox; tick to complete |
 | `/w/[workspaceId]/upcoming` | Open tasks due in the next 14 days, grouped by day |

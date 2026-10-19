@@ -34,7 +34,7 @@ test.describe("saved filters", () => {
     await expect(page.getByText(`Cold ${id}`)).toHaveCount(0);
     await expect(page.getByRole("link", { name: `Urgent ${id}` })).toBeVisible();
 
-    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.getByLabel("Query").fill("no date & #inbox");
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByText(`Someday ${id}`)).toBeVisible();

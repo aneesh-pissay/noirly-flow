@@ -201,7 +201,7 @@ test.describe("task drawer", () => {
     const panel = drawer(page);
 
     await panel.getByPlaceholder("Add subtask").fill(`Child ${id}`);
-    await panel.getByRole("button", { name: "Add", exact: true }).first().click();
+    await panel.getByPlaceholder("Add subtask").press("Enter");
     await expect(panel.getByRole("button", { name: `Child ${id}` })).toBeVisible();
 
     // Open the child: the breadcrumb leads back to the top task.
@@ -244,10 +244,12 @@ test.describe("task drawer", () => {
     await page.goto(link);
     await expect(page).toHaveURL(new RegExp(`/inbox\\?task=${task.id}$`));
 
-    // A wrong workspace in the link is a plain 404.
+    // A wrong workspace in the link is the Not found page. (Status stays 200: the
+    // (app) loading boundary streams the response before the page can 404.)
     const other = await page.request.post("/api/workspaces", { data: { name: `Elsewhere ${uid()}` } });
     const { workspace } = await other.json();
-    expect((await page.goto(`/w/${workspace.id}/t/${task.id}`))?.status()).toBe(404);
+    await page.goto(`/w/${workspace.id}/t/${task.id}`);
+    await expect(page.getByRole("heading", { level: 1, name: "Not found" })).toBeVisible();
   });
 
   test("title, description and comment all persist", async ({ page, team }) => {

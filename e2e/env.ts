@@ -39,6 +39,8 @@ export const E2E_ENV: Record<string, string> = {
   INVITE_EMAIL_OUTBOX: E2E_INVITE_OUTBOX,
   MENTION_EMAIL_OUTBOX: "test-results/mention-outbox",
   TASK_EMAIL_OUTBOX: E2E_TASK_OUTBOX,
+  // Every test shares one IP and two accounts; the normal 300 a minute trips mid-run.
+  API_RATE_LIMIT_PER_MINUTE: "100000",
   // Lets tests run the cron routes (reminder sweep) on demand.
   CRON_SECRET: E2E_CRON_SECRET,
   // No R2 in tests: attachments go to a local folder.

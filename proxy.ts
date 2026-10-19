@@ -1,5 +1,5 @@
 import { safeLocalPath } from "@/src/lib/safe-path";
-import { consumeRateLimit } from "@/src/server/security/rate-limit";
+import { apiRequestsPerMinute, consumeRateLimit } from "@/src/server/security/rate-limit";
 import { securePageResponse, rejectCrossOriginMutation } from "@/src/server/security/request";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
@@ -22,7 +22,7 @@ export const proxy = auth(async (request) => {
     }
     try {
       const ip = request.headers.get(process.env.TRUSTED_CLIENT_IP_HEADER ?? "x-forwarded-for")?.split(",").at(-1)?.trim() ?? "unknown";
-      const result = await consumeRateLimit(`flow-api:${ip}`, 300, 60);
+      const result = await consumeRateLimit(`flow-api:${ip}`, apiRequestsPerMinute(), 60);
       if (!result.allowed) return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(result.retryAfterSeconds) } });
     } catch { return NextResponse.json({ error: "temporarily_unavailable" }, { status: 503 }); }
   }
