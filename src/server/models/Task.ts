@@ -84,6 +84,8 @@ const taskSchema = new Schema(
     // A goal the task rolls up into, and optionally one of its milestones.
     goalId: { type: Schema.Types.ObjectId, ref: "Goal", default: null },
     milestoneId: { type: Schema.Types.ObjectId, default: null },
+    // Custom field values for the task's project, keyed by ProjectField id.
+    fieldValues: { type: Schema.Types.Mixed, default: {} },
     // A hard "must be done by" date, separate from the planned due date. All-day, at local noon.
     deadlineAt: { type: Date, default: null },
     // How long the task should take, in minutes; null when not estimated.

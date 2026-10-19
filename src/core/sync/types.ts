@@ -1,3 +1,4 @@
+import type { FieldValues } from "@/src/core/custom-fields";
 import type {
   COLUMN_STATUSES,
   MemberRole,
@@ -93,6 +94,8 @@ export type Task = {
   /** A goal this task rolls up into, and optionally one of its milestones. */
   goalId: string | null;
   milestoneId: string | null;
+  /** Custom field values for the task's project, by field id. */
+  fieldValues: FieldValues;
   /** Tasks that must be finished first. */
   blockedByIds: string[];
   /** A repeating task tracked as a habit. */

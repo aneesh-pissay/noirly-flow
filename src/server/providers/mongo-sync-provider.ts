@@ -19,6 +19,8 @@ import { reminderAtFor } from "@/src/core/reminders";
 import { assertParentAllowed, descendantIds, subtaskCounts } from "@/src/server/subtasks";
 import { assertBlockersAllowed, assertNotBlocked, openTaskIds, withBlocked } from "@/src/server/dependencies";
 import { assertGoalLink } from "@/src/server/goals";
+import { mergeFieldValues } from "@/src/server/fields";
+import type { FieldValues } from "@/src/core/custom-fields";
 import { withDb } from "@/src/server/db/mongodb";
 import {
   ActivityEvent,
@@ -157,6 +159,7 @@ async function spawnNextOccurrence(
     sectionId: source.sectionId ?? null,
     goalId: source.goalId ?? null,
     milestoneId: source.milestoneId ?? null,
+    fieldValues: source.fieldValues ?? {},
     // Same series (and habit) as the occurrence it follows.
     seriesId: source.seriesId ?? source._id,
     habit: Boolean(source.habit),
@@ -917,6 +920,12 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         } else if (projectChanges) {
           task.sectionId = null;
         }
+        // Custom fields are per project too: a move drops the old project's values.
+        if (projectChanges || patch.fieldValues !== undefined) {
+          const current = projectChanges ? {} : (task.fieldValues ?? {}) as FieldValues;
+          task.fieldValues = await mergeFieldValues(nextProject, task.workspaceId, current, patch.fieldValues ?? {});
+          task.markModified("fieldValues");
+        }
         if (patch.status !== undefined) {
           task.status = patch.status;
           if (patch.status === "done" && !task.completedAt) {
@@ -985,7 +994,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (projectChanges) {
           const below = await descendantIds(task._id);
           if (below.length) {
-            await TaskModel.updateMany({ _id: { $in: below } }, { $set: { projectId: task.projectId ?? null, columnId: null, sectionId: null } });
+            await TaskModel.updateMany({ _id: { $in: below } }, { $set: { projectId: task.projectId ?? null, columnId: null, sectionId: null, fieldValues: {} } });
           }
         }
         if (spawnRule) {

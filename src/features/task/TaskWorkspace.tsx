@@ -18,6 +18,7 @@ import { GanttView } from "@/src/features/gantt/GanttView";
 import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
+import { ProjectFieldsButton, TaskFieldChips } from "@/src/features/fields/fields";
 import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
@@ -486,6 +487,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
                 Chat
               </Link>
             ) : null}
+            {projectId ? <ProjectFieldsButton projectId={projectId} canWrite={canWrite} /> : null}
           </div>
         </div>
       </header>
@@ -794,6 +796,7 @@ function TaskList({
               <TaskRepeatBadge rule={task.recurrence} />
               <TaskSubtaskBadge count={task.subtaskCount} />
               <TaskTagChips workspaceId={task.workspaceId} tagIds={task.tagIds} />
+              <TaskFieldChips projectId={task.projectId} values={task.fieldValues} members={members} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </div>

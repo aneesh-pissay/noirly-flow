@@ -89,6 +89,7 @@ export const updateTaskBodySchema = z
     sectionId: z.string().min(1).nullable().optional(),
     goalId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
     milestoneId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
+    fieldValues: z.record(z.string().regex(/^[a-f0-9]{24}$/i), z.union([z.string().max(500), z.number(), z.null()])).optional(),
     blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
     habit: z.boolean().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),
@@ -196,6 +197,22 @@ export const milestoneBodySchema = z.object({
 
 export const updateMilestoneBodySchema = z
   .object({ name: z.string().trim().min(1).max(120).optional(), dueAt: dateSchema })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+const fieldNameSchema = z.string().trim().min(1).max(40);
+
+export const createFieldBodySchema = z.object({
+  name: fieldNameSchema,
+  type: z.enum(["text", "number", "select", "date", "person"]),
+  options: z.array(z.object({ name: fieldNameSchema })).max(50).optional(),
+});
+
+export const updateFieldBodySchema = z
+  .object({
+    name: fieldNameSchema.optional(),
+    position: z.number().finite().optional(),
+    options: z.array(z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i).optional(), name: fieldNameSchema })).max(50).optional(),
+  })
   .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
 export const createSectionBodySchema = z.object({

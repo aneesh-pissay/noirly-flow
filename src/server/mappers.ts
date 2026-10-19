@@ -107,6 +107,7 @@ export function mapTask(doc: {
   sectionId?: Types.ObjectId | null;
   goalId?: Types.ObjectId | null;
   milestoneId?: Types.ObjectId | null;
+  fieldValues?: unknown;
   deadlineAt?: Date | null;
   durationMinutes?: number | null;
   reminderMinutes?: number | null;
@@ -152,6 +153,7 @@ export function mapTask(doc: {
     sectionId: idOf(doc.sectionId ?? null),
     goalId: idOf(doc.goalId ?? null),
     milestoneId: idOf(doc.goalId ? doc.milestoneId ?? null : null),
+    fieldValues: { ...((doc.fieldValues ?? {}) as Record<string, string | number>) },
     deadlineAt: iso(doc.deadlineAt ?? null),
     durationMinutes: doc.durationMinutes ?? null,
     reminderMinutes: doc.reminderMinutes ?? null,

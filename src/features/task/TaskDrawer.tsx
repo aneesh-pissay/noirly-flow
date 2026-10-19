@@ -27,6 +27,8 @@ import { SectionSelect } from "@/src/features/task/ProjectSections";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { GoalSelect, goalsKey } from "@/src/features/goals/goals";
+import { TaskFieldsEditor } from "@/src/features/fields/fields";
+import type { FieldValue } from "@/src/core/custom-fields";
 import {
   patchCachedTask,
   restoreTaskQueries,
@@ -81,6 +83,8 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [blockedByIds, setBlockedByIds] = useState<string[]>(initialTask?.blockedByIds ?? []);
   const [habit, setHabit] = useState(initialTask?.habit ?? false);
   const [sectionId, setSectionId] = useState<string | null>(initialTask?.sectionId ?? null);
+  // Null marks a value cleared since the last save.
+  const [fieldValues, setFieldValues] = useState<Record<string, FieldValue | null>>(initialTask?.fieldValues ?? {});
   const [goalLink, setGoalLink] = useState({ goalId: initialTask?.goalId ?? null, milestoneId: initialTask?.milestoneId ?? null });
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
@@ -132,6 +136,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setHabit(task.habit ?? false);
     setSectionId(task.sectionId ?? null);
     setGoalLink({ goalId: task.goalId ?? null, milestoneId: task.milestoneId ?? null });
+    setFieldValues(task.fieldValues ?? {});
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -191,7 +196,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, blockedByIds, ...goalLink, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, blockedByIds, ...goalLink, fieldValues: fieldValues as Task["fieldValues"], ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -334,7 +339,9 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                       setProjectId(next);
                       // A section belongs to its project; the server clears it on a move too.
                       setSectionId(null);
-                      persist({ projectId: next || null, sectionId: null });
+                      // Fields are per project too.
+                      setFieldValues({});
+                      persist({ projectId: next || null, sectionId: null, fieldValues: {} });
                     }}
                     className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50"
                   >
@@ -351,6 +358,17 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     setSectionId(next);
                     persist({ sectionId: next });
                   }} labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
+                    className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                ) : null}
+                {projectId ? (
+                  <TaskFieldsEditor projectId={projectId} values={Object.fromEntries(Object.entries(fieldValues).filter(([, v]) => v !== null)) as Task["fieldValues"]}
+                    members={membersQuery.data?.members ?? []} disabled={!canEdit}
+                    onChange={(fieldId, value) => {
+                      const next = { ...fieldValues, [fieldId]: value };
+                      setFieldValues(next);
+                      persist({ fieldValues: next as Task["fieldValues"] });
+                    }}
+                    labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
                     className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 ) : null}
                 <GoalSelect workspaceId={workspaceId} goalId={goalLink.goalId} milestoneId={goalLink.milestoneId} disabled={!canEdit} onChange={(next) => {

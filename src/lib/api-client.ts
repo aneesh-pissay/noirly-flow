@@ -4,6 +4,7 @@ import type { TimeEntryView } from "@/src/core/time-tracking";
 import type { Occurrence } from "@/src/core/habits";
 import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
 import type { Goal } from "@/src/core/goals";
+import type { FieldType, ProjectField } from "@/src/core/custom-fields";
 import type { PendingInvite } from "@/src/server/workspace/members";
 import type {
   ActivityEvent,
@@ -465,6 +466,18 @@ export const api = {
   },
   deleteMilestone(goalId: string, milestoneId: string) {
     return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
+  },
+  listFields(projectId: string) {
+    return request<{ fields: ProjectField[] }>(`/api/projects/${projectId}/fields`);
+  },
+  createField(projectId: string, input: { name: string; type: FieldType; options?: Array<{ name: string }> }) {
+    return request<{ field: ProjectField }>(`/api/projects/${projectId}/fields`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateField(fieldId: string, patch: { name?: string; position?: number; options?: Array<{ id?: string; name: string }> }) {
+    return request<{ field: ProjectField }>(`/api/fields/${fieldId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteField(fieldId: string) {
+    return request<{ ok: boolean }>(`/api/fields/${fieldId}`, { method: "DELETE" });
   },
   listSections(projectId: string) {
     return request<{ sections: Section[] }>(`/api/projects/${projectId}/sections`);
