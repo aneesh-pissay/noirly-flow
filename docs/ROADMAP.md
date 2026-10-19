@@ -21,7 +21,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 2. Capture and organisation | 10 / 10 |
 | 3. Planning and calendar | 5 / 7 |
 | 4. Productivity | 6 / 6 |
-| 5. Collaboration and automation | 0 / 8 |
+| 5. Collaboration and automation | 1 / 8 |
 | 6. AI | 0 / 9 |
 | 7. Platform and data | 0 / 7 |
 
@@ -80,7 +80,7 @@ _Needs Phase 1._
 ## Phase 5 — Collaboration and automation
 
 - [ ] Custom fields per project: text, number, select, date, person (L)
-- [ ] Email invites, plus listing and revoking pending invites (S)
+- [x] Email invites, plus listing and revoking pending invites (S) — done 2026-10-19
 - [ ] Approval workflow: request, approve, reject on a task (M)
 - [ ] Automations: "when X, if Y, then Z" rules per project (L)
 - [ ] Public API with personal access tokens (M)

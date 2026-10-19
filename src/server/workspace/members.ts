@@ -142,7 +142,7 @@ export async function createInvite(input: {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + days);
 
-    await WorkspaceInvite.create({
+    const doc = await WorkspaceInvite.create({
       workspaceId: oid(input.workspaceId),
       role: input.role,
       tokenHash: hashToken(token),
@@ -151,7 +151,7 @@ export async function createInvite(input: {
       expiresAt,
     });
 
-    return { token, expiresAt: expiresAt.toISOString(), role: input.role, email };
+    return { id: String(doc._id), token, expiresAt: expiresAt.toISOString(), role: input.role, email };
   });
 }
 
@@ -207,6 +207,43 @@ export async function revokeInvite(token: string) {
   await withDb(() =>
     WorkspaceInvite.updateOne({ tokenHash: hashToken(token) }, { $set: { revokedAt: new Date() } }),
   );
+}
+
+export type PendingInvite = {
+  id: string;
+  role: Exclude<MemberRole, "owner">;
+  /** Null for a copied link. */
+  email: string | null;
+  createdAt: string;
+  expiresAt: string;
+};
+
+/** Invites not yet used, revoked or expired, newest first. Admins only. */
+export function listPendingInvites(actorId: string, workspaceId: string) {
+  return withDb(async (): Promise<PendingInvite[]> => {
+    await requireWorkspaceRole(actorId, workspaceId, "admin");
+    const invites = await WorkspaceInvite.find({
+      workspaceId: oid(workspaceId), usedAt: null, revokedAt: null, expiresAt: { $gt: new Date() },
+    }).sort({ createdAt: -1 }).limit(200).lean();
+    return invites.map((invite) => ({
+      id: String(invite._id),
+      role: invite.role as Exclude<MemberRole, "owner">,
+      email: invite.email ?? null,
+      createdAt: invite.createdAt.toISOString(),
+      expiresAt: invite.expiresAt.toISOString(),
+    }));
+  });
+}
+
+/** An admin withdraws a pending invite; its link or email stops working. */
+export function revokeInviteById(actorId: string, inviteId: string) {
+  return withDb(async () => {
+    const invite = await WorkspaceInvite.findById(oid(inviteId)).select("workspaceId usedAt").lean();
+    if (!invite) throw new ApiError(404, "not_found", "Invite not found");
+    await requireWorkspaceRole(actorId, String(invite.workspaceId), "admin");
+    if (invite.usedAt) throw new ApiError(409, "conflict", "That invite has already been used");
+    await WorkspaceInvite.updateOne({ _id: invite._id }, { $set: { revokedAt: new Date() } });
+  });
 }
 
 export async function updateMemberRole(input: {

@@ -4,6 +4,7 @@ import type { TimeEntryView } from "@/src/core/time-tracking";
 import type { Occurrence } from "@/src/core/habits";
 import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
 import type { Goal } from "@/src/core/goals";
+import type { PendingInvite } from "@/src/server/workspace/members";
 import type {
   ActivityEvent,
   AppNotification,
@@ -198,7 +199,7 @@ export const api = {
   },
   createInvite(workspaceId: string, role: Exclude<MemberRole, "owner">) {
     return request<{
-      invite: { token: string; url: string; role: string; expiresAt: string };
+      invite: { id: string; token: string; url: string; role: string; expiresAt: string };
     }>(`/api/workspaces/${workspaceId}/invites`, {
       method: "POST",
       body: JSON.stringify({ role }),
@@ -211,6 +212,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ role, email }),
     });
+  },
+  listInvites(workspaceId: string) {
+    return request<{ invites: PendingInvite[] }>(`/api/workspaces/${workspaceId}/invites`);
+  },
+  revokeInvite(inviteId: string) {
+    return request<{ ok: boolean }>(`/api/invites/${inviteId}`, { method: "DELETE" });
   },
   acceptInvite(token: string) {
     return request<{ workspaceId: string; name: string }>("/api/invites/accept", {

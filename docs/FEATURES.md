@@ -200,8 +200,10 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | Role change / remove | Admin+; cannot remove self |
 | Invite link | One-time token, 7-day expiry, hashed; roles admin / member / viewer; copy `/invite/[token]` |
 | Accept invite | Logged-in accept; unauthenticated users sent through login with return URL |
+| Invite by email | Admins email a one-time link (rate-limited); only that address can accept it, and it expires in 7 days |
+| Pending invites | Admins see unused, unexpired invites (email or "Invite link", role, expiry) on the Members page and can revoke them; a revoked link fails to open. `GET /api/workspaces/[workspaceId]/invites`, `DELETE /api/invites/[inviteId]` |
 
-**Not in product yet:** email invites, list / revoke pending invites, invite-by-email address.
+**Not in product yet:** resending an expired invite.
 
 ---
 
@@ -281,6 +283,8 @@ Requires `NEXT_PUBLIC_REALTIME_WS_URL` (and matching server JWT config).
 | GET | `/api/search` |
 | GET | `/api/realtime/token` |
 | POST | `/api/invites/accept` |
+| GET | `/api/workspaces/[workspaceId]/invites` |
+| DELETE | `/api/invites/[inviteId]` |
 
 ---
 

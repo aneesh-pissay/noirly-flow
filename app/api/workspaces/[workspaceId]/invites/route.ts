@@ -7,12 +7,24 @@ import {
   jsonOk,
 } from "@/src/server/api/http";
 import { createInviteBodySchema } from "@/src/server/api/schemas";
-import { createInvite, revokeInvite } from "@/src/server/workspace/members";
+import { createInvite, listPendingInvites, revokeInvite } from "@/src/server/workspace/members";
 import { sendInviteEmail } from "@/src/server/mail/invite-mail";
 import { consumeRateLimit } from "@/src/server/security/rate-limit";
 import { loadMe } from "@/src/server/users/me";
 
 type Params = { params: Promise<{ workspaceId: string }> };
+
+/** Pending (unused, unrevoked, unexpired) invites. Admins only. */
+export async function GET(_request: Request, { params }: Params) {
+  try {
+    const { workspaceId } = await params;
+    await assertObjectId(workspaceId, "workspaceId");
+    const { ctx } = await getSyncProvider();
+    return jsonOk({ invites: await listPendingInvites(ctx.userId, workspaceId) });
+  } catch (error) {
+    return jsonError(error);
+  }
+}
 
 export async function POST(request: Request, { params }: Params) {
   try {

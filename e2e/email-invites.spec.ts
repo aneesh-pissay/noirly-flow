@@ -93,4 +93,35 @@ test.describe("invite by email", () => {
     await page.getByRole("button", { name: "Generate link" }).click();
     await expect(page.locator("input[readonly]")).toHaveValue(/\/invite\/[\w-]+$/);
   });
+
+  test("pending invites are listed and can be revoked", async ({ page, team, browser }) => {
+    const intended = `pending-${Date.now()}@e2e.test`;
+    await sendInvite(page, team.workspace.id, intended, "viewer");
+    await expect(page.getByRole("status")).toHaveText(`Invitation sent to ${intended}`);
+    await page.getByRole("button", { name: "Generate link" }).click();
+    const link = await page.locator("input[readonly]").inputValue();
+
+    const pending = page.getByRole("list", { name: "Pending invites" });
+    await expect(pending.getByRole("listitem")).toHaveCount(2);
+    await expect(pending.getByRole("listitem").filter({ hasText: intended })).toContainText("viewer");
+
+    // A revoked link stops working.
+    await page.getByRole("button", { name: "Revoke invite for Invite link" }).click();
+    await expect(pending.getByRole("listitem")).toHaveCount(1);
+    await expect(page.locator("input[readonly]")).toHaveCount(0);
+    await page.screenshot({ path: "test-results/pending-invites.png", fullPage: true });
+    const member = await pageAs(browser, "member");
+    await member.goto(new URL(link).pathname);
+    await expect(member.getByRole("heading", { name: "Invite failed" })).toBeVisible();
+
+    // Only admins of the workspace see or revoke its invites.
+    const listed = await (await page.request.get(`/api/workspaces/${team.workspace.id}/invites`)).json();
+    const remaining = listed.invites[0].id;
+    expect((await member.request.get(`/api/workspaces/${team.workspace.id}/invites`)).status()).toBe(403);
+    expect((await member.request.delete(`/api/invites/${remaining}`)).status()).toBe(403);
+
+    await page.getByRole("button", { name: `Revoke invite for ${intended}` }).click();
+    await expect(page.getByText("No pending invites.")).toBeVisible();
+    await member.context().close();
+  });
 });
