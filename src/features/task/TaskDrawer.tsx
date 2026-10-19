@@ -28,6 +28,7 @@ import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { GoalSelect, goalsKey } from "@/src/features/goals/goals";
 import { TaskFieldsEditor } from "@/src/features/fields/fields";
+import { ApprovalPanel } from "@/src/features/approvals/approvals";
 import type { FieldValue } from "@/src/core/custom-fields";
 import {
   patchCachedTask,
@@ -491,6 +492,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                 <TaskDependencies workspaceId={workspaceId} task={task} value={blockedByIds} canWrite={canEdit}
                   onChange={(next) => { setBlockedByIds(next); persist({ blockedByIds: next }); }} />
               ) : null}
+              {task ? <ApprovalPanel workspaceId={workspaceId} task={task} members={membersQuery.data?.members ?? []} meId={meQuery.data?.user.id} /> : null}
               {task && canEdit ? (
                 <SaveAsTemplateButton workspaceId={workspaceId} source={{ kind: "task", taskId: task.id }} defaultName={task.title}
                   className="text-xs text-[var(--muted-foreground)] underline-offset-2 hover:text-[var(--foreground)] hover:underline disabled:opacity-50" />

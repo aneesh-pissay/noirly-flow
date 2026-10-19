@@ -4,6 +4,7 @@ import type { TimeEntryView } from "@/src/core/time-tracking";
 import type { Occurrence } from "@/src/core/habits";
 import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
 import type { Goal } from "@/src/core/goals";
+import type { Approval } from "@/src/core/approvals";
 import type { FieldType, ProjectField } from "@/src/core/custom-fields";
 import type { PendingInvite } from "@/src/server/workspace/members";
 import type {
@@ -442,6 +443,15 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ projectId, favorite }),
     });
+  },
+  requestApproval(taskId: string, approverId: string) {
+    return request<{ approval: Approval | null }>(`/api/tasks/${taskId}/approval`, { method: "POST", body: JSON.stringify({ approverId }) });
+  },
+  decideApproval(taskId: string, decision: "approve" | "reject", note?: string) {
+    return request<{ approval: Approval | null }>(`/api/tasks/${taskId}/approval/decision`, { method: "POST", body: JSON.stringify({ decision, note: note || null }) });
+  },
+  withdrawApproval(taskId: string) {
+    return request<{ approval: null }>(`/api/tasks/${taskId}/approval`, { method: "DELETE" });
   },
   listGoals(workspaceId: string) {
     return request<{ goals: Goal[] }>(`/api/workspaces/${workspaceId}/goals`);

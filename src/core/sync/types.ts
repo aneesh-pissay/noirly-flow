@@ -1,4 +1,5 @@
 import type { FieldValues } from "@/src/core/custom-fields";
+import type { Approval } from "@/src/core/approvals";
 import type {
   COLUMN_STATUSES,
   MemberRole,
@@ -96,6 +97,8 @@ export type Task = {
   milestoneId: string | null;
   /** Custom field values for the task's project, by field id. */
   fieldValues: FieldValues;
+  /** The sign-off this task needs, or null. */
+  approval: Approval | null;
   /** Tasks that must be finished first. */
   blockedByIds: string[];
   /** A repeating task tracked as a habit. */
@@ -255,7 +258,7 @@ export type SavedFilter = {
 
 export type AppNotification = {
   id: string;
-  kind: "mention" | "assigned" | "comment" | "reminder";
+  kind: "mention" | "assigned" | "comment" | "reminder" | "approval_requested" | "approval_approved" | "approval_rejected";
   workspaceId: string;
   taskId: string;
   taskTitle: string;

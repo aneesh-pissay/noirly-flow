@@ -19,6 +19,7 @@ import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
 import { ProjectFieldsButton, TaskFieldChips } from "@/src/features/fields/fields";
+import { ApprovalBadge } from "@/src/features/approvals/approvals";
 import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
@@ -789,6 +790,7 @@ function TaskList({
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
               <TaskBlockedBadge blocked={task.blocked} />
+              <ApprovalBadge approval={task.approval} />
               <TaskStartBadge startAt={task.startAt} />
               <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
               <TaskDeadlineBadge deadlineAt={task.deadlineAt} />

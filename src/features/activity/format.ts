@@ -52,6 +52,14 @@ export function describeActivity(
     }
     case "comment.created":
       return `${actor} commented`;
+    case "approval.requested":
+      return `${actor} asked ${memberName(members, String(meta.approverId ?? ""))} to approve`;
+    case "approval.approved":
+      return `${actor} approved`;
+    case "approval.rejected":
+      return typeof meta.note === "string" ? `${actor} requested changes: “${meta.note}”` : `${actor} requested changes`;
+    case "approval.withdrawn":
+      return `${actor} withdrew the approval request`;
     case "comment.deleted":
       return meta.byAuthor === false
         ? `${actor} removed a comment`

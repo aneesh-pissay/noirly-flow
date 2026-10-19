@@ -20,6 +20,8 @@ import { assertParentAllowed, descendantIds, subtaskCounts } from "@/src/server/
 import { assertBlockersAllowed, assertNotBlocked, openTaskIds, withBlocked } from "@/src/server/dependencies";
 import { assertGoalLink } from "@/src/server/goals";
 import { mergeFieldValues } from "@/src/server/fields";
+import { mapApproval } from "@/src/server/mappers";
+import { blocksCompletion } from "@/src/core/approvals";
 import type { FieldValues } from "@/src/core/custom-fields";
 import { withDb } from "@/src/server/db/mongodb";
 import {
@@ -974,6 +976,10 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
 
         // A task can't be finished while something it waits on is still open.
         if (becomingDone) await assertNotBlocked(task.blockedByIds ?? [], task.title);
+        // Nor while its approval is pending or was turned down.
+        if (becomingDone && blocksCompletion(mapApproval(task.approval))) {
+          throw new ApiError(409, "needs_approval", `“${task.title}” needs approval before it can be done`);
+        }
         const spawnRule = becomingDone
           ? asRecurrenceRule(task.recurrence)
           : null;

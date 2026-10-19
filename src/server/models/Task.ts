@@ -86,6 +86,21 @@ const taskSchema = new Schema(
     milestoneId: { type: Schema.Types.ObjectId, default: null },
     // Custom field values for the task's project, keyed by ProjectField id.
     fieldValues: { type: Schema.Types.Mixed, default: {} },
+    // The sign-off this task needs before it can be done (one at a time).
+    approval: {
+      type: new Schema(
+        {
+          status: { type: String, enum: ["pending", "approved", "rejected"], required: true },
+          requestedById: { type: Schema.Types.ObjectId, ref: "FlowUser", required: true },
+          approverId: { type: Schema.Types.ObjectId, ref: "FlowUser", required: true },
+          requestedAt: { type: Date, required: true },
+          decidedAt: { type: Date, default: null },
+          note: { type: String, default: null, maxlength: 1000 },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
     // A hard "must be done by" date, separate from the planned due date. All-day, at local noon.
     deadlineAt: { type: Date, default: null },
     // How long the task should take, in minutes; null when not estimated.
@@ -155,6 +170,7 @@ taskSchema.index({ reminderSentAt: 1, reminderAt: 1 });
 taskSchema.index({ workspaceId: 1, habit: 1 });
 taskSchema.index({ seriesId: 1, dueAt: -1 });
 taskSchema.index({ goalId: 1, status: 1 });
+taskSchema.index({ "approval.approverId": 1, "approval.status": 1 });
 taskSchema.index({ "emailDeliveries.assignmentPending": 1, emailCheckedAt: 1 });
 taskSchema.index({ "completionDeliveries.pending": 1, emailCheckedAt: 1 });
 

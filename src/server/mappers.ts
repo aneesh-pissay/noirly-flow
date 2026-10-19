@@ -1,5 +1,6 @@
 import { asRecurrenceRule } from "@/src/core/recurrence/next";
 import type { Types } from "mongoose";
+import type { Approval } from "@/src/core/approvals";
 import type {
   ActivityEvent,
   BoardColumn,
@@ -108,6 +109,7 @@ export function mapTask(doc: {
   goalId?: Types.ObjectId | null;
   milestoneId?: Types.ObjectId | null;
   fieldValues?: unknown;
+  approval?: unknown;
   deadlineAt?: Date | null;
   durationMinutes?: number | null;
   reminderMinutes?: number | null;
@@ -154,6 +156,7 @@ export function mapTask(doc: {
     goalId: idOf(doc.goalId ?? null),
     milestoneId: idOf(doc.goalId ? doc.milestoneId ?? null : null),
     fieldValues: { ...((doc.fieldValues ?? {}) as Record<string, string | number>) },
+    approval: mapApproval(doc.approval),
     deadlineAt: iso(doc.deadlineAt ?? null),
     durationMinutes: doc.durationMinutes ?? null,
     reminderMinutes: doc.reminderMinutes ?? null,
@@ -242,3 +245,17 @@ export function mapActivity(doc: {
 }
 
 export type MembershipRole = MemberRole;
+
+/** The stored approval as the DTO, or null. */
+export function mapApproval(raw: unknown): Approval | null {
+  const doc = raw as { status?: string; requestedById?: Types.ObjectId; approverId?: Types.ObjectId; requestedAt?: Date; decidedAt?: Date | null; note?: string | null } | null | undefined;
+  if (!doc?.status || !doc.requestedById || !doc.approverId || !doc.requestedAt) return null;
+  return {
+    status: doc.status as Approval["status"],
+    requestedById: String(doc.requestedById),
+    approverId: String(doc.approverId),
+    requestedAt: new Date(doc.requestedAt).toISOString(),
+    decidedAt: doc.decidedAt ? new Date(doc.decidedAt).toISOString() : null,
+    note: doc.note ?? null,
+  };
+}

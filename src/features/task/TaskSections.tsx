@@ -13,6 +13,7 @@ import { TaskDrawer } from "@/src/features/task/TaskDrawer";
 import { TaskTagChips } from "@/src/features/tags/tags";
 import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge } from "@/src/features/task/TaskDueBadge";
 import { seedTaskCache } from "@/src/features/task/task-cache";
+import { ApprovalBadge } from "@/src/features/approvals/approvals";
 
 export type TaskSection = { key: string; label: string; tasks: Task[]; tone?: "alert" };
 
@@ -111,6 +112,7 @@ export function TaskSections({ workspaceId, sections, queryKey, actions }: {
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <PriorityBadge priority={task.priority} />
                     <TaskBlockedBadge blocked={task.blocked} />
+                    <ApprovalBadge approval={task.approval} />
                     <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
                     <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
                     <TaskDurationBadge minutes={task.durationMinutes} />

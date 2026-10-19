@@ -43,6 +43,7 @@ import {
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskTagChips } from "@/src/features/tags/tags";
 import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
+import { ApprovalBadge } from "@/src/features/approvals/approvals";
 import { PriorityBadge } from "@/src/features/task/priority";
 import type { WorkspaceMember } from "@/src/features/workspace/members";
 
@@ -631,6 +632,7 @@ function SortableTaskCard({
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
               <TaskBlockedBadge blocked={task.blocked} />
+              <ApprovalBadge approval={task.approval} />
               <TaskStartBadge startAt={task.startAt} />
               <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
               <TaskDeadlineBadge deadlineAt={task.deadlineAt} />

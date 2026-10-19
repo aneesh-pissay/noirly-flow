@@ -23,6 +23,12 @@ function describe(item: AppNotification) {
       return `${item.actorName} commented on`;
     case "reminder":
       return "Reminder:";
+    case "approval_requested":
+      return `${item.actorName} asked you to approve`;
+    case "approval_approved":
+      return `${item.actorName} approved`;
+    case "approval_rejected":
+      return `${item.actorName} requested changes on`;
   }
 }
 

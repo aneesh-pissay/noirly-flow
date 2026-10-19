@@ -215,6 +215,15 @@ export const updateFieldBodySchema = z
   })
   .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
+export const requestApprovalBodySchema = z.object({
+  approverId: z.string().regex(/^[a-f0-9]{24}$/i),
+});
+
+export const decideApprovalBodySchema = z.object({
+  decision: z.enum(["approve", "reject"]),
+  note: z.string().max(1000).nullable().optional(),
+});
+
 export const createSectionBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
 });
