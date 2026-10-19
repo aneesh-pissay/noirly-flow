@@ -19,6 +19,7 @@ import {
 import { SignOutButton } from "@/src/features/auth/SignOutButton";
 import { CommandPalette } from "@/src/features/command-palette/CommandPalette";
 import { TaskCreateDialog } from "@/src/features/task/TaskCreateDialog";
+import { FocusTimer } from "@/src/features/focus/FocusTimer";
 import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
 import { useOptimisticPath } from "@/src/components/NavLink";
@@ -239,6 +240,7 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
       </UIShell>
       <CommandPalette workspaces={workspaces} />
       {taskDraft ? <TaskCreateDialog draft={taskDraft} /> : null}
+      <FocusTimer />
       <JoinedNotice path={path} workspaces={workspaces} />
     </div>
   );

@@ -20,7 +20,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 1. Date model | 6 / 6 |
 | 2. Capture and organisation | 10 / 10 |
 | 3. Planning and calendar | 5 / 7 |
-| 4. Productivity | 0 / 6 |
+| 4. Productivity | 1 / 6 |
 | 5. Collaboration and automation | 0 / 8 |
 | 6. AI | 0 / 9 |
 | 7. Platform and data | 0 / 7 |
@@ -70,7 +70,7 @@ _Needs Phase 1._
 
 ## Phase 4 — Productivity
 
-- [ ] Pomodoro / focus timer on a task (S)
+- [x] Pomodoro / focus timer on a task (S) — done 2026-10-19
 - [ ] Time tracking: manual entries plus a running timer (M)
 - [ ] Habits and streaks, built on recurring tasks (M)
 - [ ] Personal stats: completed per day/week, on-time rate (M)
