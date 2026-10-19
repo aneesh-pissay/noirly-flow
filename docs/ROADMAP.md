@@ -47,26 +47,26 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 
 - [x] Natural-language quick add: `Pay rent every 1st 9am p1 #Home @bills` (S) — done 2026-10-16
 - [x] **Today** and **Upcoming** views across all projects in a workspace (M) — done 2026-10-16
-- [x] Saved smart filters with a query syntax (`today & #Work & @urgent`) (M) — done 2026-10-17 (e2e `filters.spec.ts` not yet run)
-- [x] Tag filter in the list view and a tag colour picker (S) — done 2026-10-17 (tags brought back in the UI; e2e `tags.spec.ts` not yet run)
-- [x] Sections inside a project (list view), separate from board columns (M) — done 2026-10-17 (e2e `sections.spec.ts` not yet run)
-- [x] Project archive, colours and favourites (S) — done 2026-10-17 (e2e `projects-organise.spec.ts` not yet run)
-- [x] Nested subtasks (more than one level) and a subtask drawer (M) — done 2026-10-17 (subtasks brought back in the drawer; e2e in `drawer.spec.ts` not yet run)
-- [x] Bulk edit: multi-select, then set status / priority / due / assignee / move / delete (M) — done 2026-10-17 (e2e `bulk.spec.ts` not yet run)
-- [x] Project and task templates (M) — done 2026-10-17 (e2e `templates.spec.ts` not yet run)
-- [x] Dedicated task page `/w/[workspaceId]/t/[taskId]` for sharing links (S) — done 2026-10-17 (e2e in `drawer.spec.ts` not yet run)
+- [x] Saved smart filters with a query syntax (`today & #Work & @urgent`) (M) — done 2026-10-17
+- [x] Tag filter in the list view and a tag colour picker (S) — done 2026-10-17 (tags brought back in the UI)
+- [x] Sections inside a project (list view), separate from board columns (M) — done 2026-10-17
+- [x] Project archive, colours and favourites (S) — done 2026-10-17
+- [x] Nested subtasks (more than one level) and a subtask drawer (M) — done 2026-10-17 (subtasks brought back in the drawer)
+- [x] Bulk edit: multi-select, then set status / priority / due / assignee / move / delete (M) — done 2026-10-17
+- [x] Project and task templates (M) — done 2026-10-17
+- [x] Dedicated task page `/w/[workspaceId]/t/[taskId]` for sharing links (S) — done 2026-10-17
 
 ## Phase 3 — Planning and calendar
 
 _Needs Phase 1._
 
-- [x] Dependencies and a `blocked` status; blocked tasks cannot be completed first (M) — done 2026-10-17 (blocked is worked out from open blockers, not a stored status; e2e `dependencies.spec.ts` not yet run)
-- [x] Day and week timeline views (M) — done 2026-10-17 (e2e `timeline.spec.ts` not yet run)
-- [x] Time blocking: drag tasks onto the timeline to schedule them (L) — done 2026-10-17 (e2e in `timeline.spec.ts` not yet run)
-- [x] Gantt view (start date, duration, dependencies) (L) — done 2026-10-17 (bars run start → due by day; e2e `gantt.spec.ts` not yet run)
+- [x] Dependencies and a `blocked` status; blocked tasks cannot be completed first (M) — done 2026-10-17 (blocked is worked out from open blockers, not a stored status)
+- [x] Day and week timeline views (M) — done 2026-10-17
+- [x] Time blocking: drag tasks onto the timeline to schedule them (L) — done 2026-10-17
+- [x] Gantt view (start date, duration, dependencies) (L) — done 2026-10-17 (bars run start → due by day)
 - [ ] Two-way Google Calendar sync (L)
 - [ ] Two-way Outlook calendar sync (L)
-- [x] Capacity and availability: hours per day per member, overload warnings (L) — done 2026-10-17 (e2e `capacity.spec.ts` not yet run)
+- [x] Capacity and availability: hours per day per member, overload warnings (L) — done 2026-10-17
 
 ## Phase 4 — Productivity
 
