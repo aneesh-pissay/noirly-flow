@@ -26,6 +26,7 @@ import { TagPicker } from "@/src/features/tags/tags";
 import { SectionSelect } from "@/src/features/task/ProjectSections";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
+import { GoalSelect, goalsKey } from "@/src/features/goals/goals";
 import {
   patchCachedTask,
   restoreTaskQueries,
@@ -80,6 +81,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [blockedByIds, setBlockedByIds] = useState<string[]>(initialTask?.blockedByIds ?? []);
   const [habit, setHabit] = useState(initialTask?.habit ?? false);
   const [sectionId, setSectionId] = useState<string | null>(initialTask?.sectionId ?? null);
+  const [goalLink, setGoalLink] = useState({ goalId: initialTask?.goalId ?? null, milestoneId: initialTask?.milestoneId ?? null });
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
@@ -129,6 +131,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setBlockedByIds(task.blockedByIds ?? []);
     setHabit(task.habit ?? false);
     setSectionId(task.sectionId ?? null);
+    setGoalLink({ goalId: task.goalId ?? null, milestoneId: task.milestoneId ?? null });
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -145,6 +148,9 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     onSuccess: (data) => {
       upsertCachedTask(queryClient, workspaceId, data.task);
       setDirty(false);
+      // Status and goal changes move goal progress.
+      void queryClient.invalidateQueries({ queryKey: goalsKey(workspaceId) });
+      if (data.task.goalId) void queryClient.invalidateQueries({ queryKey: ["goal", data.task.goalId] });
     },
     onError: (err: Error, _patch, context) => {
       if (context?.previous) {
@@ -185,7 +191,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, blockedByIds, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, blockedByIds, ...goalLink, ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -347,6 +353,11 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   }} labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
                     className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 ) : null}
+                <GoalSelect workspaceId={workspaceId} goalId={goalLink.goalId} milestoneId={goalLink.milestoneId} disabled={!canEdit} onChange={(next) => {
+                  setGoalLink(next);
+                  persist(next);
+                }} labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
+                  className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
                   <span>Start date</span>
                   <TaskDatePicker value={startDate} withTime={false} name="start date" disabled={!canEdit} onChange={(value) => {

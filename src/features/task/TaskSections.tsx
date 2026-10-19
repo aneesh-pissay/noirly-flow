@@ -68,8 +68,12 @@ export function TaskSections({ workspaceId, sections, queryKey, actions }: {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
       setError(err.message);
     },
-    // A repeating task's next copy may land in this list.
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] }),
+    // A repeating task's next copy may land in this list; goal progress moves too.
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
+      void queryClient.invalidateQueries({ queryKey: ["goals", workspaceId] });
+      void queryClient.invalidateQueries({ queryKey: ["goal"] });
+    },
   });
 
   return (

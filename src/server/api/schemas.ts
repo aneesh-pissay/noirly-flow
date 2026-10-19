@@ -56,6 +56,8 @@ export const createTaskBodySchema = z.object({
   recurrence: recurrenceSchema,
   tagIds: z.array(z.string().min(1)).max(20).optional(),
   sectionId: z.string().min(1).nullable().optional(),
+  goalId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
+  milestoneId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
   blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
 });
 
@@ -85,6 +87,8 @@ export const updateTaskBodySchema = z
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     sectionId: z.string().min(1).nullable().optional(),
+    goalId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
+    milestoneId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
     blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
     habit: z.boolean().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),
@@ -123,6 +127,7 @@ export const listTasksQuerySchema = z.object({
   dueBefore: z.string().datetime({ offset: true }).optional(),
   tag: z.string().min(1).optional(),
   completedAfter: z.string().datetime({ offset: true }).optional(),
+  goal: z.string().regex(/^[a-f0-9]{24}$/i).optional(),
 });
 
 export const bulkTasksBodySchema = z
@@ -166,6 +171,32 @@ export const applyTemplateBodySchema = z.discriminatedUnion("kind", [
   }),
   z.object({ kind: z.literal("project"), name: z.string().trim().min(1).max(80) }),
 ]);
+
+const dateSchema = z.string().datetime({ offset: true }).nullable().optional();
+
+export const createGoalBodySchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(2000).nullable().optional(),
+  targetAt: dateSchema,
+});
+
+export const updateGoalBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    description: z.string().max(2000).nullable().optional(),
+    targetAt: dateSchema,
+    archived: z.boolean().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+export const milestoneBodySchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  dueAt: dateSchema,
+});
+
+export const updateMilestoneBodySchema = z
+  .object({ name: z.string().trim().min(1).max(120).optional(), dueAt: dateSchema })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
 export const createSectionBodySchema = z.object({
   name: z.string().trim().min(1).max(60),

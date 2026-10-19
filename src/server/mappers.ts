@@ -105,6 +105,8 @@ export function mapTask(doc: {
   dueHasTime?: boolean | null;
   startAt?: Date | null;
   sectionId?: Types.ObjectId | null;
+  goalId?: Types.ObjectId | null;
+  milestoneId?: Types.ObjectId | null;
   deadlineAt?: Date | null;
   durationMinutes?: number | null;
   reminderMinutes?: number | null;
@@ -148,6 +150,8 @@ export function mapTask(doc: {
     dueHasTime: Boolean(doc.dueAt && doc.dueHasTime),
     startAt: iso(doc.startAt ?? null),
     sectionId: idOf(doc.sectionId ?? null),
+    goalId: idOf(doc.goalId ?? null),
+    milestoneId: idOf(doc.goalId ? doc.milestoneId ?? null : null),
     deadlineAt: iso(doc.deadlineAt ?? null),
     durationMinutes: doc.durationMinutes ?? null,
     reminderMinutes: doc.reminderMinutes ?? null,

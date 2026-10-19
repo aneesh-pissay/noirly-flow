@@ -18,6 +18,7 @@ import {
 import { reminderAtFor } from "@/src/core/reminders";
 import { assertParentAllowed, descendantIds, subtaskCounts } from "@/src/server/subtasks";
 import { assertBlockersAllowed, assertNotBlocked, openTaskIds, withBlocked } from "@/src/server/dependencies";
+import { assertGoalLink } from "@/src/server/goals";
 import { withDb } from "@/src/server/db/mongodb";
 import {
   ActivityEvent,
@@ -154,6 +155,8 @@ async function spawnNextOccurrence(
     startAt,
     deadlineAt,
     sectionId: source.sectionId ?? null,
+    goalId: source.goalId ?? null,
+    milestoneId: source.milestoneId ?? null,
     // Same series (and habit) as the occurrence it follows.
     seriesId: source.seriesId ?? source._id,
     habit: Boolean(source.habit),
@@ -647,6 +650,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (query.tagIds?.length) {
           filter.tagIds = { $all: query.tagIds.map(oid) };
         }
+        if (query.goalId) filter.goalId = oid(query.goalId);
         if (query.completedAfter) {
           filter.completedAt = { $gte: new Date(query.completedAfter) };
         }
@@ -687,6 +691,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         await requireMembership(userId, input.workspaceId, "member");
         await assertTaskReferences(input.workspaceId, input);
         await assertBlockersAllowed(oid(input.workspaceId), input.blockedByIds ?? []);
+        await assertGoalLink(input.workspaceId, input.goalId ?? null, input.milestoneId ?? null);
         if (input.status === "done") await assertNotBlocked(input.blockedByIds ?? [], input.title);
         let columnId = input.columnId ? oid(input.columnId) : null;
         let status: TaskStatus = input.status ?? "todo";
@@ -742,6 +747,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           dueHasTime: Boolean(input.dueAt && input.dueHasTime),
           startAt: input.startAt ? new Date(input.startAt) : null,
           sectionId: input.sectionId ? oid(input.sectionId) : null,
+          goalId: input.goalId ? oid(input.goalId) : null,
+          milestoneId: input.milestoneId ? oid(input.milestoneId) : null,
           deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
           durationMinutes: input.durationMinutes ?? null,
           reminderMinutes: input.reminderMinutes ?? null,
@@ -868,6 +875,15 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           task.tagIds = patch.tagIds.map(oid);
         }
         if (patch.habit !== undefined) task.habit = patch.habit;
+        // Changing goal drops a milestone from the old one unless a new one comes with it.
+        if (patch.goalId !== undefined || patch.milestoneId !== undefined) {
+          const goalId = patch.goalId !== undefined ? patch.goalId : task.goalId?.toString() ?? null;
+          const goalChanged = goalId !== (task.goalId?.toString() ?? null);
+          const milestoneId = patch.milestoneId !== undefined ? patch.milestoneId : goalChanged ? null : task.milestoneId?.toString() ?? null;
+          await assertGoalLink(task.workspaceId, goalId, milestoneId);
+          task.goalId = goalId ? oid(goalId) : null;
+          task.milestoneId = milestoneId ? oid(milestoneId) : null;
+        }
         if (patch.blockedByIds !== undefined) {
           await assertBlockersAllowed(task.workspaceId, patch.blockedByIds, task._id);
           task.blockedByIds = [...new Set(patch.blockedByIds)].map(oid);

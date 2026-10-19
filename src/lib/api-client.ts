@@ -3,6 +3,7 @@ import type { Template } from "@/src/core/templates";
 import type { TimeEntryView } from "@/src/core/time-tracking";
 import type { Occurrence } from "@/src/core/habits";
 import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
+import type { Goal } from "@/src/core/goals";
 import type {
   ActivityEvent,
   AppNotification,
@@ -348,6 +349,8 @@ export const api = {
       tag?: string;
       /** Only tasks completed at or after this instant. */
       completedAfter?: string;
+      /** Only tasks linked to this goal. */
+      goal?: string;
     } = {},
   ) {
     const params = new URLSearchParams();
@@ -374,6 +377,7 @@ export const api = {
     if (query.due === "none") params.set("due", "none");
     if (query.tag) params.set("tag", query.tag);
     if (query.completedAfter) params.set("completedAfter", query.completedAfter);
+    if (query.goal) params.set("goal", query.goal);
     const qs = params.toString();
     return request<{ tasks: Task[] }>(
       `/api/workspaces/${workspaceId}/tasks${qs ? `?${qs}` : ""}`,
@@ -387,6 +391,8 @@ export const api = {
       assigneeIds?: string[];
       projectId?: string | null;
       parentTaskId?: string | null;
+      goalId?: string | null;
+      milestoneId?: string | null;
       status?: Task["status"];
       priority?: Task["priority"];
       dueAt?: string | null;
@@ -428,6 +434,30 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ projectId, favorite }),
     });
+  },
+  listGoals(workspaceId: string) {
+    return request<{ goals: Goal[] }>(`/api/workspaces/${workspaceId}/goals`);
+  },
+  getGoal(goalId: string) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}`);
+  },
+  createGoal(workspaceId: string, input: { name: string; description?: string | null; targetAt?: string | null }) {
+    return request<{ goal: Goal }>(`/api/workspaces/${workspaceId}/goals`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateGoal(goalId: string, patch: { name?: string; description?: string | null; targetAt?: string | null; archived?: boolean }) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteGoal(goalId: string) {
+    return request<{ ok: boolean }>(`/api/goals/${goalId}`, { method: "DELETE" });
+  },
+  addMilestone(goalId: string, input: { name: string; dueAt?: string | null }) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateMilestone(goalId: string, milestoneId: string, patch: { name?: string; dueAt?: string | null }) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteMilestone(goalId: string, milestoneId: string) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
   },
   listSections(projectId: string) {
     return request<{ sections: Section[] }>(`/api/projects/${projectId}/sections`);

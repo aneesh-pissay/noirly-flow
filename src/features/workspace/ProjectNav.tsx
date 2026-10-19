@@ -201,6 +201,11 @@ export function ProjectNav({ workspaceId }: Props) {
           </NavLink>
         </li>
         <li>
+          <NavLink href={`/w/${workspaceId}/goals`} className={navClass(path.includes("/goals"))}>
+            Goals
+          </NavLink>
+        </li>
+        <li>
           <NavLink href={inboxHref} className={navClass(inboxActive)}>
             Inbox
           </NavLink>

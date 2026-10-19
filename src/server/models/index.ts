@@ -29,3 +29,4 @@ export { SavedFilter, type SavedFilterDocument } from "./SavedFilter";
 export { Section, type SectionDocument } from "./Section";
 export { Template, type TemplateDocument } from "./Template";
 export { TimeEntry, type TimeEntryDocument } from "./TimeEntry";
+export { Goal, type GoalDocument } from "./Goal";

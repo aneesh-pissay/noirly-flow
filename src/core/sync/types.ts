@@ -90,6 +90,9 @@ export type Task = {
   startAt: string | null;
   /** A section of the task's project, or null. */
   sectionId: string | null;
+  /** A goal this task rolls up into, and optionally one of its milestones. */
+  goalId: string | null;
+  milestoneId: string | null;
   /** Tasks that must be finished first. */
   blockedByIds: string[];
   /** A repeating task tracked as a habit. */
@@ -186,6 +189,8 @@ export type ListTasksQuery = {
   unscheduled?: boolean;
   /** Only tasks completed at or after this instant. */
   completedAfter?: string;
+  /** Only tasks linked to this goal. */
+  goalId?: string;
   search?: string;
   includeDeleted?: boolean;
 };
@@ -213,6 +218,8 @@ export type CreateTaskInput = {
   /** All-day start date, stored at local noon like an all-day due date. */
   startAt?: string | null;
   sectionId?: string | null;
+  goalId?: string | null;
+  milestoneId?: string | null;
   blockedByIds?: string[];
   deadlineAt?: string | null;
   durationMinutes?: number | null;

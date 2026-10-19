@@ -81,6 +81,9 @@ const taskSchema = new Schema(
     blockedByIds: { type: [Schema.Types.ObjectId], ref: "Task", default: [] },
     // A section of the task's project (list view grouping), or null.
     sectionId: { type: Schema.Types.ObjectId, ref: "Section", default: null },
+    // A goal the task rolls up into, and optionally one of its milestones.
+    goalId: { type: Schema.Types.ObjectId, ref: "Goal", default: null },
+    milestoneId: { type: Schema.Types.ObjectId, default: null },
     // A hard "must be done by" date, separate from the planned due date. All-day, at local noon.
     deadlineAt: { type: Date, default: null },
     // How long the task should take, in minutes; null when not estimated.
@@ -149,6 +152,7 @@ taskSchema.index({ deletedAt: 1, status: 1, dueAt: 1, emailCheckedAt: 1 });
 taskSchema.index({ reminderSentAt: 1, reminderAt: 1 });
 taskSchema.index({ workspaceId: 1, habit: 1 });
 taskSchema.index({ seriesId: 1, dueAt: -1 });
+taskSchema.index({ goalId: 1, status: 1 });
 taskSchema.index({ "emailDeliveries.assignmentPending": 1, emailCheckedAt: 1 });
 taskSchema.index({ "completionDeliveries.pending": 1, emailCheckedAt: 1 });
 

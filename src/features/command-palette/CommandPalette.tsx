@@ -274,6 +274,13 @@ export function CommandPalette({ workspaces }: Props) {
                 Review
               </Command.Item>
               <Command.Item
+                value="goals milestones objectives"
+                onSelect={() => go(`/w/${activeWorkspaceId}/goals`)}
+                className={itemClass}
+              >
+                Goals
+              </Command.Item>
+              <Command.Item
                 value="filters saved searches new filter"
                 onSelect={() => go(`/w/${activeWorkspaceId}/filters`)}
                 className={itemClass}
