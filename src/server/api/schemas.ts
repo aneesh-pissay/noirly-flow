@@ -224,6 +224,54 @@ export const decideApprovalBodySchema = z.object({
   note: z.string().max(1000).nullable().optional(),
 });
 
+const objectId = z.string().regex(/^[a-f0-9]{24}$/i);
+const statusSchema = z.enum(["todo", "in_progress", "done", "canceled"]);
+const prioritySchema = z.enum(["none", "low", "medium", "high", "urgent"]);
+
+const automationTriggerSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("created") }),
+  z.object({ type: z.literal("status_changed"), to: statusSchema.nullable().optional() }),
+  z.object({ type: z.literal("priority_changed"), to: prioritySchema.nullable().optional() }),
+  z.object({ type: z.literal("assignee_added") }),
+]);
+
+const automationConditionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("priority_is"), value: prioritySchema }),
+  z.object({ type: z.literal("has_tag"), value: objectId }),
+  z.object({ type: z.literal("assigned_to"), value: objectId }),
+  z.object({ type: z.literal("in_section"), value: objectId }),
+  z.object({ type: z.literal("title_contains"), value: z.string().trim().min(1).max(100) }),
+]);
+
+const automationActionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("set_status"), value: statusSchema }),
+  z.object({ type: z.literal("set_priority"), value: prioritySchema }),
+  z.object({ type: z.literal("add_tag"), value: objectId }),
+  z.object({ type: z.literal("add_assignee"), value: objectId }),
+  z.object({ type: z.literal("move_to_section"), value: objectId }),
+  z.object({ type: z.literal("set_due_in_days"), value: z.number().int().min(0).max(365) }),
+]);
+
+export const createAutomationBodySchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  enabled: z.boolean().optional(),
+  trigger: automationTriggerSchema,
+  conditions: z.array(automationConditionSchema).max(5).default([]),
+  actions: z.array(automationActionSchema).min(1).max(5),
+  timeZone: z.string().max(64).optional(),
+});
+
+export const updateAutomationBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(80).optional(),
+    enabled: z.boolean().optional(),
+    trigger: automationTriggerSchema.optional(),
+    conditions: z.array(automationConditionSchema).max(5).optional(),
+    actions: z.array(automationActionSchema).min(1).max(5).optional(),
+    timeZone: z.string().max(64).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
 export const createSectionBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
 });

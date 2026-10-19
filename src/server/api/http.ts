@@ -11,6 +11,7 @@ import {
 import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser } from "@/src/server/models";
 import { createMongoSyncProvider } from "@/src/server/providers/mongo-sync-provider";
+import { withAutomations } from "@/src/server/automations";
 
 export type FlowSessionContext = {
   identitySub: string;
@@ -79,7 +80,7 @@ export const getSyncProvider = cache(async () => {
     await enforceAccountRateLimit(ctx.userId);
     return {
       ctx,
-      sync: createMongoSyncProvider({ userId: ctx.userId }),
+      sync: withAutomations(createMongoSyncProvider({ userId: ctx.userId }), ctx.userId),
       personal: null as PersonalWorkspaceSummary | null,
     };
   }
@@ -106,7 +107,7 @@ export const getSyncProvider = cache(async () => {
 
   return {
     ctx,
-    sync: createMongoSyncProvider({ userId: ctx.userId }),
+    sync: withAutomations(createMongoSyncProvider({ userId: ctx.userId }), ctx.userId),
     personal: account.personalWorkspace as PersonalWorkspaceSummary,
   };
 });

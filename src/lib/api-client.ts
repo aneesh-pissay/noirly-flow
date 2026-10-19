@@ -5,6 +5,7 @@ import type { Occurrence } from "@/src/core/habits";
 import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
 import type { Goal } from "@/src/core/goals";
 import type { Approval } from "@/src/core/approvals";
+import type { AutomationAction, AutomationCondition, AutomationRule, AutomationTrigger } from "@/src/core/automations";
 import type { FieldType, ProjectField } from "@/src/core/custom-fields";
 import type { PendingInvite } from "@/src/server/workspace/members";
 import type {
@@ -476,6 +477,18 @@ export const api = {
   },
   deleteMilestone(goalId: string, milestoneId: string) {
     return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
+  },
+  listAutomations(projectId: string) {
+    return request<{ rules: AutomationRule[] }>(`/api/projects/${projectId}/automations`);
+  },
+  createAutomation(projectId: string, input: { name: string; trigger: AutomationTrigger; conditions: AutomationCondition[]; actions: AutomationAction[]; timeZone?: string }) {
+    return request<{ rule: AutomationRule }>(`/api/projects/${projectId}/automations`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateAutomation(ruleId: string, patch: { name?: string; enabled?: boolean }) {
+    return request<{ rule: AutomationRule }>(`/api/automations/${ruleId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteAutomation(ruleId: string) {
+    return request<{ ok: boolean }>(`/api/automations/${ruleId}`, { method: "DELETE" });
   },
   listFields(projectId: string) {
     return request<{ fields: ProjectField[] }>(`/api/projects/${projectId}/fields`);

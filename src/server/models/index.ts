@@ -31,3 +31,4 @@ export { Template, type TemplateDocument } from "./Template";
 export { TimeEntry, type TimeEntryDocument } from "./TimeEntry";
 export { Goal, type GoalDocument } from "./Goal";
 export { ProjectField, type ProjectFieldDocument } from "./ProjectField";
+export { AutomationRule, type AutomationRuleDocument } from "./AutomationRule";

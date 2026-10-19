@@ -77,6 +77,14 @@ const addDays = (d: Day, days: number) => fromValue(dayValue(d) + days * 86_400_
 /** 0 = Monday … 6 = Sunday, so a week runs Monday to Sunday. */
 const mondayIndex = (d: Day) => (new Date(dayValue(d)).getUTCDay() + 6) % 7;
 
+/** Noon, `days` calendar days after `now`, in a zone: how all-day dates are stored. */
+export function noonInDays(now: Date, days: number, timeZone: string): Date {
+  const zone = isTimeZone(timeZone) ? timeZone : serverZone();
+  const today = toWall(now, zone);
+  const day = addDays({ year: today.year, month: today.month, day: today.day }, days);
+  return fromWall({ ...day, hour: 12, minute: 0, second: 0, ms: 0 }, zone);
+}
+
 function addMonths(d: Day, months: number, monthDay: number): Day {
   const total = d.month + months;
   const year = d.year + Math.floor(total / 12);

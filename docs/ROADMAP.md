@@ -21,7 +21,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 2. Capture and organisation | 10 / 10 |
 | 3. Planning and calendar | 5 / 7 |
 | 4. Productivity | 6 / 6 |
-| 5. Collaboration and automation | 3 / 8 |
+| 5. Collaboration and automation | 4 / 8 |
 | 6. AI | 0 / 9 |
 | 7. Platform and data | 0 / 7 |
 
@@ -82,7 +82,7 @@ _Needs Phase 1._
 - [x] Custom fields per project: text, number, select, date, person (L) — done 2026-10-19
 - [x] Email invites, plus listing and revoking pending invites (S) — done 2026-10-19
 - [x] Approval workflow: request, approve, reject on a task (M) — done 2026-10-19
-- [ ] Automations: "when X, if Y, then Z" rules per project (L)
+- [x] Automations: "when X, if Y, then Z" rules per project (L) — done 2026-10-19
 - [ ] Public API with personal access tokens (M)
 - [ ] Outgoing webhooks — build on a shared Noirly package so other apps reuse it (M)
 - [ ] Forms and task intake: a public form that creates tasks in a project (M)

@@ -54,6 +54,8 @@ export function describeActivity(
       return `${actor} commented`;
     case "approval.requested":
       return `${actor} asked ${memberName(members, String(meta.approverId ?? ""))} to approve`;
+    case "automation.ran":
+      return typeof meta.rule === "string" ? `Automation “${meta.rule}” ran for ${actor}` : `An automation ran for ${actor}`;
     case "approval.approved":
       return `${actor} approved`;
     case "approval.rejected":
