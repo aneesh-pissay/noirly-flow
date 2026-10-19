@@ -272,6 +272,17 @@ export const updateAutomationBodySchema = z
   })
   .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
+const webhookEventsSchema = z.array(z.enum(["task.created", "task.updated", "task.completed", "task.deleted", "comment.created"])).min(1).max(5);
+
+export const createWebhookBodySchema = z.object({
+  url: z.string().trim().min(1).max(2000),
+  events: webhookEventsSchema,
+});
+
+export const updateWebhookBodySchema = z
+  .object({ url: z.string().trim().min(1).max(2000).optional(), events: webhookEventsSchema.optional(), enabled: z.boolean().optional() })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
 export const createAccessTokenBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
   scope: z.enum(["read", "write"]),

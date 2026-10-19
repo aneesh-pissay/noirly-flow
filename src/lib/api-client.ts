@@ -6,6 +6,7 @@ import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
 import type { Goal } from "@/src/core/goals";
 import type { Approval } from "@/src/core/approvals";
 import type { AccessTokenView, TokenScope } from "@/src/core/access-tokens";
+import type { DeliveryView, WebhookEventType, WebhookView } from "@/src/core/webhooks";
 import type { AutomationAction, AutomationCondition, AutomationRule, AutomationTrigger } from "@/src/core/automations";
 import type { FieldType, ProjectField } from "@/src/core/custom-fields";
 import type { PendingInvite } from "@/src/server/workspace/members";
@@ -478,6 +479,30 @@ export const api = {
   },
   deleteMilestone(goalId: string, milestoneId: string) {
     return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
+  },
+  listWebhooks(workspaceId: string) {
+    return request<{ webhooks: WebhookView[] }>(`/api/workspaces/${workspaceId}/webhooks`);
+  },
+  createWebhook(workspaceId: string, input: { url: string; events: WebhookEventType[] }) {
+    return request<{ webhook: WebhookView; secret: string }>(`/api/workspaces/${workspaceId}/webhooks`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateWebhook(webhookId: string, patch: { url?: string; events?: WebhookEventType[]; enabled?: boolean }) {
+    return request<{ webhook: WebhookView }>(`/api/webhooks/${webhookId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteWebhook(webhookId: string) {
+    return request<{ ok: boolean }>(`/api/webhooks/${webhookId}`, { method: "DELETE" });
+  },
+  rotateWebhookSecret(webhookId: string) {
+    return request<{ secret: string }>(`/api/webhooks/${webhookId}/secret`, { method: "POST" });
+  },
+  testWebhook(webhookId: string) {
+    return request<{ delivery: DeliveryView }>(`/api/webhooks/${webhookId}/test`, { method: "POST" });
+  },
+  listWebhookDeliveries(webhookId: string) {
+    return request<{ deliveries: DeliveryView[] }>(`/api/webhooks/${webhookId}/deliveries`);
+  },
+  redeliverWebhook(webhookId: string, deliveryId: string) {
+    return request<{ delivery: DeliveryView }>(`/api/webhooks/${webhookId}/deliveries/${deliveryId}/redeliver`, { method: "POST" });
   },
   listAccessTokens() {
     return request<{ tokens: AccessTokenView[] }>("/api/me/tokens");

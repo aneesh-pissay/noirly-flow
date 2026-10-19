@@ -58,6 +58,21 @@ Project automations run after creates and updates made through the API, as the t
 | GET, POST | `/api/workspaces/{workspaceId}/filters` · PATCH, DELETE `/api/filters/{filterId}` |
 | GET, POST | `/api/workspaces/{workspaceId}/templates` · POST `/api/templates/{templateId}/apply` |
 
+## Webhooks
+
+Admins add webhooks in workspace settings. Each event is a `POST` of `{ id, type, createdAt, data }` where `data` is the task (or the comment, with its `projectId`). Events: `task.created`, `task.updated`, `task.completed` (sent with `task.updated` when a task is finished), `task.deleted`, `comment.created`, and `ping` from **Send test**.
+
+Check `Noirly-Signature` (`t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`) against your signing secret, reject timestamps more than 5 minutes off, and use `Noirly-Delivery` to skip repeats: retries send the same id. Answer with a 2xx within 10 seconds. `verifySignature` in `@noirly-dev/webhooks` does the check for you.
+
+| Method | Path |
+| --- | --- |
+| GET, POST | `/api/workspaces/{workspaceId}/webhooks` (POST returns the secret once) |
+| PATCH, DELETE | `/api/webhooks/{webhookId}` |
+| POST | `/api/webhooks/{webhookId}/secret` (rotate) · `/test` |
+| GET | `/api/webhooks/{webhookId}/deliveries` · POST `…/deliveries/{deliveryId}/redeliver` |
+
+Adding, changing or rotating a webhook needs you signed in, not an access token.
+
 ## You
 
 | Method | Path |

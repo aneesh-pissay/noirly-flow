@@ -12,6 +12,7 @@ import { TagManager } from "@/src/features/tags/tags";
 import { TemplateManager } from "@/src/features/templates/templates";
 import { useUIStore } from "@/src/stores/ui-store";
 import { SpaceLinkSection } from "@/src/features/workspace/SpaceLinkSection";
+import { WebhooksSection } from "@/src/features/webhooks/WebhooksSection";
 
 const sectionClass = "border border-[var(--hairline)] bg-[var(--surface)] p-5";
 const kickerClass =
@@ -157,6 +158,8 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
       </section>
 
       {!personal ? <SpaceLinkSection workspaceId={workspaceId} /> : null}
+
+      {canRename ? <WebhooksSection workspaceId={workspaceId} /> : null}
 
       {!personal && canDelete ? (
         <section className={`${sectionClass} border-red-500/40`}>

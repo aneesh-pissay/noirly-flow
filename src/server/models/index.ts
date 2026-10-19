@@ -33,3 +33,4 @@ export { Goal, type GoalDocument } from "./Goal";
 export { ProjectField, type ProjectFieldDocument } from "./ProjectField";
 export { AutomationRule, type AutomationRuleDocument } from "./AutomationRule";
 export { AccessToken, type AccessTokenDocument } from "./AccessToken";
+export { Webhook, WebhookDelivery, type WebhookDocument, type WebhookDeliveryDocument } from "./Webhook";
