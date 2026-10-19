@@ -2,6 +2,7 @@ import { dueRange, type DuePreset } from "@/src/features/task/dates";
 import type { Template } from "@/src/core/templates";
 import type { TimeEntryView } from "@/src/core/time-tracking";
 import type { Occurrence } from "@/src/core/habits";
+import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
 import type {
   ActivityEvent,
   AppNotification,
@@ -501,6 +502,11 @@ export const api = {
   },
   listHabits(workspaceId: string) {
     return request<{ habits: Array<{ seriesId: string; task: Task; occurrences: Occurrence[] }> }>(`/api/workspaces/${workspaceId}/habits`);
+  },
+  myStats(workspaceId: string, since: string) {
+    return request<{ completed: CompletedRow[]; open: OpenRow[]; time: TimeRow[] }>(
+      `/api/workspaces/${workspaceId}/stats?since=${encodeURIComponent(since)}`,
+    );
   },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);
