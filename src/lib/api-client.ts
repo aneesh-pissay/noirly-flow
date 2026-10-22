@@ -336,7 +336,7 @@ export const api = {
   },
   updateProject(
     projectId: string,
-    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean },
+    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean; defaultView?: Project["defaultView"] },
   ) {
     return request<{ project: Project }>(`/api/projects/${projectId}`, {
       method: "PATCH",
@@ -485,6 +485,9 @@ export const api = {
   },
   deleteMilestone(goalId: string, milestoneId: string) {
     return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
+  },
+  customizeWorkspace(workspaceId: string, patch: { icon?: string | null; color?: string | null; defaultView?: Workspace["defaultView"]; statusNames?: Partial<Workspace["statusNames"]> }) {
+    return request<{ workspace: Workspace }>(`/api/workspaces/${workspaceId}/customization`, { method: "PATCH", body: JSON.stringify(patch) });
   },
   listForms(projectId: string) {
     return request<{ forms: IntakeForm[] }>(`/api/projects/${projectId}/forms`);

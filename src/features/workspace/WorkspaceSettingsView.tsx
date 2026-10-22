@@ -13,8 +13,9 @@ import { TemplateManager } from "@/src/features/templates/templates";
 import { useUIStore } from "@/src/stores/ui-store";
 import { SpaceLinkSection } from "@/src/features/workspace/SpaceLinkSection";
 import { WebhooksSection } from "@/src/features/webhooks/WebhooksSection";
+import { WorkspaceCustomization } from "@/src/features/workspace/WorkspaceCustomization";
 
-const sectionClass = "border border-[var(--hairline)] bg-[var(--surface)] p-5";
+const sectionClass = "border border-[var(--hairline)] bg-[var(--surface)] p-5 scroll-mt-6";
 const kickerClass =
   "font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]";
 
@@ -88,6 +89,17 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
   }
 
   const trimmed = name.trim();
+  const sections = [
+    { id: "general", label: "General" },
+    { id: "appearance", label: "Appearance" },
+    { id: "defaults", label: "Defaults" },
+    { id: "statuses", label: "Statuses" },
+    { id: "tags", label: "Tags" },
+    { id: "templates", label: "Templates" },
+    ...(!personal ? [{ id: "space", label: "Space" }] : []),
+    ...(canRename ? [{ id: "webhooks", label: "Webhooks" }] : []),
+    ...(!personal && canDelete ? [{ id: "danger", label: "Danger zone" }] : []),
+  ];
 
   return (
     <PageContainer size="sm" className="max-w-2xl">
@@ -96,12 +108,20 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
         title={`${workspace.name} settings`}
         lead={
           personal
-            ? "Your personal workspace is private to you and can't be renamed or deleted."
-            : "Rename this workspace or delete it with everything in it."
+            ? "Your personal workspace is private to you. You can change how it looks and works, but not rename or delete it."
+            : "How this workspace looks and works, its tags, templates and integrations."
         }
       />
 
-      <section className={sectionClass}>
+      <nav aria-label="Settings sections" className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+        {sections.map((section) => (
+          <a key={section.id} href={`#${section.id}`} className="text-[var(--muted-foreground)] underline-offset-2 hover:text-[var(--foreground)] hover:underline">
+            {section.label}
+          </a>
+        ))}
+      </nav>
+
+      <section id="general" className={sectionClass}>
         <p className={kickerClass}>General</p>
         <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Name</h2>
         <form
@@ -145,24 +165,26 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
         ) : null}
       </section>
 
-      <section className={sectionClass}>
+      <WorkspaceCustomization workspace={workspace} canEdit={canRename} />
+
+      <section id="tags" className={sectionClass}>
         <p className={kickerClass}>Tags</p>
         <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Names and colours</h2>
         <TagManager workspaceId={workspaceId} canEdit={canEditTags} />
       </section>
 
-      <section className={sectionClass}>
+      <section id="templates" className={sectionClass}>
         <p className={kickerClass}>Templates</p>
         <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Task and project templates</h2>
         <TemplateManager workspaceId={workspaceId} canEdit={canEditTags} />
       </section>
 
-      {!personal ? <SpaceLinkSection workspaceId={workspaceId} /> : null}
+      {!personal ? <div id="space" className="scroll-mt-6"><SpaceLinkSection workspaceId={workspaceId} /></div> : null}
 
-      {canRename ? <WebhooksSection workspaceId={workspaceId} /> : null}
+      {canRename ? <div id="webhooks" className="scroll-mt-6"><WebhooksSection workspaceId={workspaceId} /></div> : null}
 
       {!personal && canDelete ? (
-        <section className={`${sectionClass} border-red-500/40`}>
+        <section id="danger" className={`${sectionClass} border-red-500/40`}>
           <p className={`${kickerClass} text-red-600 dark:text-red-400`}>Danger zone</p>
           <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">
             Delete workspace

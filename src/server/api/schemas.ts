@@ -384,6 +384,7 @@ export const updateProjectBodySchema = z
     description: z.string().trim().max(2000).nullable().optional(),
     color: z.string().regex(/^#([0-9a-fA-F]{6})$/).nullable().optional(),
     archived: z.boolean().optional(),
+    defaultView: z.enum(["board", "list", "calendar", "gantt"]).optional(),
   })
   .refine((value) => Object.values(value).some((field) => field !== undefined), {
     message: "Nothing to update",
@@ -416,6 +417,17 @@ export const createWorkspaceBodySchema = z.object({
 });
 
 export const updateWorkspaceBodySchema = createWorkspaceBodySchema;
+
+const statusName = z.string().trim().max(24).nullable().optional();
+
+export const customizeWorkspaceBodySchema = z
+  .object({
+    icon: z.string().max(16).nullable().optional(),
+    color: z.string().regex(/^#([0-9a-fA-F]{6})$/).nullable().optional(),
+    defaultView: z.enum(["board", "list", "calendar", "gantt"]).optional(),
+    statusNames: z.object({ todo: statusName, in_progress: statusName, done: statusName, canceled: statusName }).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
 export const createInviteBodySchema = z.object({
   role: z.enum(["admin", "member", "viewer"]).default("member"),

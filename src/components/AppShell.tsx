@@ -23,6 +23,7 @@ import { FocusTimer } from "@/src/features/focus/FocusTimer";
 import { RunningTimerChip } from "@/src/features/time/TaskTime";
 import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
+import { WorkspaceIcon } from "@/src/features/workspace/workspace-look";
 import { useOptimisticPath } from "@/src/components/NavLink";
 import { ThemeControls } from "@/src/components/ThemeControls";
 import { AppSwitcher } from "@/src/components/AppSwitcher";
@@ -187,7 +188,10 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
                     return (
                       <li key={workspace.id}>
                         <Link href={href} className={workspaceLinkClass(active)}>
-                          <span className="truncate">{workspace.name}</span>
+                          <span className="flex min-w-0 items-center gap-2">
+                            <WorkspaceIcon workspace={workspace} />
+                            <span className="truncate">{workspace.name}</span>
+                          </span>
                           {workspace.kind.toLowerCase() !==
                           workspace.name.toLowerCase() ? (
                             <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide opacity-60">

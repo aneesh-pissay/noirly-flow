@@ -1,6 +1,7 @@
 import { asRecurrenceRule } from "@/src/core/recurrence/next";
 import type { Types } from "mongoose";
 import type { Approval } from "@/src/core/approvals";
+import { statusNamesFor } from "@/src/core/workspace-settings";
 import type {
   ActivityEvent,
   BoardColumn,
@@ -31,6 +32,10 @@ export function mapWorkspace(doc: {
   ownerUserId: Types.ObjectId;
   spaceId?: string | null;
   spaceName?: string | null;
+  icon?: string | null;
+  color?: string | null;
+  defaultView?: string | null;
+  statusNames?: Partial<Record<TaskStatus, string | null>> | null;
   createdAt: Date;
   updatedAt: Date;
 }): Workspace {
@@ -42,6 +47,10 @@ export function mapWorkspace(doc: {
     ownerUserId: doc.ownerUserId.toString(),
     spaceId: doc.spaceId ?? null,
     spaceName: doc.spaceName ?? null,
+    icon: doc.icon ?? null,
+    color: doc.color ?? null,
+    defaultView: (doc.defaultView ?? "board") as Workspace["defaultView"],
+    statusNames: statusNamesFor(doc.statusNames),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   };

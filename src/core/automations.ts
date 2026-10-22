@@ -123,12 +123,20 @@ export const PRIORITY_LABEL: Record<TaskPriority, string> = { none: "None", low:
 export { TASK_PRIORITIES, TASK_STATUSES };
 
 /** Names for ids a rule points at (tags, people, sections). */
-export type RuleNames = { tag: (id: string) => string; person: (id: string) => string; section: (id: string) => string };
+export type RuleNames = {
+  tag: (id: string) => string;
+  person: (id: string) => string;
+  section: (id: string) => string;
+  /** The workspace's status names; the defaults when left out. */
+  status?: Partial<Record<TaskStatus, string>>;
+};
 
-export function describeTrigger(trigger: AutomationTrigger) {
+const statusName = (status: TaskStatus, names?: RuleNames) => names?.status?.[status] ?? STATUS_LABEL[status];
+
+export function describeTrigger(trigger: AutomationTrigger, names?: RuleNames) {
   switch (trigger.type) {
     case "created": return "a task is created";
-    case "status_changed": return trigger.to ? `a task moves to ${STATUS_LABEL[trigger.to]}` : "a task's status changes";
+    case "status_changed": return trigger.to ? `a task moves to ${statusName(trigger.to, names)}` : "a task's status changes";
     case "priority_changed": return trigger.to ? `a task's priority becomes ${PRIORITY_LABEL[trigger.to]}` : "a task's priority changes";
     case "assignee_added": return "someone is assigned";
   }
@@ -146,7 +154,7 @@ export function describeCondition(condition: AutomationCondition, names: RuleNam
 
 export function describeAction(action: AutomationAction, names: RuleNames) {
   switch (action.type) {
-    case "set_status": return `set status to ${STATUS_LABEL[action.value]}`;
+    case "set_status": return `set status to ${statusName(action.value, names)}`;
     case "set_priority": return `set priority to ${PRIORITY_LABEL[action.value]}`;
     case "add_tag": return `add tag ${names.tag(action.value)}`;
     case "add_assignee": return `assign ${names.person(action.value)}`;
@@ -157,7 +165,7 @@ export function describeAction(action: AutomationAction, names: RuleNames) {
 
 /** "When …, if … and …, then … and …". */
 export function describeRule(rule: Pick<AutomationRule, "trigger" | "conditions" | "actions">, names: RuleNames) {
-  const when = `When ${describeTrigger(rule.trigger)}`;
+  const when = `When ${describeTrigger(rule.trigger, names)}`;
   const condition = rule.conditions.length ? `, if ${rule.conditions.map((c) => describeCondition(c, names)).join(" and ")}` : "";
   const then = `, then ${rule.actions.map((a) => describeAction(a, names)).join(" and ")}`;
   return `${when}${condition}${then}.`;

@@ -29,6 +29,7 @@ import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { GoalSelect, goalsKey } from "@/src/features/goals/goals";
 import { TaskFieldsEditor } from "@/src/features/fields/fields";
 import { ApprovalPanel } from "@/src/features/approvals/approvals";
+import { useStatusOptions } from "@/src/features/workspace/workspace-look";
 import type { FieldValue } from "@/src/core/custom-fields";
 import {
   patchCachedTask,
@@ -37,12 +38,6 @@ import {
   upsertCachedTask,
 } from "@/src/features/task/task-cache";
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: "todo", label: "Todo" },
-  { value: "in_progress", label: "In progress" },
-  { value: "done", label: "Done" },
-  { value: "canceled", label: "Canceled" },
-];
 
 /** The priority <select> is tinted; keep its open list in the normal text colour. */
 const OPTION_CLASS = "text-[var(--foreground)]";
@@ -64,6 +59,7 @@ type Props = {
 const noSubscribe = () => () => {};
 
 export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props) {
+  const STATUS_OPTIONS = useStatusOptions();
   const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
   const queryClient = useQueryClient();
   const canWrite = useCan("task.write");

@@ -21,7 +21,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 2. Capture and organisation | 10 / 10 |
 | 3. Planning and calendar | 5 / 7 |
 | 4. Productivity | 6 / 6 |
-| 5. Collaboration and automation | 7 / 8 |
+| 5. Collaboration and automation | 8 / 8 |
 | 6. AI | 0 / 9 |
 | 7. Platform and data | 0 / 7 |
 
@@ -86,7 +86,7 @@ _Needs Phase 1._
 - [x] Public API with personal access tokens (M) — done 2026-10-19
 - [x] Outgoing webhooks — build on a shared Noirly package so other apps reuse it (M) — done 2026-10-19 (package in `noirly-webhooks`; publish it, then switch Flow off the local `file:` link)
 - [x] Forms and task intake: a public form that creates tasks in a project (M) — done 2026-10-22
-- [ ] Workspace customisation: default view, statuses, icon, settings page (M)
+- [x] Workspace customisation: default view, statuses, icon, settings page (M) — done 2026-10-22
 
 ## Phase 6 — AI
 

@@ -20,6 +20,7 @@ import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
 import { ProjectFieldsButton, TaskFieldChips } from "@/src/features/fields/fields";
 import { ApprovalBadge } from "@/src/features/approvals/approvals";
+import { useStatusOptions } from "@/src/features/workspace/workspace-look";
 import { ProjectAutomationsButton } from "@/src/features/automations/automations";
 import { ProjectFormsButton } from "@/src/features/forms/forms";
 import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
@@ -44,12 +45,6 @@ import {
   upsertCachedTask,
 } from "@/src/features/task/task-cache";
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: "todo", label: "Todo" },
-  { value: "in_progress", label: "In progress" },
-  { value: "done", label: "Done" },
-  { value: "canceled", label: "Canceled" },
-];
 
 /** The priority <select> is tinted; keep its open list in the normal text colour. */
 const OPTION_CLASS = "text-[var(--foreground)]";
@@ -82,6 +77,7 @@ type Props = {
 };
 
 export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
+  const STATUS_OPTIONS = useStatusOptions();
   const queryClient = useQueryClient();
   // useSearchParams follows router.push (command palette), pushState
   // (writeTaskParam) and back/forward, so a changed ?task= opens the drawer.
@@ -92,9 +88,8 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     setSeenUrlTaskId(urlTaskId);
     setDrawerTaskId(urlTaskId);
   }
-  const [view, setView] = useState<"list" | "board" | "calendar" | "gantt">(
-    projectId ? "board" : "list",
-  );
+  // Null until someone picks a view; until then the project opens in its default.
+  const [chosenView, setView] = useState<"list" | "board" | "calendar" | "gantt" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -206,6 +201,12 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     queryKey: projectId ? qk.project(projectId) : ["project", "none"],
     queryFn: () => api.getProject(projectId!),
     enabled: Boolean(projectId),
+  });
+  const projectView = projectQuery.data?.project.defaultView;
+  const view = chosenView ?? projectView ?? (projectId ? "board" : "list");
+  const makeDefaultView = useMutation({
+    mutationFn: () => api.updateProject(projectId!, { defaultView: view }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.project(projectId!) }),
   });
 
   const membersQuery = useQuery({
@@ -481,6 +482,17 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
                 Gantt
               </button>
             ) : null}
+            {projectId && canWrite && projectView && view !== projectView ? (
+              <button
+                type="button"
+                onClick={() => makeDefaultView.mutate()}
+                disabled={makeDefaultView.isPending}
+                title="Open this project in this view for everyone"
+                className="rounded-xl px-3 py-2 text-sm text-[var(--muted-foreground)] underline-offset-2 hover:text-[var(--foreground)] hover:underline disabled:opacity-50"
+              >
+                Make default
+              </button>
+            ) : null}
             {projectId ? (
               <Link
                 href={`/w/${workspaceId}/p/${projectId}/chat`}
@@ -746,6 +758,7 @@ function TaskList({
   onDueChange: (taskId: string, dueAt: string | null, dueHasTime: boolean) => void;
   onDelete: (taskId: string) => void;
 }) {
+  const STATUS_OPTIONS = useStatusOptions();
   if (tasks.length === 0) {
     return (
       <p className="border border-[var(--hairline)] px-4 py-10 text-center text-sm text-[var(--muted-foreground)]">

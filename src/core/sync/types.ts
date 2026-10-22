@@ -1,5 +1,6 @@
 import type { FieldValues } from "@/src/core/custom-fields";
 import type { Approval } from "@/src/core/approvals";
+import type { OpenView, StatusNames } from "@/src/core/workspace-settings";
 import type {
   COLUMN_STATUSES,
   MemberRole,
@@ -19,6 +20,14 @@ export type Workspace = {
   /** The Noirly space this team follows; members are managed there while set. */
   spaceId?: string | null;
   spaceName?: string | null;
+  /** One emoji, or null for the name's first letter. */
+  icon: string | null;
+  /** The icon's background, a hex colour, or null. */
+  color: string | null;
+  /** The view new projects open in. */
+  defaultView: OpenView;
+  /** The workspace's names for the four statuses. */
+  statusNames: StatusNames;
   createdAt: string;
   updatedAt: string;
 };
@@ -297,7 +306,7 @@ export interface SyncProvider {
   createProject(input: CreateProjectInput): Promise<Project>;
   updateProject(
     projectId: string,
-    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean },
+    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean; defaultView?: ProjectView },
   ): Promise<Project>;
   deleteProject(projectId: string): Promise<void>;
 

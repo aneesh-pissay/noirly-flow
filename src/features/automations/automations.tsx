@@ -7,18 +7,19 @@ import { Zap } from "lucide-react";
 import { api } from "@/src/lib/api-client";
 import { qk } from "@/src/core/sync/query-keys";
 import {
-  MAX_STEPS, PRIORITY_LABEL, STATUS_LABEL, TASK_PRIORITIES, TASK_STATUSES, describeRule,
+  MAX_STEPS, PRIORITY_LABEL, TASK_PRIORITIES, TASK_STATUSES, describeRule,
   type AutomationAction, type AutomationCondition, type AutomationRule, type AutomationTrigger, type RuleNames,
 } from "@/src/core/automations";
 import { useTags } from "@/src/features/tags/tags";
 import { useSections } from "@/src/features/task/ProjectSections";
 import { memberName } from "@/src/features/workspace/members";
+import { useStatusNames } from "@/src/features/workspace/workspace-look";
 
 const inputClass = "h-9 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)]";
 const smallButton = "rounded-[var(--r-sm)] border border-[var(--hairline)] px-2 py-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] disabled:opacity-50";
 
 type Choice = { value: string; label: string };
-type Lookups = { tags: Choice[]; people: Choice[]; sections: Choice[] };
+type Lookups = { tags: Choice[]; people: Choice[]; sections: Choice[]; status: Record<(typeof TASK_STATUSES)[number], string> };
 
 const CONDITION_TYPES: Array<{ type: AutomationCondition["type"]; label: string }> = [
   { type: "priority_is", label: "Priority is" },
@@ -46,7 +47,7 @@ function choicesFor(type: string, lookups: Lookups): Choice[] | null {
     case "set_priority":
       return TASK_PRIORITIES.map((value) => ({ value, label: PRIORITY_LABEL[value] }));
     case "set_status":
-      return TASK_STATUSES.map((value) => ({ value, label: STATUS_LABEL[value] }));
+      return TASK_STATUSES.map((value) => ({ value, label: lookups.status[value] }));
     case "has_tag":
     case "add_tag":
       return lookups.tags;
@@ -91,15 +92,18 @@ function AutomationManager({ workspaceId, projectId, canWrite }: { workspaceId: 
   const tags = useTags(workspaceId).data?.tags ?? [];
   const members = useQuery({ queryKey: qk.members(workspaceId), queryFn: () => api.listMembers(workspaceId) }).data?.members ?? [];
   const sections = useSections(projectId).data?.sections ?? [];
+  const statusNames = useStatusNames();
   const lookups: Lookups = {
     tags: tags.map((tag) => ({ value: tag.id, label: `#${tag.name}` })),
     people: members.map((member) => ({ value: member.userId, label: member.displayName })),
     sections: sections.map((section) => ({ value: section.id, label: section.name })),
+    status: statusNames,
   };
   const names: RuleNames = {
     tag: (id) => lookups.tags.find((tag) => tag.value === id)?.label ?? "a deleted tag",
     person: (id) => memberName(members, id),
     section: (id) => lookups.sections.find((section) => section.value === id)?.label ?? "a deleted section",
+    status: statusNames,
   };
 
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +210,7 @@ function AutomationManager({ workspaceId, projectId, canWrite }: { workspaceId: 
                 <select aria-label="Changes to" value={to} onChange={(event) => setTo(event.target.value)} className={inputClass}>
                   <option value="">to anything</option>
                   {(trigger === "status_changed"
-                    ? TASK_STATUSES.map((value) => ({ value, label: STATUS_LABEL[value] }))
+                    ? TASK_STATUSES.map((value) => ({ value, label: lookups.status[value] }))
                     : TASK_PRIORITIES.map((value) => ({ value, label: PRIORITY_LABEL[value] }))
                   ).map((choice) => <option key={choice.value} value={choice.value}>to {choice.label}</option>)}
                 </select>

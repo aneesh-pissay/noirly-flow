@@ -22,6 +22,7 @@ import { assertGoalLink } from "@/src/server/goals";
 import { mergeFieldValues } from "@/src/server/fields";
 import { mapApproval } from "@/src/server/mappers";
 import { blocksCompletion } from "@/src/core/approvals";
+import { statusNamesFor } from "@/src/core/workspace-settings";
 import type { FieldValues } from "@/src/core/custom-fields";
 import { withDb } from "@/src/server/db/mongodb";
 import {
@@ -436,30 +437,34 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
     async createProject(input: CreateProjectInput) {
       return withDb(async () => {
         await requireMembership(userId, input.workspaceId, "member");
+        // New projects open in the workspace's default view unless told otherwise,
+        // and their first columns take the workspace's status names.
+        const workspaceDefault = await Workspace.findById(oid(input.workspaceId)).select("defaultView statusNames").lean();
+        const statusName = statusNamesFor(workspaceDefault?.statusNames);
         const project = await Project.create({
           workspaceId: oid(input.workspaceId),
           name: input.name.trim(),
           description: input.description ?? null,
           color: input.color ?? null,
-          defaultView: input.defaultView ?? "board",
+          defaultView: input.defaultView ?? workspaceDefault?.defaultView ?? "board",
         });
 
         await BoardColumn.insertMany([
           {
             projectId: project._id,
-            name: "Todo",
+            name: statusName.todo,
             statusMapped: "todo",
             position: 1000,
           },
           {
             projectId: project._id,
-            name: "In progress",
+            name: statusName.in_progress,
             statusMapped: "in_progress",
             position: 2000,
           },
           {
             projectId: project._id,
-            name: "Done",
+            name: statusName.done,
             statusMapped: "done",
             position: 3000,
           },
@@ -481,6 +486,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (patch.name !== undefined) project.name = patch.name.trim();
         if (patch.description !== undefined) project.description = patch.description;
         if (patch.color !== undefined) project.color = patch.color;
+        if (patch.defaultView !== undefined) project.defaultView = patch.defaultView;
         if (patch.archived !== undefined && patch.archived !== wasArchived) {
           project.archivedAt = patch.archived ? new Date() : null;
           void recordActivity({

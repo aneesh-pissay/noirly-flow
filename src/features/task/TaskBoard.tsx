@@ -44,6 +44,7 @@ import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskTagChips } from "@/src/features/tags/tags";
 import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { ApprovalBadge } from "@/src/features/approvals/approvals";
+import { useStatusNames } from "@/src/features/workspace/workspace-look";
 import { PriorityBadge } from "@/src/features/task/priority";
 import type { WorkspaceMember } from "@/src/features/workspace/members";
 
@@ -298,11 +299,6 @@ export function TaskBoard({
   );
 }
 
-const STATUS_LABELS: Record<BoardStatus, string> = {
-  todo: "Todo",
-  in_progress: "In progress",
-  done: "Done",
-};
 
 const fieldClass =
   "h-9 w-full rounded-lg border border-[var(--hairline)] bg-[var(--bg)] px-2 text-sm text-[var(--foreground)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] disabled:opacity-50";
@@ -335,6 +331,7 @@ function ColumnHeader({
   onMove: (direction: -1 | 1) => void;
   onDelete: () => void;
 }) {
+  const STATUS_LABELS = useStatusNames();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(column.name);
   const status = column.status as BoardStatus;
@@ -450,6 +447,7 @@ function AddColumn({
   busy: boolean;
   onAdd: (input: { name: string; statusMapped: BoardStatus }) => Promise<unknown>;
 }) {
+  const STATUS_LABELS = useStatusNames();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [status, setStatus] = useState<BoardStatus>("in_progress");
