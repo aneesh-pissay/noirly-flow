@@ -23,8 +23,8 @@ export async function readLimitedText(request: Request, maxBytes = 256 * 1024): 
   return (await readLimitedBytes(request, maxBytes)).toString("utf8");
 }
 
-export async function readApiJson(request: Request): Promise<unknown> {
+export async function readApiJson(request: Request, maxBytes?: number): Promise<unknown> {
   if (request.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() !== "application/json") throw new ApiError(415, "unsupported_media_type", "Expected application/json");
-  const text = await readLimitedText(request);
+  const text = await readLimitedText(request, maxBytes);
   try { return JSON.parse(text); } catch { throw new ApiError(400, "invalid_json", "Invalid JSON body"); }
 }

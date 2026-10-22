@@ -6,6 +6,7 @@ import { Button } from "@noirly-dev/ui";
 import { Download } from "lucide-react";
 import { api } from "@/src/lib/api-client";
 import type { BackupSettings } from "@/src/server/backups";
+import { ImportSection } from "@/src/features/workspace/ImportSection";
 
 const kickerClass = "font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]";
 const linkButton = "inline-flex h-10 items-center gap-1.5 rounded-xl border border-[var(--hairline)] px-4 text-sm text-[var(--foreground)] hover:bg-[var(--surface-2)]";
@@ -14,7 +15,7 @@ const size = (bytes: number) => (bytes < 1024 ? `${bytes} B` : bytes < 1024 * 10
 const when = (iso: string) => new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso));
 
 /** Workspace settings → Data: downloads for everyone, backups for admins. */
-export function DataSection({ workspaceId, isAdmin }: { workspaceId: string; isAdmin: boolean }) {
+export function DataSection({ workspaceId, isAdmin, canWrite }: { workspaceId: string; isAdmin: boolean; canWrite: boolean }) {
   return (
     <section id="data" aria-labelledby="data-title" className="scroll-mt-6 border border-[var(--hairline)] bg-[var(--surface)] p-5">
       <p className={kickerClass}>Data</p>
@@ -34,6 +35,7 @@ export function DataSection({ workspaceId, isAdmin }: { workspaceId: string; isA
           <Download size={14} aria-hidden />Tasks (CSV)
         </a>
       </div>
+      {canWrite ? <ImportSection workspaceId={workspaceId} /> : null}
       {isAdmin ? <Backups workspaceId={workspaceId} /> : null}
     </section>
   );

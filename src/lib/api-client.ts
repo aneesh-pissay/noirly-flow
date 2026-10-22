@@ -10,6 +10,8 @@ import type { AccessTokenView, TokenScope } from "@/src/core/access-tokens";
 import type { DeliveryView, WebhookEventType, WebhookView } from "@/src/core/webhooks";
 import type { IntakeForm, QuestionKind } from "@/src/core/forms";
 import type { BackupSettings, BackupView } from "@/src/server/backups";
+import type { ImportResult } from "@/src/server/import";
+import type { ImportTask } from "@/src/core/import";
 import type { AutomationAction, AutomationCondition, AutomationRule, AutomationTrigger } from "@/src/core/automations";
 import type { FieldType, ProjectField } from "@/src/core/custom-fields";
 import type { PendingInvite } from "@/src/server/workspace/members";
@@ -498,6 +500,9 @@ export const api = {
   },
   customizeWorkspace(workspaceId: string, patch: { icon?: string | null; color?: string | null; defaultView?: Workspace["defaultView"]; statusNames?: Partial<Workspace["statusNames"]> }) {
     return request<{ workspace: Workspace }>(`/api/workspaces/${workspaceId}/customization`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  importTasks(projectId: string, tasks: ImportTask[]) {
+    return request<ImportResult>(`/api/projects/${projectId}/import`, { method: "POST", body: JSON.stringify({ tasks }) });
   },
   backupSettings(workspaceId: string) {
     return request<BackupSettings>(`/api/workspaces/${workspaceId}/backups`);

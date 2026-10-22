@@ -319,6 +319,26 @@ export const submitFormBodySchema = z.object({
   website: z.string().max(500).optional(),
 });
 
+const importTaskSchema = z.object({
+  title: z.string().trim().min(1).max(500),
+  description: z.string().max(20_000).nullable(),
+  priority: z.enum(TASK_PRIORITIES),
+  dueAt: z.string().datetime({ offset: true }).nullable(),
+  dueHasTime: z.boolean(),
+  recurrence: recurrenceSchema,
+  done: z.boolean(),
+  tagNames: z.array(z.string().trim().min(1).max(40)).max(20),
+  sectionName: z.string().trim().min(1).max(60).nullable(),
+  assigneeEmail: z.string().trim().max(254).nullable(),
+  parent: z.number().int().min(0).nullable(),
+  comments: z.array(z.string().min(1).max(10_000)).max(50),
+});
+
+/** An import plan, built in the browser from a CSV. */
+export const importTasksBodySchema = z.object({
+  tasks: z.array(importTaskSchema).min(1).max(2000),
+}).refine((value) => value.tasks.every((task, index) => task.parent === null || task.parent < index), "A subtask must come after its parent");
+
 export const backupScheduleBodySchema = z.object({
   enabled: z.boolean(),
   frequency: z.enum(["daily", "weekly"]),

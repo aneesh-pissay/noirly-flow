@@ -181,7 +181,7 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
         <TemplateManager workspaceId={workspaceId} canEdit={canEditTags} />
       </section>
 
-      <DataSection workspaceId={workspaceId} isAdmin={canRename} />
+      <DataSection workspaceId={workspaceId} isAdmin={canRename} canWrite={canEditTags} />
 
       {!personal ? <div id="space" className="scroll-mt-6"><SpaceLinkSection workspaceId={workspaceId} /></div> : null}
 
