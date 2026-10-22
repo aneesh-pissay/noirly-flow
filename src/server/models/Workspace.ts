@@ -6,7 +6,7 @@ import {
   type Model,
   type Types,
 } from "mongoose";
-import { WORKSPACE_KINDS } from "@/src/core/models/enums";
+import { PROJECT_VIEWS, WORKSPACE_KINDS } from "@/src/core/models/enums";
 
 const workspaceSchema = new Schema(
   {
@@ -32,6 +32,23 @@ const workspaceSchema = new Schema(
     spaceId: { type: String, default: null, index: true },
     spaceName: { type: String, default: null },
     spaceSyncedAt: { type: Date, default: null },
+    // Customisation (admins): an emoji and its colour, the view new projects
+    // open in, and names for the four statuses (blank keeps the default).
+    icon: { type: String, default: null },
+    color: { type: String, default: null },
+    defaultView: { type: String, enum: PROJECT_VIEWS, default: "board" },
+    // Scheduled JSON backups (admins turn them on); see src/server/backups.ts.
+    backup: {
+      enabled: { type: Boolean, default: false },
+      frequency: { type: String, enum: ["daily", "weekly"], default: "weekly" },
+      lastRunAt: { type: Date, default: null },
+    },
+    statusNames: {
+      todo: { type: String, default: null },
+      in_progress: { type: String, default: null },
+      done: { type: String, default: null },
+      canceled: { type: String, default: null },
+    },
   },
   { timestamps: true },
 );

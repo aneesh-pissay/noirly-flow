@@ -5,6 +5,10 @@ import { useState } from "react";
 import { Button, Input, Label, PageContainer, PageHeader, Textarea } from "@noirly-dev/ui";
 import { api } from "@/src/lib/api-client";
 import { CalendarFeedSection } from "@/src/features/settings/CalendarFeedSection";
+import { AccessTokensSection } from "@/src/features/settings/AccessTokensSection";
+import { InstallAppSection } from "@/src/features/settings/InstallAppSection";
+import { LayoutSection } from "@/src/features/settings/LayoutSection";
+import { CalendarSyncSection } from "@/src/features/settings/CalendarSyncSection";
 import type { MePayload } from "@/src/server/users/me";
 
 const TIMEZONES = [
@@ -103,7 +107,15 @@ export function SettingsView({
         {preferenceMutation.isError ? <p role="alert">Could not save your preference. Please try again.</p> : null}
       </section>
 
+      <LayoutSection me={meQuery.data} />
+
       <CalendarFeedSection timezone={meQuery.data.user.profile.timezone} />
+
+      <CalendarSyncSection />
+
+      <InstallAppSection />
+
+      <AccessTokensSection />
 
       <section className="border border-[var(--hairline)] bg-[var(--surface)] p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">

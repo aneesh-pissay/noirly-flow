@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AuthShell } from "@noirly-dev/ui";
 import { BrandMark } from "@/src/components/BrandMark";
 import { NoirlyLoginButton } from "@/src/features/auth/NoirlyLoginButton";
+import { ClearOfflineData } from "@/src/components/ClearOfflineData";
 
 export const metadata: Metadata = {
   title: "Sign in · Noirly Flow",
@@ -32,6 +33,7 @@ export default async function LoginPage({
         </>
       }
     >
+      <ClearOfflineData />
       <div className="flex flex-col gap-4">
         <NoirlyLoginButton redirectTo={redirectTo} />
         <p className="meta text-center">Opens Identity in a secure popup</p>

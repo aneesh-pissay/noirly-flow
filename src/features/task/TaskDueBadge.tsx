@@ -1,4 +1,4 @@
-import { Repeat } from "lucide-react";
+import { Lock, Repeat } from "lucide-react";
 import type { RecurrenceRule } from "@/src/core/sync/types";
 import { describeRecurrence } from "@/src/features/task/recurrence";
 import {
@@ -18,6 +18,16 @@ export function TaskRepeatBadge({ rule }: { rule: RecurrenceRule | null | undefi
     <span title={text} className="inline-flex items-center text-[var(--muted-foreground)]">
       <Repeat size={12} aria-hidden />
       <span className="sr-only">{text}</span>
+    </span>
+  );
+}
+
+/** "Blocked": the task waits on another that's still open. */
+export function TaskBlockedBadge({ blocked }: { blocked: boolean | undefined }) {
+  if (!blocked) return null;
+  return (
+    <span title="Waiting on another task" className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-[var(--accent)]">
+      <Lock size={11} aria-hidden />Blocked
     </span>
   );
 }

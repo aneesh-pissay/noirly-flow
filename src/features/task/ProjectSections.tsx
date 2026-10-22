@@ -146,8 +146,9 @@ export function SectionSelect({ projectId, value, onChange, disabled = false, cl
   if (!sections.length) return null;
   return (
     <label className={labelClassName}>
-      Section
-      <select value={value ?? ""} disabled={disabled}
+      <span>Section</span>
+      {/* Named directly: as the label's whole text it would also take in the options. */}
+      <select aria-label="Section" value={value ?? ""} disabled={disabled}
         onChange={(event) => onChange(event.target.value || null)} className={className}>
         <option value="">No section</option>
         {sections.map((section) => <option key={section.id} value={section.id}>{section.name}</option>)}

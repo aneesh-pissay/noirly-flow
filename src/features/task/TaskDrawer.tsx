@@ -12,6 +12,10 @@ import { CommentThread } from "@/src/features/comments/CommentThread";
 import { TaskAttachments } from "@/src/features/task/TaskAttachments";
 import { SubtaskBreadcrumb, TaskSubtasks } from "@/src/features/task/TaskSubtasks";
 import { CopyTaskLink } from "@/src/features/task/CopyTaskLink";
+import { StartFocus } from "@/src/features/focus/FocusTimer";
+import { TaskTime } from "@/src/features/time/TaskTime";
+import { TaskDependencies } from "@/src/features/task/TaskDependencies";
+import { CapacityWarning } from "@/src/features/capacity/CapacityWarning";
 import { SaveAsTemplateButton } from "@/src/features/templates/templates";
 import { dateInputToIso, dueInputToIso, isoToDateInput, isoToTimeInput, startAfterDue } from "@/src/features/task/dates";
 import { TaskDatePicker } from "@/src/features/task/TaskDatePicker";
@@ -22,6 +26,11 @@ import { TagPicker } from "@/src/features/tags/tags";
 import { SectionSelect } from "@/src/features/task/ProjectSections";
 import { priorityTextClassName } from "@/src/features/task/priority";
 import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
+import { GoalSelect, goalsKey } from "@/src/features/goals/goals";
+import { TaskFieldsEditor } from "@/src/features/fields/fields";
+import { ApprovalPanel } from "@/src/features/approvals/approvals";
+import { useStatusOptions } from "@/src/features/workspace/workspace-look";
+import type { FieldValue } from "@/src/core/custom-fields";
 import {
   patchCachedTask,
   restoreTaskQueries,
@@ -29,12 +38,6 @@ import {
   upsertCachedTask,
 } from "@/src/features/task/task-cache";
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: "todo", label: "Todo" },
-  { value: "in_progress", label: "In progress" },
-  { value: "done", label: "Done" },
-  { value: "canceled", label: "Canceled" },
-];
 
 /** The priority <select> is tinted; keep its open list in the normal text colour. */
 const OPTION_CLASS = "text-[var(--foreground)]";
@@ -56,6 +59,7 @@ type Props = {
 const noSubscribe = () => () => {};
 
 export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props) {
+  const STATUS_OPTIONS = useStatusOptions();
   const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
   const queryClient = useQueryClient();
   const canWrite = useCan("task.write");
@@ -73,7 +77,12 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
   const [recurrence, setRecurrence] = useState<Task["recurrence"]>(initialTask?.recurrence ?? null);
   const [reminder, setReminder] = useState<number | null>(initialTask?.reminderMinutes ?? null);
   const [tagIds, setTagIds] = useState<string[]>(initialTask?.tagIds ?? []);
+  const [blockedByIds, setBlockedByIds] = useState<string[]>(initialTask?.blockedByIds ?? []);
+  const [habit, setHabit] = useState(initialTask?.habit ?? false);
   const [sectionId, setSectionId] = useState<string | null>(initialTask?.sectionId ?? null);
+  // Null marks a value cleared since the last save.
+  const [fieldValues, setFieldValues] = useState<Record<string, FieldValue | null>>(initialTask?.fieldValues ?? {});
+  const [goalLink, setGoalLink] = useState({ goalId: initialTask?.goalId ?? null, milestoneId: initialTask?.milestoneId ?? null });
   const [dateError, setDateError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | "">(
     initialTask?.projectId ?? "",
@@ -120,7 +129,11 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     setRecurrence(task.recurrence ?? null);
     setReminder(task.reminderMinutes ?? null);
     setTagIds(task.tagIds ?? []);
+    setBlockedByIds(task.blockedByIds ?? []);
+    setHabit(task.habit ?? false);
     setSectionId(task.sectionId ?? null);
+    setGoalLink({ goalId: task.goalId ?? null, milestoneId: task.milestoneId ?? null });
+    setFieldValues(task.fieldValues ?? {});
     setProjectId(task.projectId ?? "");
     setAssigneeIds(task.assigneeIds ?? []);
   }
@@ -137,6 +150,9 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     onSuccess: (data) => {
       upsertCachedTask(queryClient, workspaceId, data.task);
       setDirty(false);
+      // Status and goal changes move goal progress.
+      void queryClient.invalidateQueries({ queryKey: goalsKey(workspaceId) });
+      if (data.task.goalId) void queryClient.invalidateQueries({ queryKey: ["goal", data.task.goalId] });
     },
     onError: (err: Error, _patch, context) => {
       if (context?.previous) {
@@ -177,7 +193,7 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
     const values = {
       title: nextTitle, description: description.trim() || null, status, priority,
       projectId: projectId || null, dueAt: dueInputToIso(dueDate, dueTime),
-      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, ...patch,
+      dueHasTime: Boolean(dueDate && dueTime), startAt: dateInputToIso(startDate), deadlineAt: dateInputToIso(deadline), durationMinutes: duration, assigneeIds, tagIds, sectionId, blockedByIds, ...goalLink, fieldValues: fieldValues as Task["fieldValues"], ...patch,
     };
     const changes = Object.fromEntries(
       Object.entries(values).filter(([key, value]) =>
@@ -320,7 +336,9 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                       setProjectId(next);
                       // A section belongs to its project; the server clears it on a move too.
                       setSectionId(null);
-                      persist({ projectId: next || null, sectionId: null });
+                      // Fields are per project too.
+                      setFieldValues({});
+                      persist({ projectId: next || null, sectionId: null, fieldValues: {} });
                     }}
                     className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50"
                   >
@@ -339,6 +357,22 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                   }} labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
                     className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 ) : null}
+                {projectId ? (
+                  <TaskFieldsEditor projectId={projectId} values={Object.fromEntries(Object.entries(fieldValues).filter(([, v]) => v !== null)) as Task["fieldValues"]}
+                    members={membersQuery.data?.members ?? []} disabled={!canEdit}
+                    onChange={(fieldId, value) => {
+                      const next = { ...fieldValues, [fieldId]: value };
+                      setFieldValues(next);
+                      persist({ fieldValues: next as Task["fieldValues"] });
+                    }}
+                    labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
+                    className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                ) : null}
+                <GoalSelect workspaceId={workspaceId} goalId={goalLink.goalId} milestoneId={goalLink.milestoneId} disabled={!canEdit} onChange={(next) => {
+                  setGoalLink(next);
+                  persist(next);
+                }} labelClassName="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]"
+                  className="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
                 <div className="col-span-2 space-y-1 text-xs text-[var(--muted-foreground)]">
                   <span>Start date</span>
                   <TaskDatePicker value={startDate} withTime={false} name="start date" disabled={!canEdit} onChange={(value) => {
@@ -396,6 +430,13 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     setRecurrence(rule);
                     persist({ recurrence: rule });
                   }} selectClassName="h-10 w-full border border-[var(--hairline)] bg-[var(--surface)] px-2 text-sm text-[var(--foreground)] disabled:opacity-50" />
+                  {recurrence ? (
+                    <label className="flex items-center gap-2 pt-1 text-xs text-[var(--muted-foreground)]">
+                      <input type="checkbox" checked={habit} disabled={!canEdit}
+                        onChange={(event) => { setHabit(event.target.checked); persist({ habit: event.target.checked }); }} />
+                      Track as a habit (streaks on the Habits page)
+                    </label>
+                  ) : null}
                 </div>
               </div>
 
@@ -432,9 +473,22 @@ export function TaskDrawer({ workspaceId, taskId, initialTask, onClose }: Props)
                     <span className="text-xs text-[var(--muted-foreground)]">Loading members…</span>
                   ) : null}
                 </div>
+                <CapacityWarning workspaceId={workspaceId} dueAt={dueInputToIso(dueDate, dueTime)} assigneeIds={assigneeIds} />
               </section>
 
+              {task ? (
+                <section aria-label="Focus">
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Focus</p>
+                  <StartFocus task={task} />
+                </section>
+              ) : null}
+              <TaskTime taskId={taskId} canWrite={canEdit} />
               {task ? <TaskSubtasks workspaceId={workspaceId} task={task} canWrite={canEdit} /> : null}
+              {task ? (
+                <TaskDependencies workspaceId={workspaceId} task={task} value={blockedByIds} canWrite={canEdit}
+                  onChange={(next) => { setBlockedByIds(next); persist({ blockedByIds: next }); }} />
+              ) : null}
+              {task ? <ApprovalPanel workspaceId={workspaceId} task={task} members={membersQuery.data?.members ?? []} meId={meQuery.data?.user.id} /> : null}
               {task && canEdit ? (
                 <SaveAsTemplateButton workspaceId={workspaceId} source={{ kind: "task", taskId: task.id }} defaultName={task.title}
                   className="text-xs text-[var(--muted-foreground)] underline-offset-2 hover:text-[var(--foreground)] hover:underline disabled:opacity-50" />

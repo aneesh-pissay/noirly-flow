@@ -68,3 +68,6 @@ export function deleteSection(userId: string, sectionId: string) {
     await section.deleteOne();
   });
 }
+
+/** For exports. */
+export { map as mapSectionDoc };

@@ -20,10 +20,14 @@ type Props = {
   canManage: boolean;
 };
 
+function expiryLabel(iso: string) {
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(iso));
+}
+
 export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
   const queryClient = useQueryClient();
   const [inviteRole, setInviteRole] = useState<Exclude<MemberRole, "owner">>("member");
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<{ id: string; url: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailRole, setEmailRole] = useState<Exclude<MemberRole, "owner">>("member");
@@ -35,12 +39,32 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
     queryFn: () => api.listMembers(workspaceId),
   });
 
+  const invitesKey = ["invites", workspaceId] as const;
+  const invitesQuery = useQuery({
+    queryKey: invitesKey,
+    queryFn: () => api.listInvites(workspaceId),
+    enabled: canManage,
+  });
+  const refreshInvites = () => void queryClient.invalidateQueries({ queryKey: invitesKey });
+  const revokeMutation = useMutation({
+    mutationFn: (inviteId: string) => api.revokeInvite(inviteId),
+    onSuccess: (_result, inviteId) => {
+      setError(null);
+      // The copied link is dead now; don't leave it on screen.
+      if (inviteUrl?.id === inviteId) setInviteUrl(null);
+      refreshInvites();
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+  const pending = invitesQuery.data?.invites ?? [];
+
   const inviteMutation = useMutation({
     mutationFn: () => api.createInvite(workspaceId, inviteRole),
     onSuccess: (result) => {
-      setInviteUrl(result.invite.url);
+      setInviteUrl({ id: result.invite.id, url: result.invite.url });
       setCopied(false);
       setError(null);
+      refreshInvites();
     },
     onError: (err: Error) => setError(err.message),
   });
@@ -51,6 +75,7 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
       setSentTo(result.invite.email);
       setEmail("");
       setError(null);
+      refreshInvites();
     },
     onError: () => setSentTo(null),
   });
@@ -175,12 +200,12 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
           </div>
           {inviteUrl ? (
             <div className="mt-3 flex gap-2">
-              <Input readOnly value={inviteUrl} className="h-10 flex-1 truncate text-xs" />
+              <Input readOnly value={inviteUrl.url} className="h-10 flex-1 truncate text-xs" />
               <Button
                 type="button"
                 variant="secondary"
                 onClick={async () => {
-                  await navigator.clipboard.writeText(inviteUrl);
+                  await navigator.clipboard.writeText(inviteUrl.url);
                   setCopied(true);
                 }}
               >
@@ -188,6 +213,46 @@ export function MembersPanel({ workspaceId, currentUserId, canManage }: Props) {
               </Button>
             </div>
           ) : null}
+        </section>
+      ) : null}
+
+      {canManage ? (
+        <section
+          aria-labelledby="pending-invites-title"
+          className="border border-[var(--hairline)] bg-[var(--surface)] p-4"
+        >
+          <h2 id="pending-invites-title" className="text-sm font-medium text-[var(--foreground)]">
+            Pending invites
+          </h2>
+          {invitesQuery.isError ? (
+            <p role="alert" className="mt-2 text-sm">Could not load invites.</p>
+          ) : pending.length ? (
+            <ul aria-label="Pending invites" className="mt-3 divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
+              {pending.map((invite) => {
+                const who = invite.email ?? "Invite link";
+                return (
+                  <li key={invite.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
+                    <span className="min-w-0 flex-1 truncate text-[var(--foreground)]">{who}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">{invite.role}</span>
+                    <span className="text-xs text-[var(--muted-foreground)]">Expires {expiryLabel(invite.expiresAt)}</span>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      aria-label={`Revoke invite for ${who}`}
+                      disabled={revokeMutation.isPending}
+                      onClick={() => revokeMutation.mutate(invite.id)}
+                    >
+                      Revoke
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+              {invitesQuery.isPending ? "Loading invites…" : "No pending invites."}
+            </p>
+          )}
         </section>
       ) : null}
 

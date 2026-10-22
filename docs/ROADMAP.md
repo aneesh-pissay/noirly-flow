@@ -19,11 +19,11 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 0. Recent fixes | 3 / 4 |
 | 1. Date model | 6 / 6 |
 | 2. Capture and organisation | 10 / 10 |
-| 3. Planning and calendar | 0 / 7 |
-| 4. Productivity | 0 / 6 |
-| 5. Collaboration and automation | 0 / 8 |
-| 6. AI | 0 / 9 |
-| 7. Platform and data | 0 / 7 |
+| 3. Planning and calendar | 7 / 7 |
+| 4. Productivity | 6 / 6 |
+| 5. Collaboration and automation | 8 / 8 |
+| 6. AI | 0 / 9 (on hold) |
+| 7. Platform and data | 5 / 7 |
 
 ---
 
@@ -47,48 +47,50 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 
 - [x] Natural-language quick add: `Pay rent every 1st 9am p1 #Home @bills` (S) — done 2026-10-16
 - [x] **Today** and **Upcoming** views across all projects in a workspace (M) — done 2026-10-16
-- [x] Saved smart filters with a query syntax (`today & #Work & @urgent`) (M) — done 2026-10-17 (e2e `filters.spec.ts` not yet run)
-- [x] Tag filter in the list view and a tag colour picker (S) — done 2026-10-17 (tags brought back in the UI; e2e `tags.spec.ts` not yet run)
-- [x] Sections inside a project (list view), separate from board columns (M) — done 2026-10-17 (e2e `sections.spec.ts` not yet run)
-- [x] Project archive, colours and favourites (S) — done 2026-10-17 (e2e `projects-organise.spec.ts` not yet run)
-- [x] Nested subtasks (more than one level) and a subtask drawer (M) — done 2026-10-17 (subtasks brought back in the drawer; e2e in `drawer.spec.ts` not yet run)
-- [x] Bulk edit: multi-select, then set status / priority / due / assignee / move / delete (M) — done 2026-10-17 (e2e `bulk.spec.ts` not yet run)
-- [x] Project and task templates (M) — done 2026-10-17 (e2e `templates.spec.ts` not yet run)
-- [x] Dedicated task page `/w/[workspaceId]/t/[taskId]` for sharing links (S) — done 2026-10-17 (e2e in `drawer.spec.ts` not yet run)
+- [x] Saved smart filters with a query syntax (`today & #Work & @urgent`) (M) — done 2026-10-17
+- [x] Tag filter in the list view and a tag colour picker (S) — done 2026-10-17 (tags brought back in the UI)
+- [x] Sections inside a project (list view), separate from board columns (M) — done 2026-10-17
+- [x] Project archive, colours and favourites (S) — done 2026-10-17
+- [x] Nested subtasks (more than one level) and a subtask drawer (M) — done 2026-10-17 (subtasks brought back in the drawer)
+- [x] Bulk edit: multi-select, then set status / priority / due / assignee / move / delete (M) — done 2026-10-17
+- [x] Project and task templates (M) — done 2026-10-17
+- [x] Dedicated task page `/w/[workspaceId]/t/[taskId]` for sharing links (S) — done 2026-10-17
 
 ## Phase 3 — Planning and calendar
 
 _Needs Phase 1._
 
-- [ ] Dependencies and a `blocked` status; blocked tasks cannot be completed first (M)
-- [ ] Day and week timeline views (M)
-- [ ] Time blocking: drag tasks onto the timeline to schedule them (L)
-- [ ] Gantt view (start date, duration, dependencies) (L)
-- [ ] Two-way Google Calendar sync (L)
-- [ ] Two-way Outlook calendar sync (L)
-- [ ] Capacity and availability: hours per day per member, overload warnings (L)
+- [x] Dependencies and a `blocked` status; blocked tasks cannot be completed first (M) — done 2026-10-17 (blocked is worked out from open blockers, not a stored status)
+- [x] Day and week timeline views (M) — done 2026-10-17
+- [x] Time blocking: drag tasks onto the timeline to schedule them (L) — done 2026-10-17
+- [x] Gantt view (start date, duration, dependencies) (L) — done 2026-10-17 (bars run start → due by day)
+- [x] Two-way Google Calendar sync (L) — done 2026-10-22 (tested against a fake Google server; check with a real account once the OAuth client is set up)
+- [x] Two-way Outlook calendar sync (L) — done 2026-10-22 (tested against a fake Graph server; check with a real account once the app registration is set up)
+- [x] Capacity and availability: hours per day per member, overload warnings (L) — done 2026-10-17
 
 ## Phase 4 — Productivity
 
-- [ ] Pomodoro / focus timer on a task (S)
-- [ ] Time tracking: manual entries plus a running timer (M)
-- [ ] Habits and streaks, built on recurring tasks (M)
-- [ ] Personal stats: completed per day/week, on-time rate (M)
-- [ ] Daily and weekly review screens (S)
-- [ ] Goals and milestones that tasks roll up into (L)
+- [x] Pomodoro / focus timer on a task (S) — done 2026-10-19
+- [x] Time tracking: manual entries plus a running timer (M) — done 2026-10-19
+- [x] Habits and streaks, built on recurring tasks (M) — done 2026-10-19
+- [x] Personal stats: completed per day/week, on-time rate (M) — done 2026-10-19
+- [x] Daily and weekly review screens (S) — done 2026-10-19
+- [x] Goals and milestones that tasks roll up into (L) — done 2026-10-19
 
 ## Phase 5 — Collaboration and automation
 
-- [ ] Custom fields per project: text, number, select, date, person (L)
-- [ ] Email invites, plus listing and revoking pending invites (S)
-- [ ] Approval workflow: request, approve, reject on a task (M)
-- [ ] Automations: "when X, if Y, then Z" rules per project (L)
-- [ ] Public API with personal access tokens (M)
-- [ ] Outgoing webhooks — build on a shared Noirly package so other apps reuse it (M)
-- [ ] Forms and task intake: a public form that creates tasks in a project (M)
-- [ ] Workspace customisation: default view, statuses, icon, settings page (M)
+- [x] Custom fields per project: text, number, select, date, person (L) — done 2026-10-19
+- [x] Email invites, plus listing and revoking pending invites (S) — done 2026-10-19
+- [x] Approval workflow: request, approve, reject on a task (M) — done 2026-10-19
+- [x] Automations: "when X, if Y, then Z" rules per project (L) — done 2026-10-19
+- [x] Public API with personal access tokens (M) — done 2026-10-19
+- [x] Outgoing webhooks — build on a shared Noirly package so other apps reuse it (M) — done 2026-10-19 (package in `noirly-webhooks`; publish it, then switch Flow off the local `file:` link)
+- [x] Forms and task intake: a public form that creates tasks in a project (M) — done 2026-10-22
+- [x] Workspace customisation: default view, statuses, icon, settings page (M) — done 2026-10-22
 
 ## Phase 6 — AI
+
+**On hold (2026-10-22):** skipped for now; Phase 7 goes first. Needs an Anthropic API key when picked up.
 
 _Build the Claude API layer once, as a shared Noirly package (prompts, rate limits, cost tracking); the features appear in Flow._
 
@@ -104,11 +106,11 @@ _Build the Claude API layer once, as a shared Noirly package (prompts, rate limi
 
 ## Phase 7 — Platform and data
 
-- [ ] Installable web app (PWA) with read-only offline (M)
-- [ ] Full data export (JSON / CSV) and scheduled backups (M)
-- [ ] Import from Todoist and CSV (M)
-- [ ] Layout and density preferences (S)
-- [ ] Desktop app (PWA install or Tauri wrapper) (M)
+- [x] Installable web app (PWA) with read-only offline (M) — done 2026-10-22
+- [x] Full data export (JSON / CSV) and scheduled backups (M) — done 2026-10-22
+- [x] Import from Todoist and CSV (M) — done 2026-10-22
+- [x] Layout and density preferences (S) — done 2026-10-22
+- [x] Desktop app (PWA install or Tauri wrapper) (M) — done 2026-10-22 (covered by the PWA: installs as a desktop app from Chrome, Edge and Safari; no Tauri wrapper)
 - [ ] Mobile app (`NoirlyFlow`) brought up to web parity (L)
 - [ ] Home-screen widgets in the mobile app (M)
 

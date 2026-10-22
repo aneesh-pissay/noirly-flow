@@ -9,7 +9,7 @@ import type { Task } from "@/src/core/sync/types";
  *
  * Terms: today, tomorrow, overdue, no date, next N days (or "N days"),
  * p1–p4 (p4 = no priority), #project or #inbox, @tag, assigned to: me | others |
- * <name>, no assignee, recurring, deadline / no deadline, search: <text>.
+ * <name>, no assignee, recurring, blocked, deadline / no deadline, search: <text>.
  * Combine with & (and), | (or), ! (not) and parentheses; & binds tighter
  * than |. Evaluated in the browser, so days are the viewer's days.
  */
@@ -94,6 +94,7 @@ function term(raw: string, ctx: Required<FilterContext>): Predicate | string {
   }
   if (lower === "no assignee" || lower === "unassigned") return (t) => t.assigneeIds.length === 0;
   if (lower === "recurring") return (t) => Boolean(t.recurrence);
+  if (lower === "blocked") return (t) => Boolean(t.blocked);
   if (lower === "deadline") return (t) => Boolean(t.deadlineAt);
   if (lower === "no deadline") return (t) => !t.deadlineAt;
 

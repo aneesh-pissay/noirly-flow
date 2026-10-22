@@ -1,5 +1,7 @@
 import { asRecurrenceRule } from "@/src/core/recurrence/next";
 import type { Types } from "mongoose";
+import type { Approval } from "@/src/core/approvals";
+import { statusNamesFor } from "@/src/core/workspace-settings";
 import type {
   ActivityEvent,
   BoardColumn,
@@ -30,6 +32,10 @@ export function mapWorkspace(doc: {
   ownerUserId: Types.ObjectId;
   spaceId?: string | null;
   spaceName?: string | null;
+  icon?: string | null;
+  color?: string | null;
+  defaultView?: string | null;
+  statusNames?: Partial<Record<TaskStatus, string | null>> | null;
   createdAt: Date;
   updatedAt: Date;
 }): Workspace {
@@ -41,6 +47,10 @@ export function mapWorkspace(doc: {
     ownerUserId: doc.ownerUserId.toString(),
     spaceId: doc.spaceId ?? null,
     spaceName: doc.spaceName ?? null,
+    icon: doc.icon ?? null,
+    color: doc.color ?? null,
+    defaultView: (doc.defaultView ?? "board") as Workspace["defaultView"],
+    statusNames: statusNamesFor(doc.statusNames),
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   };
@@ -105,6 +115,10 @@ export function mapTask(doc: {
   dueHasTime?: boolean | null;
   startAt?: Date | null;
   sectionId?: Types.ObjectId | null;
+  goalId?: Types.ObjectId | null;
+  milestoneId?: Types.ObjectId | null;
+  fieldValues?: unknown;
+  approval?: unknown;
   deadlineAt?: Date | null;
   durationMinutes?: number | null;
   reminderMinutes?: number | null;
@@ -112,6 +126,9 @@ export function mapTask(doc: {
   position: number;
   assigneeIds?: Types.ObjectId[];
   tagIds?: Types.ObjectId[];
+  blockedByIds?: Types.ObjectId[];
+  habit?: boolean | null;
+  seriesId?: Types.ObjectId | null;
   parentTaskId?: Types.ObjectId | null;
   recurrence?: {
     frequency: string;
@@ -145,6 +162,10 @@ export function mapTask(doc: {
     dueHasTime: Boolean(doc.dueAt && doc.dueHasTime),
     startAt: iso(doc.startAt ?? null),
     sectionId: idOf(doc.sectionId ?? null),
+    goalId: idOf(doc.goalId ?? null),
+    milestoneId: idOf(doc.goalId ? doc.milestoneId ?? null : null),
+    fieldValues: { ...((doc.fieldValues ?? {}) as Record<string, string | number>) },
+    approval: mapApproval(doc.approval),
     deadlineAt: iso(doc.deadlineAt ?? null),
     durationMinutes: doc.durationMinutes ?? null,
     reminderMinutes: doc.reminderMinutes ?? null,
@@ -152,6 +173,9 @@ export function mapTask(doc: {
     position: doc.position,
     assigneeIds: (doc.assigneeIds ?? []).map((id) => id.toString()),
     tagIds: (doc.tagIds ?? []).map((id) => id.toString()),
+    blockedByIds: (doc.blockedByIds ?? []).map((id) => id.toString()),
+    habit: Boolean(doc.habit),
+    seriesId: idOf(doc.seriesId ?? null),
     parentTaskId: idOf(doc.parentTaskId ?? null),
     recurrence: asRecurrenceRule(doc.recurrence),
     checklist: (doc.checklist ?? []).map(
@@ -230,3 +254,17 @@ export function mapActivity(doc: {
 }
 
 export type MembershipRole = MemberRole;
+
+/** The stored approval as the DTO, or null. */
+export function mapApproval(raw: unknown): Approval | null {
+  const doc = raw as { status?: string; requestedById?: Types.ObjectId; approverId?: Types.ObjectId; requestedAt?: Date; decidedAt?: Date | null; note?: string | null } | null | undefined;
+  if (!doc?.status || !doc.requestedById || !doc.approverId || !doc.requestedAt) return null;
+  return {
+    status: doc.status as Approval["status"],
+    requestedById: String(doc.requestedById),
+    approverId: String(doc.approverId),
+    requestedAt: new Date(doc.requestedAt).toISOString(),
+    decidedAt: doc.decidedAt ? new Date(doc.decidedAt).toISOString() : null,
+    note: doc.note ?? null,
+  };
+}

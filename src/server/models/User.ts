@@ -33,6 +33,9 @@ const userSchema = new Schema(
       timezone: { type: String, default: null, trim: true },
       bio: { type: String, default: null, trim: true },
       taskSaveMode: { type: String, enum: ["auto", "manual"], default: "auto" },
+      // Layout: how tightly lists are packed, and whether pages use the full width.
+      density: { type: String, enum: ["comfortable", "compact"], default: "comfortable" },
+      contentWidth: { type: String, enum: ["standard", "wide"], default: "standard" },
     },
     /** Projects this person starred; personal, shown at the top of the sidebar. */
     favoriteProjectIds: { type: [Schema.Types.ObjectId], ref: "Project", default: [] },

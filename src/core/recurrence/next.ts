@@ -77,6 +77,33 @@ const addDays = (d: Day, days: number) => fromValue(dayValue(d) + days * 86_400_
 /** 0 = Monday … 6 = Sunday, so a week runs Monday to Sunday. */
 const mondayIndex = (d: Day) => (new Date(dayValue(d)).getUTCDay() + 6) % 7;
 
+/** The calendar day ("YYYY-MM-DD") an instant falls on in a zone. */
+export function dayInZone(instant: Date, timeZone: string): string {
+  const wall = toWall(instant, isTimeZone(timeZone) ? timeZone : serverZone());
+  return `${wall.year}-${String(wall.month + 1).padStart(2, "0")}-${String(wall.day).padStart(2, "0")}`;
+}
+
+/** A wall-clock reading ("YYYY-MM-DDTHH:mm[:ss[.fff]]", no offset) as an instant in a zone. */
+export function wallToInstant(local: string, timeZone: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/.exec(local);
+  if (!m) return new Date(Number.NaN);
+  return fromWall({ year: +m[1]!, month: +m[2]! - 1, day: +m[3]!, hour: +m[4]!, minute: +m[5]!, second: +(m[6] ?? 0), ms: 0 }, isTimeZone(timeZone) ? timeZone : serverZone());
+}
+
+/** Noon on a calendar day ("YYYY-MM-DD") in a zone. */
+export function noonOnDay(day: string, timeZone: string): Date {
+  const [year, month, date] = day.split("-").map(Number) as [number, number, number];
+  return fromWall({ year, month: month - 1, day: date, hour: 12, minute: 0, second: 0, ms: 0 }, isTimeZone(timeZone) ? timeZone : serverZone());
+}
+
+/** Noon, `days` calendar days after `now`, in a zone: how all-day dates are stored. */
+export function noonInDays(now: Date, days: number, timeZone: string): Date {
+  const zone = isTimeZone(timeZone) ? timeZone : serverZone();
+  const today = toWall(now, zone);
+  const day = addDays({ year: today.year, month: today.month, day: today.day }, days);
+  return fromWall({ ...day, hour: 12, minute: 0, second: 0, ms: 0 }, zone);
+}
+
 function addMonths(d: Day, months: number, monthDay: number): Day {
   const total = d.month + months;
   const year = d.year + Math.floor(total / 12);

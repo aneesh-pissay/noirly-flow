@@ -239,6 +239,48 @@ export function CommandPalette({ workspaces }: Props) {
                 Upcoming
               </Command.Item>
               <Command.Item
+                value="timeline day week hours schedule"
+                onSelect={() => go(`/w/${activeWorkspaceId}/timeline`)}
+                className={itemClass}
+              >
+                Timeline
+              </Command.Item>
+              <Command.Item
+                value="capacity workload hours availability"
+                onSelect={() => go(`/w/${activeWorkspaceId}/capacity`)}
+                className={itemClass}
+              >
+                Capacity
+              </Command.Item>
+              <Command.Item
+                value="habits streaks"
+                onSelect={() => go(`/w/${activeWorkspaceId}/habits`)}
+                className={itemClass}
+              >
+                Habits
+              </Command.Item>
+              <Command.Item
+                value="stats statistics completed on time productivity"
+                onSelect={() => go(`/w/${activeWorkspaceId}/stats`)}
+                className={itemClass}
+              >
+                Stats
+              </Command.Item>
+              <Command.Item
+                value="review daily weekly plan"
+                onSelect={() => go(`/w/${activeWorkspaceId}/review`)}
+                className={itemClass}
+              >
+                Review
+              </Command.Item>
+              <Command.Item
+                value="goals milestones objectives"
+                onSelect={() => go(`/w/${activeWorkspaceId}/goals`)}
+                className={itemClass}
+              >
+                Goals
+              </Command.Item>
+              <Command.Item
                 value="filters saved searches new filter"
                 onSelect={() => go(`/w/${activeWorkspaceId}/filters`)}
                 className={itemClass}

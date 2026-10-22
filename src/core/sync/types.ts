@@ -1,3 +1,6 @@
+import type { FieldValues } from "@/src/core/custom-fields";
+import type { Approval } from "@/src/core/approvals";
+import type { OpenView, StatusNames } from "@/src/core/workspace-settings";
 import type {
   COLUMN_STATUSES,
   MemberRole,
@@ -17,6 +20,14 @@ export type Workspace = {
   /** The Noirly space this team follows; members are managed there while set. */
   spaceId?: string | null;
   spaceName?: string | null;
+  /** One emoji, or null for the name's first letter. */
+  icon: string | null;
+  /** The icon's background, a hex colour, or null. */
+  color: string | null;
+  /** The view new projects open in. */
+  defaultView: OpenView;
+  /** The workspace's names for the four statuses. */
+  statusNames: StatusNames;
   createdAt: string;
   updatedAt: string;
 };
@@ -90,6 +101,21 @@ export type Task = {
   startAt: string | null;
   /** A section of the task's project, or null. */
   sectionId: string | null;
+  /** A goal this task rolls up into, and optionally one of its milestones. */
+  goalId: string | null;
+  milestoneId: string | null;
+  /** Custom field values for the task's project, by field id. */
+  fieldValues: FieldValues;
+  /** The sign-off this task needs, or null. */
+  approval: Approval | null;
+  /** Tasks that must be finished first. */
+  blockedByIds: string[];
+  /** A repeating task tracked as a habit. */
+  habit: boolean;
+  /** The first task of its repeating series (null for the first itself, or one that doesn't repeat). */
+  seriesId: string | null;
+  /** True while one of those is still open; set on task reads. */
+  blocked?: boolean;
   /** Done and total direct subtasks; only on task lists, and only when there are some. */
   subtaskCount?: { done: number; total: number };
   /** All-day hard deadline, separate from the planned due date. */
@@ -147,6 +173,8 @@ export type ChatMessage = {
 
 export type FlowProfile = {
   taskSaveMode?: "auto" | "manual";
+  density?: "comfortable" | "compact";
+  contentWidth?: "standard" | "wide";
   displayName: string | null;
   title: string | null;
   timezone: string | null;
@@ -176,6 +204,10 @@ export type ListTasksQuery = {
   dueBefore?: string;
   dueAfter?: string;
   unscheduled?: boolean;
+  /** Only tasks completed at or after this instant. */
+  completedAfter?: string;
+  /** Only tasks linked to this goal. */
+  goalId?: string;
   search?: string;
   includeDeleted?: boolean;
 };
@@ -203,6 +235,9 @@ export type CreateTaskInput = {
   /** All-day start date, stored at local noon like an all-day due date. */
   startAt?: string | null;
   sectionId?: string | null;
+  goalId?: string | null;
+  milestoneId?: string | null;
+  blockedByIds?: string[];
   deadlineAt?: string | null;
   durationMinutes?: number | null;
   reminderMinutes?: number | null;
@@ -234,7 +269,7 @@ export type SavedFilter = {
 
 export type AppNotification = {
   id: string;
-  kind: "mention" | "assigned" | "comment" | "reminder";
+  kind: "mention" | "assigned" | "comment" | "reminder" | "approval_requested" | "approval_approved" | "approval_rejected";
   workspaceId: string;
   taskId: string;
   taskTitle: string;
@@ -273,7 +308,7 @@ export interface SyncProvider {
   createProject(input: CreateProjectInput): Promise<Project>;
   updateProject(
     projectId: string,
-    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean },
+    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean; defaultView?: ProjectView },
   ): Promise<Project>;
   deleteProject(projectId: string): Promise<void>;
 

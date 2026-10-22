@@ -17,6 +17,13 @@ import {
 } from "@/src/core/recurrence/next";
 import { reminderAtFor } from "@/src/core/reminders";
 import { assertParentAllowed, descendantIds, subtaskCounts } from "@/src/server/subtasks";
+import { assertBlockersAllowed, assertNotBlocked, openTaskIds, withBlocked } from "@/src/server/dependencies";
+import { assertGoalLink } from "@/src/server/goals";
+import { mergeFieldValues } from "@/src/server/fields";
+import { mapApproval } from "@/src/server/mappers";
+import { blocksCompletion } from "@/src/core/approvals";
+import { statusNamesFor } from "@/src/core/workspace-settings";
+import type { FieldValues } from "@/src/core/custom-fields";
 import { withDb } from "@/src/server/db/mongodb";
 import {
   ActivityEvent,
@@ -153,6 +160,12 @@ async function spawnNextOccurrence(
     startAt,
     deadlineAt,
     sectionId: source.sectionId ?? null,
+    goalId: source.goalId ?? null,
+    milestoneId: source.milestoneId ?? null,
+    fieldValues: source.fieldValues ?? {},
+    // Same series (and habit) as the occurrence it follows.
+    seriesId: source.seriesId ?? source._id,
+    habit: Boolean(source.habit),
     durationMinutes: source.durationMinutes ?? null,
     reminderMinutes: source.reminderMinutes ?? null,
     reminderAt: reminderAtFor(dueAt, source.dueHasTime, source.reminderMinutes),
@@ -424,30 +437,34 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
     async createProject(input: CreateProjectInput) {
       return withDb(async () => {
         await requireMembership(userId, input.workspaceId, "member");
+        // New projects open in the workspace's default view unless told otherwise,
+        // and their first columns take the workspace's status names.
+        const workspaceDefault = await Workspace.findById(oid(input.workspaceId)).select("defaultView statusNames").lean();
+        const statusName = statusNamesFor(workspaceDefault?.statusNames);
         const project = await Project.create({
           workspaceId: oid(input.workspaceId),
           name: input.name.trim(),
           description: input.description ?? null,
           color: input.color ?? null,
-          defaultView: input.defaultView ?? "board",
+          defaultView: input.defaultView ?? workspaceDefault?.defaultView ?? "board",
         });
 
         await BoardColumn.insertMany([
           {
             projectId: project._id,
-            name: "Todo",
+            name: statusName.todo,
             statusMapped: "todo",
             position: 1000,
           },
           {
             projectId: project._id,
-            name: "In progress",
+            name: statusName.in_progress,
             statusMapped: "in_progress",
             position: 2000,
           },
           {
             projectId: project._id,
-            name: "Done",
+            name: statusName.done,
             statusMapped: "done",
             position: 3000,
           },
@@ -469,6 +486,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (patch.name !== undefined) project.name = patch.name.trim();
         if (patch.description !== undefined) project.description = patch.description;
         if (patch.color !== undefined) project.color = patch.color;
+        if (patch.defaultView !== undefined) project.defaultView = patch.defaultView;
         if (patch.archived !== undefined && patch.archived !== wasArchived) {
           project.archivedAt = patch.archived ? new Date() : null;
           void recordActivity({
@@ -643,6 +661,10 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (query.tagIds?.length) {
           filter.tagIds = { $all: query.tagIds.map(oid) };
         }
+        if (query.goalId) filter.goalId = oid(query.goalId);
+        if (query.completedAfter) {
+          filter.completedAt = { $gte: new Date(query.completedAfter) };
+        }
         if (query.unscheduled) {
           filter.dueAt = null;
         } else if (query.dueBefore || query.dueAfter) {
@@ -660,18 +682,18 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           .lean();
         // Done/total subtasks for list rows.
         const counts = await subtaskCounts(tasks.map((task) => task._id));
-        return tasks.map((task) => {
+        return withBlocked(tasks.map((task) => {
           const mapped = mapTask(task);
           const count = counts.get(String(task._id));
           return count ? { ...mapped, subtaskCount: count } : mapped;
-        });
+        }));
       });
     },
 
     async getTask(taskId) {
       return withDb(async () => {
         const task = await requireTaskAccess(userId, taskId);
-        return mapTask(task);
+        return (await withBlocked([mapTask(task)]))[0]!;
       });
     },
 
@@ -679,6 +701,9 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
       return withDb(async () => {
         await requireMembership(userId, input.workspaceId, "member");
         await assertTaskReferences(input.workspaceId, input);
+        await assertBlockersAllowed(oid(input.workspaceId), input.blockedByIds ?? []);
+        await assertGoalLink(input.workspaceId, input.goalId ?? null, input.milestoneId ?? null);
+        if (input.status === "done") await assertNotBlocked(input.blockedByIds ?? [], input.title);
         let columnId = input.columnId ? oid(input.columnId) : null;
         let status: TaskStatus = input.status ?? "todo";
 
@@ -733,6 +758,8 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           dueHasTime: Boolean(input.dueAt && input.dueHasTime),
           startAt: input.startAt ? new Date(input.startAt) : null,
           sectionId: input.sectionId ? oid(input.sectionId) : null,
+          goalId: input.goalId ? oid(input.goalId) : null,
+          milestoneId: input.milestoneId ? oid(input.milestoneId) : null,
           deadlineAt: input.deadlineAt ? new Date(input.deadlineAt) : null,
           durationMinutes: input.durationMinutes ?? null,
           reminderMinutes: input.reminderMinutes ?? null,
@@ -746,6 +773,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           assigneeIds: [...new Set(assigneeIds)].map(oid),
           emailDeliveries: [...new Set(assigneeIds)].map((id) => ({ userId: oid(id) })),
           tagIds: (input.tagIds ?? []).map(oid),
+          blockedByIds: (input.blockedByIds ?? []).map(oid),
           parentTaskId: input.parentTaskId ? oid(input.parentTaskId) : null,
           createdById: oid(userId),
         });
@@ -857,6 +885,20 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (patch.tagIds !== undefined) {
           task.tagIds = patch.tagIds.map(oid);
         }
+        if (patch.habit !== undefined) task.habit = patch.habit;
+        // Changing goal drops a milestone from the old one unless a new one comes with it.
+        if (patch.goalId !== undefined || patch.milestoneId !== undefined) {
+          const goalId = patch.goalId !== undefined ? patch.goalId : task.goalId?.toString() ?? null;
+          const goalChanged = goalId !== (task.goalId?.toString() ?? null);
+          const milestoneId = patch.milestoneId !== undefined ? patch.milestoneId : goalChanged ? null : task.milestoneId?.toString() ?? null;
+          await assertGoalLink(task.workspaceId, goalId, milestoneId);
+          task.goalId = goalId ? oid(goalId) : null;
+          task.milestoneId = milestoneId ? oid(milestoneId) : null;
+        }
+        if (patch.blockedByIds !== undefined) {
+          await assertBlockersAllowed(task.workspaceId, patch.blockedByIds, task._id);
+          task.blockedByIds = [...new Set(patch.blockedByIds)].map(oid);
+        }
         if (patch.parentTaskId !== undefined) {
           task.parentTaskId = patch.parentTaskId
             ? oid(patch.parentTaskId)
@@ -885,6 +927,12 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           task.sectionId = patch.sectionId ? oid(patch.sectionId) : null;
         } else if (projectChanges) {
           task.sectionId = null;
+        }
+        // Custom fields are per project too: a move drops the old project's values.
+        if (projectChanges || patch.fieldValues !== undefined) {
+          const current = projectChanges ? {} : (task.fieldValues ?? {}) as FieldValues;
+          task.fieldValues = await mergeFieldValues(nextProject, task.workspaceId, current, patch.fieldValues ?? {});
+          task.markModified("fieldValues");
         }
         if (patch.status !== undefined) {
           task.status = patch.status;
@@ -932,6 +980,12 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           );
         }
 
+        // A task can't be finished while something it waits on is still open.
+        if (becomingDone) await assertNotBlocked(task.blockedByIds ?? [], task.title);
+        // Nor while its approval is pending or was turned down.
+        if (becomingDone && blocksCompletion(mapApproval(task.approval))) {
+          throw new ApiError(409, "needs_approval", `“${task.title}” needs approval before it can be done`);
+        }
         const spawnRule = becomingDone
           ? asRecurrenceRule(task.recurrence)
           : null;
@@ -952,7 +1006,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         if (projectChanges) {
           const below = await descendantIds(task._id);
           if (below.length) {
-            await TaskModel.updateMany({ _id: { $in: below } }, { $set: { projectId: task.projectId ?? null, columnId: null, sectionId: null } });
+            await TaskModel.updateMany({ _id: { $in: below } }, { $set: { projectId: task.projectId ?? null, columnId: null, sectionId: null, fieldValues: {} } });
           }
         }
         if (spawnRule) {
@@ -1039,7 +1093,7 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
           });
         }
 
-        return mapped;
+        return (await withBlocked([mapped]))[0]!;
       });
     },
 
@@ -1166,6 +1220,14 @@ export function createMongoSyncProvider(ctx: ProviderContext): SyncProvider {
         const byId = new Map(
           tasks.map((task) => [task._id.toString(), task] as const),
         );
+        // Dragging a blocked card to Done is refused like any other way of finishing it.
+        const finishing = input.moves.flatMap((move) => {
+          const task = byId.get(move.taskId);
+          return task && move.status === "done" && task.status !== "done" ? [task] : [];
+        });
+        const stillOpen = await openTaskIds(finishing.flatMap((task) => task.blockedByIds ?? []));
+        const stuck = finishing.find((task) => (task.blockedByIds ?? []).some((id) => stillOpen.has(String(id))));
+        if (stuck) throw new ApiError(409, "blocked", `“${stuck.title}” is waiting on other tasks; finish those first`);
 
         const ops: Array<{
           updateOne: {

@@ -4,7 +4,7 @@ export type WorkspaceKind = (typeof WORKSPACE_KINDS)[number];
 export const MEMBER_ROLES = ["owner", "admin", "member", "viewer"] as const;
 export type MemberRole = (typeof MEMBER_ROLES)[number];
 
-export const PROJECT_VIEWS = ["board", "list", "calendar"] as const;
+export const PROJECT_VIEWS = ["board", "list", "calendar", "gantt"] as const;
 export type ProjectView = (typeof PROJECT_VIEWS)[number];
 
 export const TASK_STATUSES = ["todo", "in_progress", "done", "canceled"] as const;

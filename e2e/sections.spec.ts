@@ -14,9 +14,9 @@ test.describe("sections", () => {
     await expect(planning).toContainText("No tasks in this section.");
 
     // Move a task into the section from the drawer.
-    const loaded = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "GET");
+    // The drawer opens from the list's copy of the task, so there may be no fetch to wait for.
     await page.getByRole("button", { name: `Draft spec ${id}` }).click();
-    await loaded;
+    await expect(page.getByLabel("Section", { exact: true })).toBeVisible();
     const saved = page.waitForResponse((r) => r.url().endsWith(`/api/tasks/${task.id}`) && r.request().method() === "PATCH");
     await page.getByLabel("Section", { exact: true }).selectOption({ label: `Planning ${id}` });
     await saved;

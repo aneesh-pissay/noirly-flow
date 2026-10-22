@@ -21,6 +21,10 @@ export const E2E_TASK_OUTBOX = "test-results/task-outbox";
 /** Test-only cron secret, so tests can call /api/cron/* directly. */
 export const E2E_CRON_SECRET = "noirly-flow-e2e-cron-secret-0123456789abcdef";
 
+/** The fake Google/Outlook server (e2e/fake-calendar.ts) the calendar sync spec starts. */
+export const E2E_FAKE_CALENDAR_PORT = 3199;
+const fakeCalendar = `http://127.0.0.1:${E2E_FAKE_CALENDAR_PORT}`;
+
 export const E2E_ENV: Record<string, string> = {
   NEXT_DIST_DIR: ".next-e2e",
   MONGODB_URI: E2E_MONGODB_URI,
@@ -39,6 +43,21 @@ export const E2E_ENV: Record<string, string> = {
   INVITE_EMAIL_OUTBOX: E2E_INVITE_OUTBOX,
   MENTION_EMAIL_OUTBOX: "test-results/mention-outbox",
   TASK_EMAIL_OUTBOX: E2E_TASK_OUTBOX,
+  // Every test shares one IP and two accounts; the normal 300 a minute trips mid-run.
+  API_RATE_LIMIT_PER_MINUTE: "100000",
+  // Webhook specs post to a receiver on 127.0.0.1.
+  FLOW_WEBHOOKS_ALLOW_LOCALHOST: "1",
+  // Two-way calendar sync against the fake server; a fixed test-only key.
+  CALENDAR_TOKEN_KEY: Buffer.alloc(32, 7).toString("base64"),
+  GOOGLE_CALENDAR_CLIENT_ID: "fake-google-client",
+  GOOGLE_CALENDAR_CLIENT_SECRET: "fake-google-secret",
+  GOOGLE_OAUTH_URL: `${fakeCalendar}/google`,
+  GOOGLE_TOKEN_URL: `${fakeCalendar}/google/token`,
+  GOOGLE_CALENDAR_API_URL: `${fakeCalendar}/google/calendar/v3`,
+  MICROSOFT_CALENDAR_CLIENT_ID: "fake-ms-client",
+  MICROSOFT_CALENDAR_CLIENT_SECRET: "fake-ms-secret",
+  MICROSOFT_LOGIN_URL: `${fakeCalendar}/ms/oauth2/v2.0`,
+  MICROSOFT_GRAPH_URL: `${fakeCalendar}/ms/v1.0`,
   // Lets tests run the cron routes (reminder sweep) on demand.
   CRON_SECRET: E2E_CRON_SECRET,
   // No R2 in tests: attachments go to a local folder.

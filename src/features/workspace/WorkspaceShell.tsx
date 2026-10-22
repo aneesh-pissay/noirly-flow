@@ -8,6 +8,7 @@ import { qk } from "@/src/core/sync/query-keys";
 import { ProjectNav } from "@/src/features/workspace/ProjectNav";
 import { FilterNav } from "@/src/features/filters/FilterNav";
 import { WorkspaceRoleProvider } from "@/src/features/workspace/WorkspaceRoleContext";
+import { StatusNamesProvider } from "@/src/features/workspace/workspace-look";
 
 export function WorkspaceShell({
   workspaceId,
@@ -50,6 +51,7 @@ export function WorkspaceShell({
 
   return (
     <WorkspaceRoleProvider role={role}>
+    <StatusNamesProvider names={workspaceQuery.data?.workspace.statusNames}>
       <div className="flex h-full min-h-0 flex-1 flex-col lg:flex-row">
         <aside className="shrink-0 border-b border-[var(--hairline)] bg-[var(--surface-2)]/40 lg:w-56 lg:border-b-0 lg:border-r">
           <div className="px-4 py-4 sm:px-6 lg:max-h-full lg:overflow-y-auto lg:py-5">
@@ -59,6 +61,7 @@ export function WorkspaceShell({
         </aside>
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</div>
       </div>
+    </StatusNamesProvider>
     </WorkspaceRoleProvider>
   );
 }

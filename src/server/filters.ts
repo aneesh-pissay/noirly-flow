@@ -72,3 +72,6 @@ export function deleteFilter(userId: string, filterId: string) {
     await filter.deleteOne();
   });
 }
+
+/** For exports. */
+export { map as mapFilterDoc };

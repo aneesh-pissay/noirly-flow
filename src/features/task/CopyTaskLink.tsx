@@ -21,7 +21,8 @@ export function CopyTaskLink({ workspaceId, taskId }: { workspaceId: string; tas
       className="ml-auto mr-4 inline-flex cursor-pointer items-center gap-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
     >
       <Link2 size={13} aria-hidden />
-      <span role="status">{state === "copied" ? "Copied" : state === "failed" ? "Couldn't copy" : "Copy link"}</span>
+      {/* aria-live, not role="status": a status role's text wouldn't count toward the button's name. */}
+      <span aria-live="polite">{state === "copied" ? "Copied" : state === "failed" ? "Couldn't copy" : "Copy link"}</span>
     </button>
   );
 }

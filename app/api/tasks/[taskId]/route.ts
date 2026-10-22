@@ -10,6 +10,7 @@ import {
   jsonOk,
 } from "@/src/server/api/http";
 import { updateTaskBodySchema } from "@/src/server/api/schemas";
+import type { Task } from "@/src/core/sync/types";
 import { publishRealtime } from "@/src/server/realtime/publish";
 
 type Params = { params: Promise<{ taskId: string }> };
@@ -38,6 +39,8 @@ export async function PATCH(request: Request, { params }: Params) {
     const data = body.data;
     const task = await sync.updateTask(taskId, {
       ...data,
+      // A patch: null clears that field value; the rest are merged in.
+      fieldValues: data.fieldValues as Task["fieldValues"] | undefined,
       checklist: data.checklist?.map((item, index) => ({
         id: item.id ?? `tmp-${index}`,
         title: item.title,

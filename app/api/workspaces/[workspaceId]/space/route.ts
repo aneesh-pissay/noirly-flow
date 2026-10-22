@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { readApiJson } from "@/src/server/security/body";
-import { ApiError, assertObjectId, getSyncProvider, jsonError, jsonOk } from "@/src/server/api/http";
+import { ApiError, assertObjectId, getSyncProvider, jsonError, jsonOk, refuseAccessToken } from "@/src/server/api/http";
 import {
   createSpaceFromWorkspace,
   getSpaceLinkStatus,
@@ -37,6 +37,7 @@ export async function POST(request: Request, { params }: Params) {
     const body = actionSchema.safeParse(await readApiJson(request));
     if (!body.success) throw new ApiError(400, "invalid_request", "Invalid space action");
     const { ctx } = await getSyncProvider();
+    refuseAccessToken(ctx, "Linking a Space");
     if (body.data.action === "link") {
       return jsonOk({ result: await linkWorkspaceToSpace(ctx, workspaceId, body.data.spaceId) });
     }
@@ -55,6 +56,7 @@ export async function DELETE(_request: Request, { params }: Params) {
     const { workspaceId } = await params;
     await assertObjectId(workspaceId, "workspaceId");
     const { ctx } = await getSyncProvider();
+    refuseAccessToken(ctx, "Linking a Space");
     await unlinkWorkspaceFromSpace(ctx, workspaceId);
     return jsonOk({ ok: true });
   } catch (error) {

@@ -1,7 +1,8 @@
 import { safeLocalPath } from "@/src/lib/safe-path";
-import { consumeRateLimit } from "@/src/server/security/rate-limit";
+import { apiRequestsPerMinute, consumeRateLimit } from "@/src/server/security/rate-limit";
 import { securePageResponse, rejectCrossOriginMutation } from "@/src/server/security/request";
 import { NextResponse } from "next/server";
+import { isAccessToken, scopeAllows, tokenScope } from "@/src/core/access-tokens";
 import { auth } from "@/auth";
 
 export const proxy = auth(async (request) => {
@@ -12,7 +13,13 @@ export const proxy = auth(async (request) => {
     request.nextUrl.pathname === "/api/identity/account-deleted" ||
     request.nextUrl.pathname === "/api/identity/space-changed";
   if (api && !authApi && !webhook) {
-    const bearer = /^Bearer\s+\S+$/i.test(request.headers.get("authorization") ?? "");
+    const authorization = request.headers.get("authorization") ?? "";
+    const bearer = /^Bearer\s+\S+$/i.test(authorization);
+    // Read-only access tokens are turned away from writes before any lookup.
+    const token = authorization.replace(/^Bearer\s+/i, "");
+    if (bearer && isAccessToken(token) && !scopeAllows(tokenScope(token) ?? "write", request.method)) {
+      return NextResponse.json({ error: "read_only_token", message: "This token can only read" }, { status: 403 });
+    }
     if (!bearer) {
       const rejection = rejectCrossOriginMutation(request, process.env.AUTH_URL);
       if (rejection) return rejection;
@@ -22,14 +29,17 @@ export const proxy = auth(async (request) => {
     }
     try {
       const ip = request.headers.get(process.env.TRUSTED_CLIENT_IP_HEADER ?? "x-forwarded-for")?.split(",").at(-1)?.trim() ?? "unknown";
-      const result = await consumeRateLimit(`flow-api:${ip}`, 300, 60);
+      const result = await consumeRateLimit(`flow-api:${ip}`, apiRequestsPerMinute(), 60);
       if (!result.allowed) return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(result.retryAfterSeconds) } });
     } catch { return NextResponse.json({ error: "temporarily_unavailable" }, { status: 503 }); }
   }
   const { pathname } = request.nextUrl;
   const isLanding = pathname === "/";
   // Readable without an account, signed in or not (Google Play links to the privacy policy).
-  const isPublicPage = pathname === "/privacy";
+  // Public intake forms (/f/<id>) are for people without an account.
+  // The service worker, manifest and offline page load before (or without) a session.
+  const isPublicPage = pathname === "/privacy" || pathname.startsWith("/f/")
+    || pathname === "/sw.js" || pathname === "/manifest.webmanifest" || pathname === "/offline.html";
   const isLogin = pathname === "/login";
   const isLoginPopup =
     pathname === "/login/popup" || pathname === "/login/popup-complete";

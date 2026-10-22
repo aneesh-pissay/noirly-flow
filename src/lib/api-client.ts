@@ -1,5 +1,22 @@
 import { dueRange, type DuePreset } from "@/src/features/task/dates";
+import { noteResponse, setOffline } from "@/src/lib/offline";
 import type { Template } from "@/src/core/templates";
+import type { TimeEntryView } from "@/src/core/time-tracking";
+import type { Occurrence } from "@/src/core/habits";
+import type { CompletedRow, OpenRow, TimeRow } from "@/src/core/stats";
+import type { Goal } from "@/src/core/goals";
+import type { Approval } from "@/src/core/approvals";
+import type { AccessTokenView, TokenScope } from "@/src/core/access-tokens";
+import type { DeliveryView, WebhookEventType, WebhookView } from "@/src/core/webhooks";
+import type { IntakeForm, QuestionKind } from "@/src/core/forms";
+import type { BackupSettings, BackupView } from "@/src/server/backups";
+import type { ImportResult } from "@/src/server/import";
+import type { CalendarSyncStatus } from "@/src/server/calendar-sync/service";
+import type { SyncOutcome } from "@/src/server/calendar-sync/engine";
+import type { ImportTask } from "@/src/core/import";
+import type { AutomationAction, AutomationCondition, AutomationRule, AutomationTrigger } from "@/src/core/automations";
+import type { FieldType, ProjectField } from "@/src/core/custom-fields";
+import type { PendingInvite } from "@/src/server/workspace/members";
 import type {
   ActivityEvent,
   AppNotification,
@@ -35,15 +52,23 @@ export class ApiRequestError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      // FormData sets its own multipart Content-Type (with the boundary).
-      ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-      "X-Noirly-CSRF": "1",
-      ...(init?.headers ?? {}),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers: {
+        // FormData sets its own multipart Content-Type (with the boundary).
+        ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        "X-Noirly-CSRF": "1",
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch {
+    // No answer at all: the network is down (writes are never queued offline).
+    setOffline(true);
+    throw new ApiRequestError(0, "You're offline. Changes can't be saved until you reconnect.");
+  }
+  noteResponse(response);
 
   const data = (await response.json().catch(() => ({}))) as T & ApiErrorBody;
   if (!response.ok) {
@@ -51,6 +76,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   return data;
 }
+
+/** What the form builder sends. */
+export type FormBody = Pick<IntakeForm, "name" | "intro" | "titleLabel" | "askDetails" | "defaults" | "confirmation" | "enabled"> & {
+  questions: Array<{ id?: string; label: string; kind: QuestionKind; required: boolean; options: string[] }>;
+};
 
 export const api = {
   me() {
@@ -62,6 +92,8 @@ export const api = {
         identityName: string;
         profile: {
           taskSaveMode?: "auto" | "manual";
+          density?: "comfortable" | "compact";
+          contentWidth?: "standard" | "wide";
           displayName: string | null;
           title: string | null;
           timezone: string | null;
@@ -72,6 +104,8 @@ export const api = {
   },
   updateMe(profile: {
     taskSaveMode?: "auto" | "manual";
+    density?: "comfortable" | "compact";
+    contentWidth?: "standard" | "wide";
     displayName?: string | null;
     title?: string | null;
     timezone?: string | null;
@@ -85,6 +119,8 @@ export const api = {
         identityName: string;
         profile: {
           taskSaveMode?: "auto" | "manual";
+          density?: "comfortable" | "compact";
+          contentWidth?: "standard" | "wide";
           displayName: string | null;
           title: string | null;
           timezone: string | null;
@@ -166,8 +202,16 @@ export const api = {
         displayName: string;
         role: MemberRole;
         isCreator: boolean;
+        /** Minutes available per weekday, Sunday first. */
+        capacityMinutes: number[];
       }>;
     }>(`/api/workspaces/${workspaceId}/members`);
+  },
+  setMemberCapacity(workspaceId: string, userId: string, minutes: number[]) {
+    return request<{ capacityMinutes: number[] }>(`/api/workspaces/${workspaceId}/members/${userId}/capacity`, {
+      method: "PUT",
+      body: JSON.stringify({ minutes }),
+    });
   },
   updateMember(workspaceId: string, userId: string, role: MemberRole) {
     return request<{ member: { userId: string; role: MemberRole } }>(
@@ -186,7 +230,7 @@ export const api = {
   },
   createInvite(workspaceId: string, role: Exclude<MemberRole, "owner">) {
     return request<{
-      invite: { token: string; url: string; role: string; expiresAt: string };
+      invite: { id: string; token: string; url: string; role: string; expiresAt: string };
     }>(`/api/workspaces/${workspaceId}/invites`, {
       method: "POST",
       body: JSON.stringify({ role }),
@@ -199,6 +243,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ role, email }),
     });
+  },
+  listInvites(workspaceId: string) {
+    return request<{ invites: PendingInvite[] }>(`/api/workspaces/${workspaceId}/invites`);
+  },
+  revokeInvite(inviteId: string) {
+    return request<{ ok: boolean }>(`/api/invites/${inviteId}`, { method: "DELETE" });
   },
   acceptInvite(token: string) {
     return request<{ workspaceId: string; name: string }>("/api/invites/accept", {
@@ -306,7 +356,7 @@ export const api = {
   },
   updateProject(
     projectId: string,
-    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean },
+    patch: { name?: string; description?: string | null; color?: string | null; archived?: boolean; defaultView?: Project["defaultView"] },
   ) {
     return request<{ project: Project }>(`/api/projects/${projectId}`, {
       method: "PATCH",
@@ -335,6 +385,10 @@ export const api = {
       dueBefore?: string;
       /** Only tasks with this tag. */
       tag?: string;
+      /** Only tasks completed at or after this instant. */
+      completedAfter?: string;
+      /** Only tasks linked to this goal. */
+      goal?: string;
     } = {},
   ) {
     const params = new URLSearchParams();
@@ -360,6 +414,8 @@ export const api = {
     if (range.dueBefore) params.set("dueBefore", range.dueBefore);
     if (query.due === "none") params.set("due", "none");
     if (query.tag) params.set("tag", query.tag);
+    if (query.completedAfter) params.set("completedAfter", query.completedAfter);
+    if (query.goal) params.set("goal", query.goal);
     const qs = params.toString();
     return request<{ tasks: Task[] }>(
       `/api/workspaces/${workspaceId}/tasks${qs ? `?${qs}` : ""}`,
@@ -373,6 +429,8 @@ export const api = {
       assigneeIds?: string[];
       projectId?: string | null;
       parentTaskId?: string | null;
+      goalId?: string | null;
+      milestoneId?: string | null;
       status?: Task["status"];
       priority?: Task["priority"];
       dueAt?: string | null;
@@ -414,6 +472,132 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ projectId, favorite }),
     });
+  },
+  requestApproval(taskId: string, approverId: string) {
+    return request<{ approval: Approval | null }>(`/api/tasks/${taskId}/approval`, { method: "POST", body: JSON.stringify({ approverId }) });
+  },
+  decideApproval(taskId: string, decision: "approve" | "reject", note?: string) {
+    return request<{ approval: Approval | null }>(`/api/tasks/${taskId}/approval/decision`, { method: "POST", body: JSON.stringify({ decision, note: note || null }) });
+  },
+  withdrawApproval(taskId: string) {
+    return request<{ approval: null }>(`/api/tasks/${taskId}/approval`, { method: "DELETE" });
+  },
+  listGoals(workspaceId: string) {
+    return request<{ goals: Goal[] }>(`/api/workspaces/${workspaceId}/goals`);
+  },
+  getGoal(goalId: string) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}`);
+  },
+  createGoal(workspaceId: string, input: { name: string; description?: string | null; targetAt?: string | null }) {
+    return request<{ goal: Goal }>(`/api/workspaces/${workspaceId}/goals`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateGoal(goalId: string, patch: { name?: string; description?: string | null; targetAt?: string | null; archived?: boolean }) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteGoal(goalId: string) {
+    return request<{ ok: boolean }>(`/api/goals/${goalId}`, { method: "DELETE" });
+  },
+  addMilestone(goalId: string, input: { name: string; dueAt?: string | null }) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateMilestone(goalId: string, milestoneId: string, patch: { name?: string; dueAt?: string | null }) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteMilestone(goalId: string, milestoneId: string) {
+    return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
+  },
+  customizeWorkspace(workspaceId: string, patch: { icon?: string | null; color?: string | null; defaultView?: Workspace["defaultView"]; statusNames?: Partial<Workspace["statusNames"]> }) {
+    return request<{ workspace: Workspace }>(`/api/workspaces/${workspaceId}/customization`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  calendarSync() {
+    return request<{ calendars: CalendarSyncStatus[] }>("/api/calendar-sync");
+  },
+  calendarSyncNow(provider: string) {
+    return request<SyncOutcome>(`/api/calendar-sync/${provider}/sync`, { method: "POST" });
+  },
+  calendarDisconnect(provider: string) {
+    return request<{ ok: boolean }>(`/api/calendar-sync/${provider}`, { method: "DELETE" });
+  },
+  importTasks(projectId: string, tasks: ImportTask[]) {
+    return request<ImportResult>(`/api/projects/${projectId}/import`, { method: "POST", body: JSON.stringify({ tasks }) });
+  },
+  backupSettings(workspaceId: string) {
+    return request<BackupSettings>(`/api/workspaces/${workspaceId}/backups`);
+  },
+  setBackupSchedule(workspaceId: string, input: { enabled: boolean; frequency: "daily" | "weekly" }) {
+    return request<BackupSettings>(`/api/workspaces/${workspaceId}/backups`, { method: "PUT", body: JSON.stringify(input) });
+  },
+  backUpNow(workspaceId: string) {
+    return request<{ backup: BackupView }>(`/api/workspaces/${workspaceId}/backups/run`, { method: "POST" });
+  },
+  listForms(projectId: string) {
+    return request<{ forms: IntakeForm[] }>(`/api/projects/${projectId}/forms`);
+  },
+  createForm(projectId: string, input: FormBody) {
+    return request<{ form: IntakeForm }>(`/api/projects/${projectId}/forms`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateForm(formId: string, patch: Partial<FormBody>) {
+    return request<{ form: IntakeForm }>(`/api/forms/${formId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteForm(formId: string) {
+    return request<{ ok: boolean }>(`/api/forms/${formId}`, { method: "DELETE" });
+  },
+  listWebhooks(workspaceId: string) {
+    return request<{ webhooks: WebhookView[] }>(`/api/workspaces/${workspaceId}/webhooks`);
+  },
+  createWebhook(workspaceId: string, input: { url: string; events: WebhookEventType[] }) {
+    return request<{ webhook: WebhookView; secret: string }>(`/api/workspaces/${workspaceId}/webhooks`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateWebhook(webhookId: string, patch: { url?: string; events?: WebhookEventType[]; enabled?: boolean }) {
+    return request<{ webhook: WebhookView }>(`/api/webhooks/${webhookId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteWebhook(webhookId: string) {
+    return request<{ ok: boolean }>(`/api/webhooks/${webhookId}`, { method: "DELETE" });
+  },
+  rotateWebhookSecret(webhookId: string) {
+    return request<{ secret: string }>(`/api/webhooks/${webhookId}/secret`, { method: "POST" });
+  },
+  testWebhook(webhookId: string) {
+    return request<{ delivery: DeliveryView }>(`/api/webhooks/${webhookId}/test`, { method: "POST" });
+  },
+  listWebhookDeliveries(webhookId: string) {
+    return request<{ deliveries: DeliveryView[] }>(`/api/webhooks/${webhookId}/deliveries`);
+  },
+  redeliverWebhook(webhookId: string, deliveryId: string) {
+    return request<{ delivery: DeliveryView }>(`/api/webhooks/${webhookId}/deliveries/${deliveryId}/redeliver`, { method: "POST" });
+  },
+  listAccessTokens() {
+    return request<{ tokens: AccessTokenView[] }>("/api/me/tokens");
+  },
+  createAccessToken(input: { name: string; scope: TokenScope; days: number }) {
+    return request<{ token: string; accessToken: AccessTokenView }>("/api/me/tokens", { method: "POST", body: JSON.stringify(input) });
+  },
+  revokeAccessToken(tokenId: string) {
+    return request<{ ok: boolean }>(`/api/me/tokens/${tokenId}`, { method: "DELETE" });
+  },
+  listAutomations(projectId: string) {
+    return request<{ rules: AutomationRule[] }>(`/api/projects/${projectId}/automations`);
+  },
+  createAutomation(projectId: string, input: { name: string; trigger: AutomationTrigger; conditions: AutomationCondition[]; actions: AutomationAction[]; timeZone?: string }) {
+    return request<{ rule: AutomationRule }>(`/api/projects/${projectId}/automations`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateAutomation(ruleId: string, patch: { name?: string; enabled?: boolean }) {
+    return request<{ rule: AutomationRule }>(`/api/automations/${ruleId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteAutomation(ruleId: string) {
+    return request<{ ok: boolean }>(`/api/automations/${ruleId}`, { method: "DELETE" });
+  },
+  listFields(projectId: string) {
+    return request<{ fields: ProjectField[] }>(`/api/projects/${projectId}/fields`);
+  },
+  createField(projectId: string, input: { name: string; type: FieldType; options?: Array<{ name: string }> }) {
+    return request<{ field: ProjectField }>(`/api/projects/${projectId}/fields`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateField(fieldId: string, patch: { name?: string; position?: number; options?: Array<{ id?: string; name: string }> }) {
+    return request<{ field: ProjectField }>(`/api/fields/${fieldId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteField(fieldId: string) {
+    return request<{ ok: boolean }>(`/api/fields/${fieldId}`, { method: "DELETE" });
   },
   listSections(projectId: string) {
     return request<{ sections: Section[] }>(`/api/projects/${projectId}/sections`);
@@ -466,6 +650,36 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ kind: "project", name }),
     });
+  },
+  /** Tasks waiting on this one. */
+  listBlocking(taskId: string) {
+    return request<{ tasks: Array<{ id: string; title: string; status: Task["status"] }> }>(`/api/tasks/${taskId}/blocking`);
+  },
+  listTaskTime(taskId: string) {
+    return request<{ entries: TimeEntryView[]; totalMinutes: number }>(`/api/tasks/${taskId}/time`);
+  },
+  addTime(taskId: string, body: { minutes: number; note?: string | null }) {
+    return request<{ entry: TimeEntryView }>(`/api/tasks/${taskId}/time`, { method: "POST", body: JSON.stringify(body) });
+  },
+  startTimer(taskId: string) {
+    return request<{ entry: TimeEntryView }>(`/api/tasks/${taskId}/time/start`, { method: "POST" });
+  },
+  stopTimer() {
+    return request<{ entry: TimeEntryView | null }>("/api/me/time/stop", { method: "POST" });
+  },
+  runningTimer() {
+    return request<{ running: { entry: TimeEntryView; taskTitle: string; workspaceId: string } | null }>("/api/me/time");
+  },
+  deleteTimeEntry(entryId: string) {
+    return request<{ ok: boolean }>(`/api/time/${entryId}`, { method: "DELETE" });
+  },
+  listHabits(workspaceId: string) {
+    return request<{ habits: Array<{ seriesId: string; task: Task; occurrences: Occurrence[] }> }>(`/api/workspaces/${workspaceId}/habits`);
+  },
+  myStats(workspaceId: string, since: string) {
+    return request<{ completed: CompletedRow[]; open: OpenRow[]; time: TimeRow[] }>(
+      `/api/workspaces/${workspaceId}/stats?since=${encodeURIComponent(since)}`,
+    );
   },
   listFilters(workspaceId: string) {
     return request<{ filters: SavedFilter[] }>(`/api/workspaces/${workspaceId}/filters`);

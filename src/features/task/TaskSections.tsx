@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
@@ -11,8 +11,9 @@ import { useCan } from "@/src/features/workspace/WorkspaceRoleContext";
 import { PriorityBadge } from "@/src/features/task/priority";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
 import { TaskTagChips } from "@/src/features/tags/tags";
-import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge } from "@/src/features/task/TaskDueBadge";
+import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge } from "@/src/features/task/TaskDueBadge";
 import { seedTaskCache } from "@/src/features/task/task-cache";
+import { ApprovalBadge } from "@/src/features/approvals/approvals";
 
 export type TaskSection = { key: string; label: string; tasks: Task[]; tone?: "alert" };
 
@@ -22,10 +23,12 @@ export type TaskSection = { key: string; label: string; tasks: Task[]; tone?: "a
  * saved filters. `queryKey` is the list query the tasks came from, so a
  * completed task leaves it at once.
  */
-export function TaskSections({ workspaceId, sections, queryKey }: {
+export function TaskSections({ workspaceId, sections, queryKey, actions }: {
   workspaceId: string;
   sections: TaskSection[];
   queryKey: readonly unknown[];
+  /** Extra controls at the end of each row. */
+  actions?: (task: Task) => ReactNode;
 }) {
   const queryClient = useQueryClient();
   const canWrite = useCan("task.write");
@@ -66,8 +69,12 @@ export function TaskSections({ workspaceId, sections, queryKey }: {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
       setError(err.message);
     },
-    // A repeating task's next copy may land in this list.
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] }),
+    // A repeating task's next copy may land in this list; goal progress moves too.
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["tasks", workspaceId] });
+      void queryClient.invalidateQueries({ queryKey: ["goals", workspaceId] });
+      void queryClient.invalidateQueries({ queryKey: ["goal"] });
+    },
   });
 
   return (
@@ -80,7 +87,7 @@ export function TaskSections({ workspaceId, sections, queryKey }: {
           </h2>
           <ul className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
             {section.tasks.map((task) => (
-              <li key={task.id} data-task-row={task.title} className="flex items-start gap-3 py-2.5">
+              <li key={task.id} data-task-row={task.title} data-row className="flex items-start gap-3 py-2.5">
                 <button
                   type="button"
                   aria-label={`Complete ${task.title}`}
@@ -102,8 +109,10 @@ export function TaskSections({ workspaceId, sections, queryKey }: {
                   >
                     {task.title}
                   </button>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <div data-row-meta className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <PriorityBadge priority={task.priority} />
+                    <TaskBlockedBadge blocked={task.blocked} />
+                    <ApprovalBadge approval={task.approval} />
                     <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
                     <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
                     <TaskDurationBadge minutes={task.durationMinutes} />
@@ -115,6 +124,7 @@ export function TaskSections({ workspaceId, sections, queryKey }: {
                     </span>
                   </div>
                 </div>
+                {actions ? <div className="flex shrink-0 flex-wrap justify-end gap-1">{actions(task)}</div> : null}
               </li>
             ))}
           </ul>

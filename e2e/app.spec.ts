@@ -34,7 +34,12 @@ test.describe("command palette", () => {
     await input.fill(title);
     await page.getByText(`Create task “${title}”`).click();
 
+    // The palette hands the title to the New task dialog.
     await expect(input).toBeHidden();
+    const dialog = page.getByRole("dialog", { name: "Create task" });
+    await expect(dialog.getByRole("textbox", { name: "Title" })).toHaveValue(title);
+    await dialog.getByRole("button", { name: "Create task", exact: true }).click();
+    await expect(dialog).toBeHidden();
     await expect
       .poll(async () => {
         const { tasks } = await (await page.request.get(`/api/workspaces/${team.workspace.id}/tasks`)).json();

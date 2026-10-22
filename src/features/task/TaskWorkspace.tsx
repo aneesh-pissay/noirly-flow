@@ -14,10 +14,16 @@ import type { TaskPriority, TaskStatus } from "@/src/core/models/enums";
 import { TaskBoard } from "@/src/features/task/TaskBoard";
 import { ArchivedProjectBanner } from "@/src/features/workspace/ArchivedProjectBanner";
 import { BulkActionBar } from "@/src/features/task/BulkActionBar";
+import { GanttView } from "@/src/features/gantt/GanttView";
 import { AddSection, groupBySection, NoSectionHeader, SectionHeader, useSections } from "@/src/features/task/ProjectSections";
 import { TaskCalendar } from "@/src/features/task/TaskCalendar";
 import { TaskTagChips, useTags } from "@/src/features/tags/tags";
-import { TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
+import { ProjectFieldsButton, TaskFieldChips } from "@/src/features/fields/fields";
+import { ApprovalBadge } from "@/src/features/approvals/approvals";
+import { useStatusOptions } from "@/src/features/workspace/workspace-look";
+import { ProjectAutomationsButton } from "@/src/features/automations/automations";
+import { ProjectFormsButton } from "@/src/features/forms/forms";
+import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
 import { TaskDrawer } from "@/src/features/task/TaskDrawer";
@@ -39,12 +45,6 @@ import {
   upsertCachedTask,
 } from "@/src/features/task/task-cache";
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: "todo", label: "Todo" },
-  { value: "in_progress", label: "In progress" },
-  { value: "done", label: "Done" },
-  { value: "canceled", label: "Canceled" },
-];
 
 /** The priority <select> is tinted; keep its open list in the normal text colour. */
 const OPTION_CLASS = "text-[var(--foreground)]";
@@ -77,6 +77,7 @@ type Props = {
 };
 
 export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
+  const STATUS_OPTIONS = useStatusOptions();
   const queryClient = useQueryClient();
   // useSearchParams follows router.push (command palette), pushState
   // (writeTaskParam) and back/forward, so a changed ?task= opens the drawer.
@@ -87,9 +88,8 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     setSeenUrlTaskId(urlTaskId);
     setDrawerTaskId(urlTaskId);
   }
-  const [view, setView] = useState<"list" | "board" | "calendar">(
-    projectId ? "board" : "list",
-  );
+  // Null until someone picks a view; until then the project opens in its default.
+  const [chosenView, setView] = useState<"list" | "board" | "calendar" | "gantt" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -145,6 +145,11 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
       if (event.key === "3") {
         event.preventDefault();
         setView("calendar");
+        return;
+      }
+      if (event.key === "4" && projectId) {
+        event.preventDefault();
+        setView("gantt");
       }
     }
     window.addEventListener("keydown", onKey);
@@ -196,6 +201,12 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
     queryKey: projectId ? qk.project(projectId) : ["project", "none"],
     queryFn: () => api.getProject(projectId!),
     enabled: Boolean(projectId),
+  });
+  const projectView = projectQuery.data?.project.defaultView;
+  const view = chosenView ?? projectView ?? (projectId ? "board" : "list");
+  const makeDefaultView = useMutation({
+    mutationFn: () => api.updateProject(projectId!, { defaultView: view }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.project(projectId!) }),
   });
 
   const membersQuery = useQuery({
@@ -459,6 +470,30 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
               Calendar
             </button>
             {projectId ? (
+              <button
+                type="button"
+                onClick={() => setView("gantt")}
+                className={`rounded-xl px-3 py-2 text-sm transition-colors ${
+                  view === "gantt"
+                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                    : "border border-[var(--hairline)] text-[var(--muted-foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                Gantt
+              </button>
+            ) : null}
+            {projectId && canWrite && projectView && view !== projectView ? (
+              <button
+                type="button"
+                onClick={() => makeDefaultView.mutate()}
+                disabled={makeDefaultView.isPending}
+                title="Open this project in this view for everyone"
+                className="rounded-xl px-3 py-2 text-sm text-[var(--muted-foreground)] underline-offset-2 hover:text-[var(--foreground)] hover:underline disabled:opacity-50"
+              >
+                Make default
+              </button>
+            ) : null}
+            {projectId ? (
               <Link
                 href={`/w/${workspaceId}/p/${projectId}/chat`}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--hairline)] px-3 py-2 text-sm text-[var(--muted-foreground)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
@@ -467,6 +502,9 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
                 Chat
               </Link>
             ) : null}
+            {projectId ? <ProjectFieldsButton projectId={projectId} canWrite={canWrite} /> : null}
+            {projectId ? <ProjectAutomationsButton workspaceId={workspaceId} projectId={projectId} canWrite={canWrite} /> : null}
+            {projectId ? <ProjectFormsButton workspaceId={workspaceId} projectId={projectId} canWrite={canWrite} /> : null}
           </div>
         </div>
       </header>
@@ -655,6 +693,13 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
         </div>
       ) : view === "calendar" ? (
         <TaskCalendar tasks={tasks} onOpenTask={openTask} />
+      ) : view === "gantt" && projectId ? (
+        <GanttView
+          tasks={tasks}
+          canWrite={canWrite}
+          onOpenTask={openTask}
+          onPatch={(taskId, patch) => updateMutation.mutate({ taskId, patch })}
+        />
       ) : !projectId ? (
         <p className="text-sm text-[var(--foreground)]">No project available for board.</p>
       ) : projectQuery.isPending ? (
@@ -713,6 +758,7 @@ function TaskList({
   onDueChange: (taskId: string, dueAt: string | null, dueHasTime: boolean) => void;
   onDelete: (taskId: string) => void;
 }) {
+  const STATUS_OPTIONS = useStatusOptions();
   if (tasks.length === 0) {
     return (
       <p className="border border-[var(--hairline)] px-4 py-10 text-center text-sm text-[var(--muted-foreground)]">
@@ -735,6 +781,7 @@ function TaskList({
             if (selection) selection.toggle(task.id);
             else onOpenTask(task.id);
           }}
+          data-row
           className="flex cursor-pointer flex-col gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] sm:flex-row sm:items-center sm:justify-between"
         >
           {selection ? (
@@ -758,8 +805,10 @@ function TaskList({
             >
               {task.title}
             </button>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div data-row-meta className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
+              <TaskBlockedBadge blocked={task.blocked} />
+              <ApprovalBadge approval={task.approval} />
               <TaskStartBadge startAt={task.startAt} />
               <TaskDueBadge dueAt={task.dueAt} hasTime={task.dueHasTime} />
               <TaskDeadlineBadge deadlineAt={task.deadlineAt} />
@@ -767,6 +816,7 @@ function TaskList({
               <TaskRepeatBadge rule={task.recurrence} />
               <TaskSubtaskBadge count={task.subtaskCount} />
               <TaskTagChips workspaceId={task.workspaceId} tagIds={task.tagIds} />
+              <TaskFieldChips projectId={task.projectId} values={task.fieldValues} members={members} />
               <AssigneeChips assigneeIds={task.assigneeIds} members={members} />
             </div>
           </div>

@@ -73,8 +73,34 @@ const taskSchema = new Schema(
     // False: an all-day due date (stored at local noon). True: dueAt is the exact due time.
     dueHasTime: { type: Boolean, default: false },
     startAt: { type: Date, default: null },
+    // A repeating task tracked as a habit (streaks on the Habits page).
+    habit: { type: Boolean, default: false },
+    // The first task of a repeating series; each next copy carries it, so its history can be read.
+    seriesId: { type: Schema.Types.ObjectId, ref: "Task", default: null },
+    // Tasks that must be finished before this one can be (same workspace, no loops).
+    blockedByIds: { type: [Schema.Types.ObjectId], ref: "Task", default: [] },
     // A section of the task's project (list view grouping), or null.
     sectionId: { type: Schema.Types.ObjectId, ref: "Section", default: null },
+    // A goal the task rolls up into, and optionally one of its milestones.
+    goalId: { type: Schema.Types.ObjectId, ref: "Goal", default: null },
+    milestoneId: { type: Schema.Types.ObjectId, default: null },
+    // Custom field values for the task's project, keyed by ProjectField id.
+    fieldValues: { type: Schema.Types.Mixed, default: {} },
+    // The sign-off this task needs before it can be done (one at a time).
+    approval: {
+      type: new Schema(
+        {
+          status: { type: String, enum: ["pending", "approved", "rejected"], required: true },
+          requestedById: { type: Schema.Types.ObjectId, ref: "FlowUser", required: true },
+          approverId: { type: Schema.Types.ObjectId, ref: "FlowUser", required: true },
+          requestedAt: { type: Date, required: true },
+          decidedAt: { type: Date, default: null },
+          note: { type: String, default: null, maxlength: 1000 },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
     // A hard "must be done by" date, separate from the planned due date. All-day, at local noon.
     deadlineAt: { type: Date, default: null },
     // How long the task should take, in minutes; null when not estimated.
@@ -141,6 +167,10 @@ taskSchema.index({ workspaceId: 1, deletedAt: 1 });
 taskSchema.index({ projectId: 1, columnId: 1, position: 1 });
 taskSchema.index({ deletedAt: 1, status: 1, dueAt: 1, emailCheckedAt: 1 });
 taskSchema.index({ reminderSentAt: 1, reminderAt: 1 });
+taskSchema.index({ workspaceId: 1, habit: 1 });
+taskSchema.index({ seriesId: 1, dueAt: -1 });
+taskSchema.index({ goalId: 1, status: 1 });
+taskSchema.index({ "approval.approverId": 1, "approval.status": 1 });
 taskSchema.index({ "emailDeliveries.assignmentPending": 1, emailCheckedAt: 1 });
 taskSchema.index({ "completionDeliveries.pending": 1, emailCheckedAt: 1 });
 

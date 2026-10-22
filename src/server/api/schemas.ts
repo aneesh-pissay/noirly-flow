@@ -56,6 +56,9 @@ export const createTaskBodySchema = z.object({
   recurrence: recurrenceSchema,
   tagIds: z.array(z.string().min(1)).max(20).optional(),
   sectionId: z.string().min(1).nullable().optional(),
+  goalId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
+  milestoneId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
+  blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
 });
 
 export const prepareAttachmentUploadSchema = z.object({
@@ -84,6 +87,11 @@ export const updateTaskBodySchema = z
     projectId: z.string().min(1).nullable().optional(),
     columnId: z.string().min(1).nullable().optional(),
     sectionId: z.string().min(1).nullable().optional(),
+    goalId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
+    milestoneId: z.string().regex(/^[a-f0-9]{24}$/i).nullable().optional(),
+    fieldValues: z.record(z.string().regex(/^[a-f0-9]{24}$/i), z.union([z.string().max(500), z.number(), z.null()])).optional(),
+    blockedByIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20).optional(),
+    habit: z.boolean().optional(),
     parentTaskId: z.string().min(1).nullable().optional(),
     position: z.number().finite().optional(),
     tagIds: z.array(z.string().min(1)).optional(),
@@ -119,6 +127,8 @@ export const listTasksQuerySchema = z.object({
   dueAfter: z.string().datetime({ offset: true }).optional(),
   dueBefore: z.string().datetime({ offset: true }).optional(),
   tag: z.string().min(1).optional(),
+  completedAfter: z.string().datetime({ offset: true }).optional(),
+  goal: z.string().regex(/^[a-f0-9]{24}$/i).optional(),
 });
 
 export const bulkTasksBodySchema = z
@@ -162,6 +172,183 @@ export const applyTemplateBodySchema = z.discriminatedUnion("kind", [
   }),
   z.object({ kind: z.literal("project"), name: z.string().trim().min(1).max(80) }),
 ]);
+
+const dateSchema = z.string().datetime({ offset: true }).nullable().optional();
+
+export const createGoalBodySchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(2000).nullable().optional(),
+  targetAt: dateSchema,
+});
+
+export const updateGoalBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    description: z.string().max(2000).nullable().optional(),
+    targetAt: dateSchema,
+    archived: z.boolean().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+export const milestoneBodySchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  dueAt: dateSchema,
+});
+
+export const updateMilestoneBodySchema = z
+  .object({ name: z.string().trim().min(1).max(120).optional(), dueAt: dateSchema })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+const fieldNameSchema = z.string().trim().min(1).max(40);
+
+export const createFieldBodySchema = z.object({
+  name: fieldNameSchema,
+  type: z.enum(["text", "number", "select", "date", "person"]),
+  options: z.array(z.object({ name: fieldNameSchema })).max(50).optional(),
+});
+
+export const updateFieldBodySchema = z
+  .object({
+    name: fieldNameSchema.optional(),
+    position: z.number().finite().optional(),
+    options: z.array(z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i).optional(), name: fieldNameSchema })).max(50).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+export const requestApprovalBodySchema = z.object({
+  approverId: z.string().regex(/^[a-f0-9]{24}$/i),
+});
+
+export const decideApprovalBodySchema = z.object({
+  decision: z.enum(["approve", "reject"]),
+  note: z.string().max(1000).nullable().optional(),
+});
+
+const objectId = z.string().regex(/^[a-f0-9]{24}$/i);
+const statusSchema = z.enum(["todo", "in_progress", "done", "canceled"]);
+const prioritySchema = z.enum(["none", "low", "medium", "high", "urgent"]);
+
+const automationTriggerSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("created") }),
+  z.object({ type: z.literal("status_changed"), to: statusSchema.nullable().optional() }),
+  z.object({ type: z.literal("priority_changed"), to: prioritySchema.nullable().optional() }),
+  z.object({ type: z.literal("assignee_added") }),
+]);
+
+const automationConditionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("priority_is"), value: prioritySchema }),
+  z.object({ type: z.literal("has_tag"), value: objectId }),
+  z.object({ type: z.literal("assigned_to"), value: objectId }),
+  z.object({ type: z.literal("in_section"), value: objectId }),
+  z.object({ type: z.literal("title_contains"), value: z.string().trim().min(1).max(100) }),
+]);
+
+const automationActionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("set_status"), value: statusSchema }),
+  z.object({ type: z.literal("set_priority"), value: prioritySchema }),
+  z.object({ type: z.literal("add_tag"), value: objectId }),
+  z.object({ type: z.literal("add_assignee"), value: objectId }),
+  z.object({ type: z.literal("move_to_section"), value: objectId }),
+  z.object({ type: z.literal("set_due_in_days"), value: z.number().int().min(0).max(365) }),
+]);
+
+export const createAutomationBodySchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  enabled: z.boolean().optional(),
+  trigger: automationTriggerSchema,
+  conditions: z.array(automationConditionSchema).max(5).default([]),
+  actions: z.array(automationActionSchema).min(1).max(5),
+  timeZone: z.string().max(64).optional(),
+});
+
+export const updateAutomationBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(80).optional(),
+    enabled: z.boolean().optional(),
+    trigger: automationTriggerSchema.optional(),
+    conditions: z.array(automationConditionSchema).max(5).optional(),
+    actions: z.array(automationActionSchema).min(1).max(5).optional(),
+    timeZone: z.string().max(64).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+const webhookEventsSchema = z.array(z.enum(["task.created", "task.updated", "task.completed", "task.deleted", "comment.created"])).min(1).max(5);
+
+export const createWebhookBodySchema = z.object({
+  url: z.string().trim().min(1).max(2000),
+  events: webhookEventsSchema,
+});
+
+export const updateWebhookBodySchema = z
+  .object({ url: z.string().trim().min(1).max(2000).optional(), events: webhookEventsSchema.optional(), enabled: z.boolean().optional() })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+const formQuestionSchema = z.object({
+  id: z.string().regex(/^[a-f0-9]{24}$/i).optional(),
+  label: z.string().trim().min(1).max(120),
+  kind: z.enum(["short_text", "long_text", "email", "choice", "date"]),
+  required: z.boolean(),
+  options: z.array(z.string().trim().max(80)).max(20).default([]),
+});
+
+const formFieldsSchema = {
+  name: z.string().trim().min(1).max(80),
+  intro: z.string().max(2000).nullable().optional(),
+  titleLabel: z.string().trim().min(1).max(120),
+  askDetails: z.boolean(),
+  questions: z.array(formQuestionSchema).max(15),
+  defaults: z.object({
+    priority: z.enum(TASK_PRIORITIES),
+    sectionId: z.string().regex(/^[a-f0-9]{24}$/i).nullable(),
+    tagIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20),
+    assigneeId: z.string().regex(/^[a-f0-9]{24}$/i).nullable(),
+  }),
+  confirmation: z.string().max(500).nullable().optional(),
+  enabled: z.boolean().optional(),
+};
+
+export const createFormBodySchema = z.object(formFieldsSchema);
+export const updateFormBodySchema = z.object(formFieldsSchema).partial()
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+/** A public submission: loose on purpose, the form checks each answer. */
+export const submitFormBodySchema = z.object({
+  title: z.string().max(1000).optional(),
+  details: z.string().max(10_000).optional(),
+  answers: z.record(z.string().max(40), z.string().max(5000)).optional(),
+  website: z.string().max(500).optional(),
+});
+
+const importTaskSchema = z.object({
+  title: z.string().trim().min(1).max(500),
+  description: z.string().max(20_000).nullable(),
+  priority: z.enum(TASK_PRIORITIES),
+  dueAt: z.string().datetime({ offset: true }).nullable(),
+  dueHasTime: z.boolean(),
+  recurrence: recurrenceSchema,
+  done: z.boolean(),
+  tagNames: z.array(z.string().trim().min(1).max(40)).max(20),
+  sectionName: z.string().trim().min(1).max(60).nullable(),
+  assigneeEmail: z.string().trim().max(254).nullable(),
+  parent: z.number().int().min(0).nullable(),
+  comments: z.array(z.string().min(1).max(10_000)).max(50),
+});
+
+/** An import plan, built in the browser from a CSV. */
+export const importTasksBodySchema = z.object({
+  tasks: z.array(importTaskSchema).min(1).max(2000),
+}).refine((value) => value.tasks.every((task, index) => task.parent === null || task.parent < index), "A subtask must come after its parent");
+
+export const backupScheduleBodySchema = z.object({
+  enabled: z.boolean(),
+  frequency: z.enum(["daily", "weekly"]),
+});
+
+export const createAccessTokenBodySchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  scope: z.enum(["read", "write"]),
+  days: z.union([z.literal(30), z.literal(90), z.literal(365), z.literal(0)]),
+});
 
 export const createSectionBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
@@ -222,6 +409,7 @@ export const updateProjectBodySchema = z
     description: z.string().trim().max(2000).nullable().optional(),
     color: z.string().regex(/^#([0-9a-fA-F]{6})$/).nullable().optional(),
     archived: z.boolean().optional(),
+    defaultView: z.enum(["board", "list", "calendar", "gantt"]).optional(),
   })
   .refine((value) => Object.values(value).some((field) => field !== undefined), {
     message: "Nothing to update",
@@ -254,6 +442,17 @@ export const createWorkspaceBodySchema = z.object({
 });
 
 export const updateWorkspaceBodySchema = createWorkspaceBodySchema;
+
+const statusName = z.string().trim().max(24).nullable().optional();
+
+export const customizeWorkspaceBodySchema = z
+  .object({
+    icon: z.string().max(16).nullable().optional(),
+    color: z.string().regex(/^#([0-9a-fA-F]{6})$/).nullable().optional(),
+    defaultView: z.enum(["board", "list", "calendar", "gantt"]).optional(),
+    statusNames: z.object({ todo: statusName, in_progress: statusName, done: statusName, canceled: statusName }).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
 export const createInviteBodySchema = z.object({
   role: z.enum(["admin", "member", "viewer"]).default("member"),
@@ -298,6 +497,8 @@ const optionalText = (max: number) =>
 export const updateMeBodySchema = z.object({
   profile: z.object({
     taskSaveMode: z.enum(["auto", "manual"]).optional(),
+    density: z.enum(["comfortable", "compact"]).optional(),
+    contentWidth: z.enum(["standard", "wide"]).optional(),
     displayName: optionalText(80),
     title: optionalText(80),
     timezone: optionalText(80),

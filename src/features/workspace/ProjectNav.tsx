@@ -176,6 +176,36 @@ export function ProjectNav({ workspaceId }: Props) {
           </NavLink>
         </li>
         <li>
+          <NavLink href={`/w/${workspaceId}/timeline`} className={navClass(path.endsWith("/timeline"))}>
+            Timeline
+          </NavLink>
+        </li>
+        <li>
+          <NavLink href={`/w/${workspaceId}/capacity`} className={navClass(path.endsWith("/capacity"))}>
+            Capacity
+          </NavLink>
+        </li>
+        <li>
+          <NavLink href={`/w/${workspaceId}/habits`} className={navClass(path.endsWith("/habits"))}>
+            Habits
+          </NavLink>
+        </li>
+        <li>
+          <NavLink href={`/w/${workspaceId}/stats`} className={navClass(path.endsWith("/stats"))}>
+            Stats
+          </NavLink>
+        </li>
+        <li>
+          <NavLink href={`/w/${workspaceId}/review`} className={navClass(path.endsWith("/review"))}>
+            Review
+          </NavLink>
+        </li>
+        <li>
+          <NavLink href={`/w/${workspaceId}/goals`} className={navClass(path.includes("/goals"))}>
+            Goals
+          </NavLink>
+        </li>
+        <li>
           <NavLink href={inboxHref} className={navClass(inboxActive)}>
             Inbox
           </NavLink>

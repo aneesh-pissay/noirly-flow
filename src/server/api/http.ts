@@ -1,4 +1,4 @@
-import { consumeRateLimit } from "@/src/server/security/rate-limit";
+import { apiRequestsPerMinute, consumeRateLimit } from "@/src/server/security/rate-limit";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { Types } from "mongoose";
@@ -11,12 +11,18 @@ import {
 import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser } from "@/src/server/models";
 import { createMongoSyncProvider } from "@/src/server/providers/mongo-sync-provider";
+import { withAutomations } from "@/src/server/automations";
+import { withWebhooks } from "@/src/server/webhooks";
+import { resolveAccessToken } from "@/src/server/access-tokens";
+import { isAccessToken } from "@/src/core/access-tokens";
 
 export type FlowSessionContext = {
   identitySub: string;
   userId: string;
   email: string;
   displayName: string;
+  /** How the request signed in: browser session, Identity bearer (mobile), or a personal access token. */
+  via?: "session" | "identity" | "token";
 };
 
 export type PersonalWorkspaceSummary = {
@@ -65,6 +71,16 @@ async function resolveFromBearer(
   };
 }
 
+/** The full provider (automations, then webhooks) acting as `userId`. */
+export function providerFor(userId: string) {
+  return withWebhooks(withAutomations(createMongoSyncProvider({ userId }), userId));
+}
+
+/** Some account-level actions need a person, not a script: refuse personal access tokens. */
+export function refuseAccessToken(ctx: FlowSessionContext, what: string) {
+  if (ctx.via === "token") throw new ApiError(403, "forbidden", `${what} isn't available with an access token`);
+}
+
 /**
  * One bootstrap + provider per request. Cookie sessions get a personal
  * workspace; Bearer (mobile) gets ctx only. Layout, pages, and API routes
@@ -75,11 +91,13 @@ export const getSyncProvider = cache(async () => {
   const bearer = extractBearerToken(headerStore.get("authorization"));
 
   if (bearer) {
-    const ctx = await resolveFromBearer(bearer);
+    const ctx: FlowSessionContext = isAccessToken(bearer)
+      ? { ...(await resolveAccessToken(bearer)).ctx, via: "token" }
+      : { ...(await resolveFromBearer(bearer)), via: "identity" };
     await enforceAccountRateLimit(ctx.userId);
     return {
       ctx,
-      sync: createMongoSyncProvider({ userId: ctx.userId }),
+      sync: providerFor(ctx.userId),
       personal: null as PersonalWorkspaceSummary | null,
     };
   }
@@ -102,11 +120,12 @@ export const getSyncProvider = cache(async () => {
     userId: account.user.id,
     email: account.user.email,
     displayName: account.user.displayName,
+    via: "session",
   };
 
   return {
     ctx,
-    sync: createMongoSyncProvider({ userId: ctx.userId }),
+    sync: providerFor(ctx.userId),
     personal: account.personalWorkspace as PersonalWorkspaceSummary,
   };
 });
@@ -166,6 +185,6 @@ export async function findFlowUserIdByIdentitySub(identitySub: string) {
 }
 
 async function enforceAccountRateLimit(id: string) {
-  const limit = await consumeRateLimit(`flow-account:${id}`, 300, 60);
+  const limit = await consumeRateLimit(`flow-account:${id}`, apiRequestsPerMinute(), 60);
   if (!limit.allowed) throw new ApiError(429, "rate_limited", "Too many requests. Try again shortly.");
 }

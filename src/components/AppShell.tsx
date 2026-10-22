@@ -19,8 +19,12 @@ import {
 import { SignOutButton } from "@/src/features/auth/SignOutButton";
 import { CommandPalette } from "@/src/features/command-palette/CommandPalette";
 import { TaskCreateDialog } from "@/src/features/task/TaskCreateDialog";
+import { FocusTimer } from "@/src/features/focus/FocusTimer";
+import { RunningTimerChip } from "@/src/features/time/TaskTime";
 import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
+import { WorkspaceIcon } from "@/src/features/workspace/workspace-look";
+import { LayoutPreferences } from "@/src/components/LayoutPreferences";
 import { useOptimisticPath } from "@/src/components/NavLink";
 import { ThemeControls } from "@/src/components/ThemeControls";
 import { AppSwitcher } from "@/src/components/AppSwitcher";
@@ -185,7 +189,10 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
                     return (
                       <li key={workspace.id}>
                         <Link href={href} className={workspaceLinkClass(active)}>
-                          <span className="truncate">{workspace.name}</span>
+                          <span className="flex min-w-0 items-center gap-2">
+                            <WorkspaceIcon workspace={workspace} />
+                            <span className="truncate">{workspace.name}</span>
+                          </span>
                           {workspace.kind.toLowerCase() !==
                           workspace.name.toLowerCase() ? (
                             <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide opacity-60">
@@ -228,6 +235,7 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
           actions: (
             // Search opens from the sidebar's Search button or ⌘K / Ctrl+K.
             <div className="flex items-center gap-1.5">
+              <RunningTimerChip />
               <NotificationBell />
               <AppSwitcher current="flow" />
               <ThemeControls size="sm" />
@@ -235,10 +243,13 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
           ),
         }}
       >
-        {children}
+        {/* data-content: the area the layout preferences apply to (see globals.css). */}
+        <div data-content className="contents">{children}</div>
       </UIShell>
+      <LayoutPreferences />
       <CommandPalette workspaces={workspaces} />
       {taskDraft ? <TaskCreateDialog draft={taskDraft} /> : null}
+      <FocusTimer />
       <JoinedNotice path={path} workspaces={workspaces} />
     </div>
   );

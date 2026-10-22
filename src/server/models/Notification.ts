@@ -7,7 +7,10 @@ import {
   type Types,
 } from "mongoose";
 
-export const NOTIFICATION_KINDS = ["mention", "assigned", "comment", "reminder"] as const;
+export const NOTIFICATION_KINDS = [
+  "mention", "assigned", "comment", "reminder",
+  "approval_requested", "approval_approved", "approval_rejected",
+] as const;
 
 /** One line in a person's in-app inbox: someone did something to a task they follow. */
 const notificationSchema = new Schema(

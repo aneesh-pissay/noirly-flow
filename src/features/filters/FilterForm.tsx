@@ -6,7 +6,7 @@ import { compileFilter, type FilterContext } from "@/src/core/filter-query";
 const fieldClass = "mt-1 w-full rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
 
 /** The terms, for the help line under the query field. */
-export const FILTER_HELP = "today · tomorrow · overdue · no date · next 7 days · p1–p4 · #Project · #Inbox · @tag · assigned to: me · no assignee · recurring · deadline · search: text — join with & | ! ( )";
+export const FILTER_HELP = "today · tomorrow · overdue · no date · next 7 days · p1–p4 · #Project · #Inbox · @tag · assigned to: me · no assignee · recurring · blocked · deadline · search: text — join with & | ! ( )";
 
 /** Name and query, with the query checked as you type. Saving is refused while it doesn't parse. */
 export function FilterForm({ context, initial, submitLabel, pending, error, onSubmit, onCancel }: {

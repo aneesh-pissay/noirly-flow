@@ -10,11 +10,15 @@ import type { Task } from "@/src/core/sync/types";
 /** Levels below a top-level task, matching the server's limit (four levels in all). */
 const MAX_DEPTH = 3;
 
-/** Opens another task in the drawer: the list and agenda views follow ?task=. */
+/**
+ * Opens another task in the drawer: the list, agenda and timeline views follow
+ * ?task=. The state is null on purpose: Next.js passes calls carrying its own
+ * history state straight through, so useSearchParams would never see the change.
+ */
 export function openTaskInDrawer(taskId: string) {
   const url = new URL(window.location.href);
   url.searchParams.set("task", taskId);
-  window.history.pushState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 /** The chain of parents above a task, top first. Loads them one by one from the task cache. */

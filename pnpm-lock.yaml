@@ -38,6 +38,9 @@ importers:
       '@noirly-dev/ui':
         specifier: npm:@aneesh-pissay/ui@0.3.1
         version: 0.3.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(framer-motion@13.2.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(lenis@1.3.26(react@19.2.8))(lucide-react@0.544.0(react@19.2.8))(next@16.4.0(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tailwindcss@4.3.3)
+      '@noirly-dev/webhooks':
+        specifier: npm:@aneesh-pissay/webhooks@^0.1.0
+        version: '@aneesh-pissay/webhooks@0.1.0'
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -131,6 +134,10 @@ packages:
     peerDependenciesMeta:
       react:
         optional: true
+
+  '@aneesh-pissay/webhooks@0.1.0':
+    resolution: {integrity: sha512-Xq/IaUNfasgeVw/8F7JaEJ73IHICx9xal7UIK5FyYfBT42+ZgNHhDph808Wxm+nDjlTsVfl/PTiitbqSnTw4uA==, tarball: https://npm.pkg.github.com/download/@aneesh-pissay/webhooks/0.1.0/bc2cd6de76f21178d755041286178b3112223e51}
+    engines: {node: '>=20'}
 
   '@auth/core@0.41.3':
     resolution: {integrity: sha512-sJ3JMHHkXMD3aOjopv7mOBTO1Ocw4b0fAEXJBz6k7YHLpYQI6C40jCUPc5fNvUKxXRXNE1/sRISA15UrwWJBTw==}
@@ -3097,6 +3104,8 @@ snapshots:
       '@aneesh-pissay/realtime-shared': '@noirly-dev/realtime-shared@0.1.0'
     optionalDependencies:
       react: 19.2.8
+
+  '@aneesh-pissay/webhooks@0.1.0': {}
 
   '@auth/core@0.41.3(nodemailer@8.0.11)':
     dependencies:

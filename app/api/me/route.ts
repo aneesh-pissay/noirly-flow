@@ -1,5 +1,5 @@
 import { readApiJson } from "@/src/server/security/body";
-import { getSyncProvider, jsonError, jsonOk, ApiError } from "@/src/server/api/http";
+import { getSyncProvider, jsonError, jsonOk, ApiError, refuseAccessToken } from "@/src/server/api/http";
 import { updateMeBodySchema } from "@/src/server/api/schemas";
 import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser } from "@/src/server/models";
@@ -28,6 +28,12 @@ export async function PATCH(request: Request) {
     const profile = parsed.data.profile;
     if (profile.taskSaveMode !== undefined) {
       $set["profile.taskSaveMode"] = profile.taskSaveMode;
+    }
+    if (profile.density !== undefined) {
+      $set["profile.density"] = profile.density;
+    }
+    if (profile.contentWidth !== undefined) {
+      $set["profile.contentWidth"] = profile.contentWidth;
     }
     if (profile.displayName !== undefined) {
       $set["profile.displayName"] = profile.displayName;
@@ -79,6 +85,7 @@ export async function PATCH(request: Request) {
 export async function DELETE() {
   try {
     const { ctx } = await getSyncProvider();
+    refuseAccessToken(ctx, "Deleting your account");
     const summary = await withDb(() => deleteFlowAccountData(ctx.identitySub));
     return jsonOk({ ok: true, ...summary });
   } catch (error) {

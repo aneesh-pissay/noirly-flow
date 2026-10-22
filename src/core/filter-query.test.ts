@@ -22,7 +22,7 @@ const tasks = [
   task("today-work-p1", { dueAt: at(14), priority: "high", assigneeIds: ["me"] }),
   task("today-home", { dueAt: at(14), projectId: "home", assigneeIds: ["sam"] }),
   task("late-timed", { dueAt: at(14, 8), dueHasTime: true, projectId: null }),
-  task("yesterday", { dueAt: at(13), recurrence: { frequency: "daily", interval: 1 } }),
+  task("yesterday", { dueAt: at(13), recurrence: { frequency: "daily", interval: 1 }, blocked: true }),
   task("tomorrow-p2", { dueAt: at(15), priority: "medium", deadlineAt: at(16) }),
   task("next-week", { dueAt: at(20) }),
   task("undated", { title: "Fix the leak!", tagIds: ["t-bills"] }),
@@ -57,6 +57,7 @@ describe("compileFilter", () => {
     expect(run("assigned to: Sam Lee")).toEqual(["today-home"]);
     expect(run("assigned to: others")).toEqual(["today-home"]);
     expect(run("no assignee & recurring")).toEqual(["yesterday"]);
+    expect(run("blocked")).toEqual(["yesterday"]);
     expect(run("deadline")).toEqual(["tomorrow-p2"]);
     expect(run("search: leak!")).toEqual(["undated"]);
     expect(run("@Bills")).toEqual(["undated"]);
