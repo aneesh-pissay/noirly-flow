@@ -57,6 +57,7 @@ Project automations run after creates and updates made through the API, as the t
 | POST | `/api/goals/{goalId}/milestones` · PATCH, DELETE `/api/goals/{goalId}/milestones/{milestoneId}` |
 | GET, POST | `/api/workspaces/{workspaceId}/filters` · PATCH, DELETE `/api/filters/{filterId}` |
 | GET, POST | `/api/workspaces/{workspaceId}/templates` · POST `/api/templates/{templateId}/apply` |
+| GET, POST | `/api/projects/{projectId}/forms` · PATCH, DELETE `/api/forms/{formId}` |
 
 ## Webhooks
 

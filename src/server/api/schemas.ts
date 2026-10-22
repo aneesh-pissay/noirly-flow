@@ -283,6 +283,42 @@ export const updateWebhookBodySchema = z
   .object({ url: z.string().trim().min(1).max(2000).optional(), events: webhookEventsSchema.optional(), enabled: z.boolean().optional() })
   .refine((value) => Object.keys(value).length > 0, "Nothing to update");
 
+const formQuestionSchema = z.object({
+  id: z.string().regex(/^[a-f0-9]{24}$/i).optional(),
+  label: z.string().trim().min(1).max(120),
+  kind: z.enum(["short_text", "long_text", "email", "choice", "date"]),
+  required: z.boolean(),
+  options: z.array(z.string().trim().max(80)).max(20).default([]),
+});
+
+const formFieldsSchema = {
+  name: z.string().trim().min(1).max(80),
+  intro: z.string().max(2000).nullable().optional(),
+  titleLabel: z.string().trim().min(1).max(120),
+  askDetails: z.boolean(),
+  questions: z.array(formQuestionSchema).max(15),
+  defaults: z.object({
+    priority: z.enum(TASK_PRIORITIES),
+    sectionId: z.string().regex(/^[a-f0-9]{24}$/i).nullable(),
+    tagIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i)).max(20),
+    assigneeId: z.string().regex(/^[a-f0-9]{24}$/i).nullable(),
+  }),
+  confirmation: z.string().max(500).nullable().optional(),
+  enabled: z.boolean().optional(),
+};
+
+export const createFormBodySchema = z.object(formFieldsSchema);
+export const updateFormBodySchema = z.object(formFieldsSchema).partial()
+  .refine((value) => Object.keys(value).length > 0, "Nothing to update");
+
+/** A public submission: loose on purpose, the form checks each answer. */
+export const submitFormBodySchema = z.object({
+  title: z.string().max(1000).optional(),
+  details: z.string().max(10_000).optional(),
+  answers: z.record(z.string().max(40), z.string().max(5000)).optional(),
+  website: z.string().max(500).optional(),
+});
+
 export const createAccessTokenBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
   scope: z.enum(["read", "write"]),

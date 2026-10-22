@@ -7,6 +7,7 @@ import type { Goal } from "@/src/core/goals";
 import type { Approval } from "@/src/core/approvals";
 import type { AccessTokenView, TokenScope } from "@/src/core/access-tokens";
 import type { DeliveryView, WebhookEventType, WebhookView } from "@/src/core/webhooks";
+import type { IntakeForm, QuestionKind } from "@/src/core/forms";
 import type { AutomationAction, AutomationCondition, AutomationRule, AutomationTrigger } from "@/src/core/automations";
 import type { FieldType, ProjectField } from "@/src/core/custom-fields";
 import type { PendingInvite } from "@/src/server/workspace/members";
@@ -61,6 +62,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   return data;
 }
+
+/** What the form builder sends. */
+export type FormBody = Pick<IntakeForm, "name" | "intro" | "titleLabel" | "askDetails" | "defaults" | "confirmation" | "enabled"> & {
+  questions: Array<{ id?: string; label: string; kind: QuestionKind; required: boolean; options: string[] }>;
+};
 
 export const api = {
   me() {
@@ -479,6 +485,18 @@ export const api = {
   },
   deleteMilestone(goalId: string, milestoneId: string) {
     return request<{ goal: Goal }>(`/api/goals/${goalId}/milestones/${milestoneId}`, { method: "DELETE" });
+  },
+  listForms(projectId: string) {
+    return request<{ forms: IntakeForm[] }>(`/api/projects/${projectId}/forms`);
+  },
+  createForm(projectId: string, input: FormBody) {
+    return request<{ form: IntakeForm }>(`/api/projects/${projectId}/forms`, { method: "POST", body: JSON.stringify(input) });
+  },
+  updateForm(formId: string, patch: Partial<FormBody>) {
+    return request<{ form: IntakeForm }>(`/api/forms/${formId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  deleteForm(formId: string) {
+    return request<{ ok: boolean }>(`/api/forms/${formId}`, { method: "DELETE" });
   },
   listWebhooks(workspaceId: string) {
     return request<{ webhooks: WebhookView[] }>(`/api/workspaces/${workspaceId}/webhooks`);

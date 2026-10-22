@@ -21,6 +21,7 @@ import { TaskTagChips, useTags } from "@/src/features/tags/tags";
 import { ProjectFieldsButton, TaskFieldChips } from "@/src/features/fields/fields";
 import { ApprovalBadge } from "@/src/features/approvals/approvals";
 import { ProjectAutomationsButton } from "@/src/features/automations/automations";
+import { ProjectFormsButton } from "@/src/features/forms/forms";
 import { TaskBlockedBadge, TaskDeadlineBadge, TaskDueBadge, TaskDurationBadge, TaskRepeatBadge, TaskSubtaskBadge, TaskStartBadge } from "@/src/features/task/TaskDueBadge";
 import { PriorityBadge, priorityTextClassName } from "@/src/features/task/priority";
 import { AssigneeChips } from "@/src/features/task/AssigneeChips";
@@ -491,6 +492,7 @@ export function TaskWorkspace({ workspaceId, projectId, projectName }: Props) {
             ) : null}
             {projectId ? <ProjectFieldsButton projectId={projectId} canWrite={canWrite} /> : null}
             {projectId ? <ProjectAutomationsButton workspaceId={workspaceId} projectId={projectId} canWrite={canWrite} /> : null}
+            {projectId ? <ProjectFormsButton workspaceId={workspaceId} projectId={projectId} canWrite={canWrite} /> : null}
           </div>
         </div>
       </header>

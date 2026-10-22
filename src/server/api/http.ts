@@ -71,6 +71,11 @@ async function resolveFromBearer(
   };
 }
 
+/** The full provider (automations, then webhooks) acting as `userId`. */
+export function providerFor(userId: string) {
+  return withWebhooks(withAutomations(createMongoSyncProvider({ userId }), userId));
+}
+
 /** Some account-level actions need a person, not a script: refuse personal access tokens. */
 export function refuseAccessToken(ctx: FlowSessionContext, what: string) {
   if (ctx.via === "token") throw new ApiError(403, "forbidden", `${what} isn't available with an access token`);
@@ -92,7 +97,7 @@ export const getSyncProvider = cache(async () => {
     await enforceAccountRateLimit(ctx.userId);
     return {
       ctx,
-      sync: withWebhooks(withAutomations(createMongoSyncProvider({ userId: ctx.userId }), ctx.userId)),
+      sync: providerFor(ctx.userId),
       personal: null as PersonalWorkspaceSummary | null,
     };
   }
@@ -120,7 +125,7 @@ export const getSyncProvider = cache(async () => {
 
   return {
     ctx,
-    sync: withWebhooks(withAutomations(createMongoSyncProvider({ userId: ctx.userId }), ctx.userId)),
+    sync: providerFor(ctx.userId),
     personal: account.personalWorkspace as PersonalWorkspaceSummary,
   };
 });
