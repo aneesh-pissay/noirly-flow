@@ -114,22 +114,34 @@ function AutomationManager({ workspaceId, projectId, canWrite }: { workspaceId: 
     onError: (err: Error) => setError(err.message),
   });
 
-  // Flips at once; rolls back if the server says no.
+  // What the switch shows while its save is in flight (see flip).
+  const [shown, setShown] = useState<Record<string, boolean>>({});
   const toggle = useMutation({
-    mutationFn: ({ ruleId, enabled }: { ruleId: string; enabled: boolean }) => api.updateAutomation(ruleId, { enabled }),
-    onMutate: ({ ruleId, enabled }) => {
-      setError(null);
-      const previous = queryClient.getQueryData<{ rules: AutomationRule[] }>(qk.automations(projectId));
-      queryClient.setQueryData<{ rules: AutomationRule[] }>(qk.automations(projectId), (old) =>
-        old ? { rules: old.rules.map((rule) => (rule.id === ruleId ? { ...rule, enabled } : rule)) } : old);
-      return { previous };
-    },
-    onError: (err: Error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(qk.automations(projectId), context.previous);
+    mutationFn: ({ ruleId, enabled }: { ruleId: string; enabled: boolean; previous: unknown }) => api.updateAutomation(ruleId, { enabled }),
+    onError: (err: Error, vars) => {
+      if (vars.previous) queryClient.setQueryData(qk.automations(projectId), vars.previous);
       setError(err.message);
     },
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: qk.automations(projectId) }),
+    onSettled: (_data, _error, vars) => {
+      setShown((old) => {
+        const next = { ...old };
+        delete next[vars.ruleId];
+        return next;
+      });
+      void queryClient.invalidateQueries({ queryKey: qk.automations(projectId) });
+    },
   });
+  // Flips in the click's own tick (a controlled checkbox snaps back otherwise), then drops any load of
+  // the list in flight, which would land with the old value; rolls back if refused.
+  function flip(ruleId: string, enabled: boolean) {
+    setError(null);
+    setShown((old) => ({ ...old, [ruleId]: enabled }));
+    const previous = queryClient.getQueryData<{ rules: AutomationRule[] }>(qk.automations(projectId));
+    queryClient.setQueryData<{ rules: AutomationRule[] }>(qk.automations(projectId), (old) =>
+      old ? { rules: old.rules.map((rule) => (rule.id === ruleId ? { ...rule, enabled } : rule)) } : old);
+    void queryClient.cancelQueries({ queryKey: qk.automations(projectId) });
+    toggle.mutate({ ruleId, enabled, previous });
+  }
 
   const [name, setName] = useState("");
   const [trigger, setTrigger] = useState<AutomationTrigger["type"]>("status_changed");
@@ -164,14 +176,14 @@ function AutomationManager({ workspaceId, projectId, canWrite }: { workspaceId: 
       {list.length ? (
         <ul aria-label="Automations" className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
           {list.map((rule) => (
-            <li key={rule.id} data-rule={rule.name} className={`flex flex-col gap-1 py-3 ${rule.enabled ? "" : "opacity-60"}`}>
+            <li key={rule.id} data-rule={rule.name} className={`flex flex-col gap-1 py-3 ${(shown[rule.id] ?? rule.enabled) ? "" : "opacity-60"}`}>
               <div className="flex items-center gap-2">
                 <span className="flex-1 text-sm font-medium text-[var(--foreground)]">{rule.name}</span>
                 {canWrite ? (
                   <>
                     <label className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
-                      <input type="checkbox" checked={rule.enabled} aria-label={`${rule.name} enabled`}
-                        onChange={(event) => toggle.mutate({ ruleId: rule.id, enabled: event.target.checked })} />
+                      <input type="checkbox" checked={shown[rule.id] ?? rule.enabled} aria-label={`${rule.name} enabled`}
+                        onChange={(event) => flip(rule.id, event.target.checked)} />
                       On
                     </label>
                     <button type="button" className={smallButton} disabled={run.isPending} aria-label={`Delete automation ${rule.name}`}

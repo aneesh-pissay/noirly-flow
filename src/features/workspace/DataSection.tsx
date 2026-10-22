@@ -46,21 +46,28 @@ function Backups({ workspaceId }: { workspaceId: string }) {
   const key = ["backups", workspaceId] as const;
   const settings = useQuery({ queryKey: key, queryFn: () => api.backupSettings(workspaceId) });
   const [error, setError] = useState<string | null>(null);
+  // What the controls show while a save is in flight (see setSchedule).
+  const [shown, setShown] = useState<{ enabled: boolean; frequency: "daily" | "weekly" } | null>(null);
   const schedule = useMutation({
-    mutationFn: (input: { enabled: boolean; frequency: "daily" | "weekly" }) => api.setBackupSchedule(workspaceId, input),
-    // The switch and the select move at once; a refusal puts them back.
-    onMutate: (input) => {
-      setError(null);
-      const previous = queryClient.getQueryData<BackupSettings>(key);
-      queryClient.setQueryData<BackupSettings>(key, (old) => (old ? { ...old, ...input } : old));
-      return { previous };
-    },
+    mutationFn: ({ enabled, frequency }: { enabled: boolean; frequency: "daily" | "weekly"; previous: unknown }) =>
+      api.setBackupSchedule(workspaceId, { enabled, frequency }),
     onSuccess: (data) => queryClient.setQueryData(key, data),
-    onError: (err: Error, _input, context) => {
-      if (context?.previous) queryClient.setQueryData(key, context.previous);
+    onError: (err: Error, vars) => {
+      if (vars.previous) queryClient.setQueryData(key, vars.previous);
       setError(err.message);
     },
+    onSettled: () => setShown(null),
   });
+  // The switch and the select move in the click's own tick, then any load in flight (with old values)
+  // is dropped; a refusal puts them back.
+  function setSchedule(input: { enabled: boolean; frequency: "daily" | "weekly" }) {
+    setError(null);
+    setShown(input);
+    const previous = queryClient.getQueryData<BackupSettings>(key);
+    queryClient.setQueryData<BackupSettings>(key, (old) => (old ? { ...old, ...input } : old));
+    void queryClient.cancelQueries({ queryKey: key });
+    schedule.mutate({ ...input, previous });
+  }
   const now = useMutation({
     mutationFn: () => api.backUpNow(workspaceId),
     onMutate: () => setError(null),
@@ -70,7 +77,7 @@ function Backups({ workspaceId }: { workspaceId: string }) {
 
   if (settings.isPending) return <p className="mt-4 text-sm text-[var(--muted-foreground)]">Loading backups…</p>;
   if (settings.isError) return <p role="alert" className="mt-4 text-sm">Could not load backups.</p>;
-  const data = settings.data;
+  const data = { ...settings.data, ...shown };
 
   return (
     <div className="mt-5 border-t border-[var(--hairline)] pt-4">
@@ -86,11 +93,11 @@ function Backups({ workspaceId }: { workspaceId: string }) {
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
               <input type="checkbox" checked={data.enabled} disabled={schedule.isPending}
-                onChange={(event) => schedule.mutate({ enabled: event.target.checked, frequency: data.frequency })} />
+                onChange={(event) => setSchedule({ enabled: event.target.checked, frequency: data.frequency })} />
               Back up automatically
             </label>
             <select aria-label="How often" value={data.frequency} disabled={schedule.isPending || !data.enabled}
-              onChange={(event) => schedule.mutate({ enabled: data.enabled, frequency: event.target.value as "daily" | "weekly" })}
+              onChange={(event) => setSchedule({ enabled: data.enabled, frequency: event.target.value as "daily" | "weekly" })}
               className="h-9 rounded-xl border border-[var(--hairline)] bg-[var(--bg)] px-3 text-sm text-[var(--foreground)] disabled:opacity-60">
               <option value="daily">Every day</option>
               <option value="weekly">Every week</option>

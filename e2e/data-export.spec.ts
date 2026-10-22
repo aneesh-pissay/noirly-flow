@@ -61,8 +61,14 @@ test.describe("data export and backups", () => {
     await expect(list).toContainText("By hand · 1 task ·");
     expect((await page.request.post(`/api/workspaces/${ws}/backups/run`)).status()).toBe(429);
 
+    // Each change saves in the background; wait for both before reloading.
+    const saved = () => page.waitForResponse((r) => r.url().endsWith(`/api/workspaces/${ws}/backups`) && r.request().method() === "PUT");
+    let save = saved();
     await section.getByRole("checkbox", { name: "Back up automatically" }).check();
+    expect((await save).ok()).toBe(true);
+    save = saved();
     await section.getByLabel("How often").selectOption("daily");
+    expect((await save).ok()).toBe(true);
     await page.screenshot({ path: "test-results/data-section.png", fullPage: true });
     await page.reload();
     await expect(section.getByRole("checkbox", { name: "Back up automatically" })).toBeChecked();

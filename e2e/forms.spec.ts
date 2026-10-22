@@ -2,6 +2,8 @@ import { expect, openList, test, uid } from "./fixtures";
 
 test.describe("intake forms", () => {
   test("a form built in the project takes responses from anyone and turns them into tasks", async ({ page, team, browser }) => {
+    // Many steps, two browsers and a dozen submissions: more than the default 30 s under load.
+    test.setTimeout(60_000);
     const id = uid();
     await openList(page, team.url);
     await page.getByRole("button", { name: "Forms" }).click();
@@ -72,8 +74,11 @@ test.describe("intake forms", () => {
     await page.reload();
     await page.getByRole("button", { name: "Forms" }).click();
     await expect(row).toContainText("responses");
+    // The switch moves at once; wait for the save before trying the link.
+    const closed = page.waitForResponse((r) => r.url().endsWith(`/api/forms/${form.id}`) && r.request().method() === "PATCH");
     await row.getByLabel(`Bug report ${id} taking responses`).uncheck();
     await expect(row).toHaveClass(/opacity-60/);
+    expect((await closed).ok()).toBe(true);
     await guest.goto(link);
     await expect(guest.getByRole("heading", { name: "Not found" })).toBeVisible();
     await visitor.close();

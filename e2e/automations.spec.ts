@@ -47,8 +47,11 @@ test.describe("automations", () => {
     expect(JSON.stringify(activity)).toContain("automation.ran");
 
     // Turning it off stops it.
+    // The switch moves at once; wait for the save before testing the rule.
+    const off = page.waitForResponse((r) => /\/api\/automations\/[a-f0-9]{24}$/.test(r.url()) && r.request().method() === "PATCH");
     await dialog.getByLabel(`Escalate ${id} enabled`).uncheck();
     await expect(rule).toHaveClass(/opacity-60/);
+    expect((await off).ok()).toBe(true);
     const another = await createTask(page.request, ws, { title: `Another bug ${id}`, projectId: team.project.id });
     expect(await start(another.id)).toMatchObject({ priority: "none" });
   });

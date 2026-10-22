@@ -42,7 +42,7 @@ test.describe("approvals", () => {
     await member.goto(team.url);
     const bell = member.getByRole("button", { name: /^Notifications, 1 unread$/ });
     await bell.click();
-    await member.getByRole("dialog", { name: "Notifications" }).getByRole("button", { name: /asked you to approve/ }).click();
+    await member.getByRole("dialog", { name: "Notifications" }).getByRole("button", { name: /asked you to approve/ }).filter({ hasText: `Contract ${id}` }).click();
     await member.getByLabel("Note (optional)").fill("Add the payment terms");
     await member.getByRole("button", { name: "Request changes" }).click();
     await expect(member.getByText(`${USERS.member.name} requested changes.`)).toBeVisible();

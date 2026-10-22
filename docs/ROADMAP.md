@@ -19,7 +19,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 0. Recent fixes | 3 / 4 |
 | 1. Date model | 6 / 6 |
 | 2. Capture and organisation | 10 / 10 |
-| 3. Planning and calendar | 5 / 7 |
+| 3. Planning and calendar | 7 / 7 |
 | 4. Productivity | 6 / 6 |
 | 5. Collaboration and automation | 8 / 8 |
 | 6. AI | 0 / 9 (on hold) |
@@ -64,8 +64,8 @@ _Needs Phase 1._
 - [x] Day and week timeline views (M) — done 2026-10-17
 - [x] Time blocking: drag tasks onto the timeline to schedule them (L) — done 2026-10-17
 - [x] Gantt view (start date, duration, dependencies) (L) — done 2026-10-17 (bars run start → due by day)
-- [ ] Two-way Google Calendar sync (L)
-- [ ] Two-way Outlook calendar sync (L)
+- [x] Two-way Google Calendar sync (L) — done 2026-10-22 (tested against a fake Google server; check with a real account once the OAuth client is set up)
+- [x] Two-way Outlook calendar sync (L) — done 2026-10-22 (tested against a fake Graph server; check with a real account once the app registration is set up)
 - [x] Capacity and availability: hours per day per member, overload warnings (L) — done 2026-10-17
 
 ## Phase 4 — Productivity

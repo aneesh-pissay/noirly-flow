@@ -33,6 +33,7 @@ export { Goal, type GoalDocument } from "./Goal";
 export { ProjectField, type ProjectFieldDocument } from "./ProjectField";
 export { AutomationRule, type AutomationRuleDocument } from "./AutomationRule";
 export { AccessToken, type AccessTokenDocument } from "./AccessToken";
+export { CalendarConnection, CalendarEventLink, type CalendarConnectionDocument, type CalendarEventLinkDocument } from "./CalendarConnection";
 export { Webhook, WebhookDelivery, type WebhookDocument, type WebhookDeliveryDocument } from "./Webhook";
 export { IntakeForm, type IntakeFormDocument } from "./IntakeForm";
 export { WorkspaceBackup, type WorkspaceBackupDocument } from "./WorkspaceBackup";

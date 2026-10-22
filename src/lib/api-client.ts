@@ -11,6 +11,8 @@ import type { DeliveryView, WebhookEventType, WebhookView } from "@/src/core/web
 import type { IntakeForm, QuestionKind } from "@/src/core/forms";
 import type { BackupSettings, BackupView } from "@/src/server/backups";
 import type { ImportResult } from "@/src/server/import";
+import type { CalendarSyncStatus } from "@/src/server/calendar-sync/service";
+import type { SyncOutcome } from "@/src/server/calendar-sync/engine";
 import type { ImportTask } from "@/src/core/import";
 import type { AutomationAction, AutomationCondition, AutomationRule, AutomationTrigger } from "@/src/core/automations";
 import type { FieldType, ProjectField } from "@/src/core/custom-fields";
@@ -506,6 +508,15 @@ export const api = {
   },
   customizeWorkspace(workspaceId: string, patch: { icon?: string | null; color?: string | null; defaultView?: Workspace["defaultView"]; statusNames?: Partial<Workspace["statusNames"]> }) {
     return request<{ workspace: Workspace }>(`/api/workspaces/${workspaceId}/customization`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+  calendarSync() {
+    return request<{ calendars: CalendarSyncStatus[] }>("/api/calendar-sync");
+  },
+  calendarSyncNow(provider: string) {
+    return request<SyncOutcome>(`/api/calendar-sync/${provider}/sync`, { method: "POST" });
+  },
+  calendarDisconnect(provider: string) {
+    return request<{ ok: boolean }>(`/api/calendar-sync/${provider}`, { method: "DELETE" });
   },
   importTasks(projectId: string, tasks: ImportTask[]) {
     return request<ImportResult>(`/api/projects/${projectId}/import`, { method: "POST", body: JSON.stringify({ tasks }) });

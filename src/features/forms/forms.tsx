@@ -60,22 +60,34 @@ function FormManager({ workspaceId, projectId, canWrite }: { workspaceId: string
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: formsKey(projectId) }),
     onError: (err: Error) => setError(err.message),
   });
-  // Flips at once; rolls back if the server says no.
+  // What the switch shows while its save is in flight (see flip).
+  const [shown, setShown] = useState<Record<string, boolean>>({});
   const toggle = useMutation({
-    mutationFn: ({ formId, enabled }: { formId: string; enabled: boolean }) => api.updateForm(formId, { enabled }),
-    onMutate: ({ formId, enabled }) => {
-      setError(null);
-      const previous = queryClient.getQueryData<{ forms: IntakeForm[] }>(formsKey(projectId));
-      queryClient.setQueryData<{ forms: IntakeForm[] }>(formsKey(projectId), (old) =>
-        old ? { forms: old.forms.map((form) => (form.id === formId ? { ...form, enabled } : form)) } : old);
-      return { previous };
-    },
-    onError: (err: Error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(formsKey(projectId), context.previous);
+    mutationFn: ({ formId, enabled }: { formId: string; enabled: boolean; previous: unknown }) => api.updateForm(formId, { enabled }),
+    onError: (err: Error, vars) => {
+      if (vars.previous) queryClient.setQueryData(formsKey(projectId), vars.previous);
       setError(err.message);
     },
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: formsKey(projectId) }),
+    onSettled: (_data, _error, vars) => {
+      setShown((old) => {
+        const next = { ...old };
+        delete next[vars.formId];
+        return next;
+      });
+      void queryClient.invalidateQueries({ queryKey: formsKey(projectId) });
+    },
   });
+  // Flips in the click's own tick (a controlled checkbox snaps back otherwise), then drops any load of
+  // the list in flight, which would land with the old value; rolls back if refused.
+  function flip(formId: string, enabled: boolean) {
+    setError(null);
+    setShown((old) => ({ ...old, [formId]: enabled }));
+    const previous = queryClient.getQueryData<{ forms: IntakeForm[] }>(formsKey(projectId));
+    queryClient.setQueryData<{ forms: IntakeForm[] }>(formsKey(projectId), (old) =>
+      old ? { forms: old.forms.map((form) => (form.id === formId ? { ...form, enabled } : form)) } : old);
+    void queryClient.cancelQueries({ queryKey: formsKey(projectId) });
+    toggle.mutate({ formId, enabled, previous });
+  }
   const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   if (editing) {
@@ -96,14 +108,15 @@ function FormManager({ workspaceId, projectId, canWrite }: { workspaceId: string
         <ul aria-label="Forms" className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
           {list.map((form) => {
             const link = `${origin}/f/${form.publicId}`;
+            const enabled = shown[form.id] ?? form.enabled;
             return (
-              <li key={form.id} data-form={form.name} className={`flex flex-col gap-2 py-3 ${form.enabled ? "" : "opacity-60"}`}>
+              <li key={form.id} data-form={form.name} className={`flex flex-col gap-2 py-3 ${enabled ? "" : "opacity-60"}`}>
                 <div className="flex items-center gap-2">
                   <span className="flex-1 text-sm font-medium text-[var(--foreground)]">{form.name}</span>
                   {canWrite ? (
                     <label className="flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
-                      <input type="checkbox" checked={form.enabled} aria-label={`${form.name} taking responses`}
-                        onChange={(event) => toggle.mutate({ formId: form.id, enabled: event.target.checked })} />
+                      <input type="checkbox" checked={enabled} aria-label={`${form.name} taking responses`}
+                        onChange={(event) => flip(form.id, event.target.checked)} />
                       Open
                     </label>
                   ) : null}
