@@ -14,6 +14,7 @@ import { useUIStore } from "@/src/stores/ui-store";
 import { SpaceLinkSection } from "@/src/features/workspace/SpaceLinkSection";
 import { WebhooksSection } from "@/src/features/webhooks/WebhooksSection";
 import { WorkspaceCustomization } from "@/src/features/workspace/WorkspaceCustomization";
+import { DataSection } from "@/src/features/workspace/DataSection";
 
 const sectionClass = "border border-[var(--hairline)] bg-[var(--surface)] p-5 scroll-mt-6";
 const kickerClass =
@@ -96,6 +97,7 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
     { id: "statuses", label: "Statuses" },
     { id: "tags", label: "Tags" },
     { id: "templates", label: "Templates" },
+    { id: "data", label: "Data" },
     ...(!personal ? [{ id: "space", label: "Space" }] : []),
     ...(canRename ? [{ id: "webhooks", label: "Webhooks" }] : []),
     ...(!personal && canDelete ? [{ id: "danger", label: "Danger zone" }] : []),
@@ -178,6 +180,8 @@ export function WorkspaceSettingsView({ workspaceId }: { workspaceId: string }) 
         <h2 className="mt-1 text-sm font-medium text-[var(--foreground)]">Task and project templates</h2>
         <TemplateManager workspaceId={workspaceId} canEdit={canEditTags} />
       </section>
+
+      <DataSection workspaceId={workspaceId} isAdmin={canRename} />
 
       {!personal ? <div id="space" className="scroll-mt-6"><SpaceLinkSection workspaceId={workspaceId} /></div> : null}
 

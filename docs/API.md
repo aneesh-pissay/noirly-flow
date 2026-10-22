@@ -83,6 +83,7 @@ Adding, changing or rotating a webhook needs you signed in, not an access token.
 | GET | `/api/workspaces/{workspaceId}/stats?since=` |
 | GET | `/api/workspaces/{workspaceId}/activity` (and `/activity/export` as CSV) |
 | GET | `/api/search?q=` |
+| GET | `/api/workspaces/{workspaceId}/export?format=json` (admins) or `?format=csv` (tasks) |
 
 ## Example: add a task to the Inbox
 

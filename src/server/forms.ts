@@ -227,3 +227,6 @@ export async function submitForm(publicId: string, input: FormAnswers & { websit
   await withDb(() => IntakeForm.updateOne({ _id: form._id }, { $inc: { submissionCount: 1 }, $set: { lastSubmittedAt: new Date() } }));
   return { ok: true as const, taskId: task.id };
 }
+
+/** For exports. */
+export { map as mapFormDoc };

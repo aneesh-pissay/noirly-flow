@@ -35,3 +35,4 @@ export { AutomationRule, type AutomationRuleDocument } from "./AutomationRule";
 export { AccessToken, type AccessTokenDocument } from "./AccessToken";
 export { Webhook, WebhookDelivery, type WebhookDocument, type WebhookDeliveryDocument } from "./Webhook";
 export { IntakeForm, type IntakeFormDocument } from "./IntakeForm";
+export { WorkspaceBackup, type WorkspaceBackupDocument } from "./WorkspaceBackup";

@@ -37,6 +37,12 @@ const workspaceSchema = new Schema(
     icon: { type: String, default: null },
     color: { type: String, default: null },
     defaultView: { type: String, enum: PROJECT_VIEWS, default: "board" },
+    // Scheduled JSON backups (admins turn them on); see src/server/backups.ts.
+    backup: {
+      enabled: { type: Boolean, default: false },
+      frequency: { type: String, enum: ["daily", "weekly"], default: "weekly" },
+      lastRunAt: { type: Date, default: null },
+    },
     statusNames: {
       todo: { type: String, default: null },
       in_progress: { type: String, default: null },

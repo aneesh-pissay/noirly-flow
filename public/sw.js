@@ -20,6 +20,7 @@ const NO_STORE = [
   /^\/api\/auth\//, /^\/api\/cron\//, /^\/api\/me\/tokens/, /^\/api\/me\/calendar-feed/,
   /^\/api\/realtime/, /^\/api\/attachments\//, /^\/api\/tasks\/[^/]+\/attachments/, /^\/api\/calendar\//,
   /^\/api\/forms\/public\//, /^\/api\/webhooks\//, /^\/api\/workspaces\/[^/]+\/webhooks/,
+  /^\/api\/workspaces\/[^/]+\/(export|backups|activity\/export)/,
 ];
 const NO_STORE_PAGES = [/^\/login/, /^\/invite\//, /^\/f\//, /^\/offline\.html$/];
 

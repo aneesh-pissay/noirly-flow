@@ -136,3 +136,6 @@ export async function mergeFieldValues(projectId: string | null, workspaceId: Ty
   }
   return next;
 }
+
+/** For exports. */
+export { map as mapFieldDoc };

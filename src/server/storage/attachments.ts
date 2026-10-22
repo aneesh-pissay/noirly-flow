@@ -102,6 +102,11 @@ function localPath(key: string) {
   return full;
 }
 
+/** Whether files can be kept at all here: R2, or a local folder outside production. */
+export function canStoreFiles() {
+  return Boolean(r2Config()) || localAllowed();
+}
+
 function localAllowed() {
   return process.env.NODE_ENV !== "production" || Boolean(process.env.ATTACHMENTS_LOCAL_DIR);
 }
@@ -110,9 +115,10 @@ export async function putAttachment(
   workspaceId: string,
   body: Buffer,
   contentType: string,
+  folder: "attachments" | "backups" = "attachments",
 ): Promise<StoredObject> {
   // Random, not derived from the filename: the name is metadata, the key is not guessable.
-  const key = `flow/attachments/${workspaceId}/${randomUUID()}`;
+  const key = `flow/${folder}/${workspaceId}/${randomUUID()}`;
   if (r2Config()) {
     const { client: s3, bucket } = r2();
     await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }));

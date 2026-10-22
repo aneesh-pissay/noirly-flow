@@ -319,6 +319,11 @@ export const submitFormBodySchema = z.object({
   website: z.string().max(500).optional(),
 });
 
+export const backupScheduleBodySchema = z.object({
+  enabled: z.boolean(),
+  frequency: z.enum(["daily", "weekly"]),
+});
+
 export const createAccessTokenBodySchema = z.object({
   name: z.string().trim().min(1).max(60),
   scope: z.enum(["read", "write"]),

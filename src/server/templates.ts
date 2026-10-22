@@ -192,3 +192,6 @@ export async function applyProjectTemplate(sync: SyncProvider, userId: string, t
   await createTree(sync, workspaceId, data.tasks, { projectId: project.id, sectionIds }, liveTags);
   return project;
 }
+
+/** For exports. */
+export { map as mapTemplateDoc };

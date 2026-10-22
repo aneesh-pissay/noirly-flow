@@ -181,3 +181,6 @@ export function withAutomations(sync: SyncProvider, userId: string): SyncProvide
     },
   };
 }
+
+/** For exports. */
+export { map as mapRuleDoc };
