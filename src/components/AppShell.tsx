@@ -24,6 +24,7 @@ import { RunningTimerChip } from "@/src/features/time/TaskTime";
 import { JoinedNotice } from "@/src/components/JoinedNotice";
 import { CreateTeamWorkspace } from "@/src/features/workspace/CreateTeamWorkspace";
 import { WorkspaceIcon } from "@/src/features/workspace/workspace-look";
+import { LayoutPreferences } from "@/src/components/LayoutPreferences";
 import { useOptimisticPath } from "@/src/components/NavLink";
 import { ThemeControls } from "@/src/components/ThemeControls";
 import { AppSwitcher } from "@/src/components/AppSwitcher";
@@ -242,8 +243,10 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
           ),
         }}
       >
-        {children}
+        {/* data-content: the area the layout preferences apply to (see globals.css). */}
+        <div data-content className="contents">{children}</div>
       </UIShell>
+      <LayoutPreferences />
       <CommandPalette workspaces={workspaces} />
       {taskDraft ? <TaskCreateDialog draft={taskDraft} /> : null}
       <FocusTimer />

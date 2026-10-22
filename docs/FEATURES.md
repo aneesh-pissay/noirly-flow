@@ -246,10 +246,11 @@ Enforced on API (`requireMembership` / `requireWorkspaceRole`) and reflected in 
 | `/settings` | Identity name / email + link to Identity `/account` |
 | Flow profile | Display name, title, timezone (fixed list), bio via `GET/PATCH /api/me` |
 | Display name usage | Members, comments, boards |
+| Layout | Settings → Layout: density (comfortable or compact: tighter task rows and board cards) and page width (standard, or wide so lists and boards use the whole window). Saved to the profile (`density`, `contentWidth` on `PATCH /api/me`), applied at once, and copied to the browser so the next load is laid out before the profile arrives |
 | Calendar feed | Private `.ics` subscription link (`/api/calendar/<token>.ics`) for Google / Apple / Outlook: tasks with a due date assigned to you, plus unassigned ones you created; all-day events in your profile timezone, or a timed event for a task with a due time, lasting its duration (30 minutes when unset); create, replace or turn off in Settings (only a hash of the token is stored) |
 | API tokens | Settings → API tokens: name, read-only or read-and-write, expiry (30 / 90 / 365 days or never); the secret (`nfp_r_…` / `nfp_w_…`) is shown once with a curl example, then only a hint, last used and expiry; up to 20; revoke stops it at once (only a hash is stored). A token acts as you on the whole API (see [API.md](API.md)); read-only tokens are refused writes in the proxy (`403 read_only_token`); tokens can't manage tokens, delete the account, change the calendar link or link a Space. `GET/POST /api/me/tokens`, `DELETE /api/me/tokens/[tokenId]` (signed-in browser only) |
 
-**Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes; theme / density / default-view preferences.
+**Not in product yet:** two-way Google Calendar sync; separate profile / preferences routes.
 
 ---
 

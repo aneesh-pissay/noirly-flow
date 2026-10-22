@@ -29,6 +29,12 @@ export async function PATCH(request: Request) {
     if (profile.taskSaveMode !== undefined) {
       $set["profile.taskSaveMode"] = profile.taskSaveMode;
     }
+    if (profile.density !== undefined) {
+      $set["profile.density"] = profile.density;
+    }
+    if (profile.contentWidth !== undefined) {
+      $set["profile.contentWidth"] = profile.contentWidth;
+    }
     if (profile.displayName !== undefined) {
       $set["profile.displayName"] = profile.displayName;
     }

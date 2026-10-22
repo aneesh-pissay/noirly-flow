@@ -173,6 +173,8 @@ export type ChatMessage = {
 
 export type FlowProfile = {
   taskSaveMode?: "auto" | "manual";
+  density?: "comfortable" | "compact";
+  contentWidth?: "standard" | "wide";
   displayName: string | null;
   title: string | null;
   timezone: string | null;

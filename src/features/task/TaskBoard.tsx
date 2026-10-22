@@ -603,6 +603,7 @@ function SortableTaskCard({
     <li
       ref={setNodeRef}
       style={style}
+      data-card
       className={`rounded-[var(--r-md)] border border-[var(--hairline)] bg-[var(--bg)] p-3 ${
         isDragging ? "opacity-40" : ""
       } ${canWrite && !task.id.startsWith("tmp-") ? "cursor-grab touch-none active:cursor-grabbing" : ""}`}
@@ -627,7 +628,7 @@ function SortableTaskCard({
             onClick={() => onOpenTask(task.id)}
           >
             <p className="text-sm text-[var(--foreground)]">{task.title}</p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div data-row-meta className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
               <TaskBlockedBadge blocked={task.blocked} />
               <ApprovalBadge approval={task.approval} />

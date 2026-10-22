@@ -83,3 +83,24 @@ button:disabled,
 .brand-mark--on-surface {
   --brand-knockout: var(--surface);
 }
+
+/*
+ * Layout preferences (Settings → Layout), set on <html> by LayoutPreferences
+ * and the boot script in app/layout.tsx.
+ */
+html[data-width="wide"] [data-content] .mx-auto:is(.max-w-5xl, .max-w-6xl) {
+  max-width: none;
+}
+
+html[data-density="compact"] [data-row] {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+
+html[data-density="compact"] [data-row-meta] {
+  margin-top: 0.125rem;
+}
+
+html[data-density="compact"] [data-card] {
+  padding: 0.5rem 0.625rem;
+}

@@ -90,6 +90,8 @@ export const api = {
         identityName: string;
         profile: {
           taskSaveMode?: "auto" | "manual";
+          density?: "comfortable" | "compact";
+          contentWidth?: "standard" | "wide";
           displayName: string | null;
           title: string | null;
           timezone: string | null;
@@ -100,6 +102,8 @@ export const api = {
   },
   updateMe(profile: {
     taskSaveMode?: "auto" | "manual";
+    density?: "comfortable" | "compact";
+    contentWidth?: "standard" | "wide";
     displayName?: string | null;
     title?: string | null;
     timezone?: string | null;
@@ -113,6 +117,8 @@ export const api = {
         identityName: string;
         profile: {
           taskSaveMode?: "auto" | "manual";
+          density?: "comfortable" | "compact";
+          contentWidth?: "standard" | "wide";
           displayName: string | null;
           title: string | null;
           timezone: string | null;

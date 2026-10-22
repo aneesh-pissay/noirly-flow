@@ -781,6 +781,7 @@ function TaskList({
             if (selection) selection.toggle(task.id);
             else onOpenTask(task.id);
           }}
+          data-row
           className="flex cursor-pointer flex-col gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] sm:flex-row sm:items-center sm:justify-between"
         >
           {selection ? (
@@ -804,7 +805,7 @@ function TaskList({
             >
               {task.title}
             </button>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div data-row-meta className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <PriorityBadge priority={task.priority} />
               <TaskBlockedBadge blocked={task.blocked} />
               <ApprovalBadge approval={task.approval} />

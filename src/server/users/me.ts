@@ -1,3 +1,4 @@
+import { readLayout } from "@/src/core/layout-prefs";
 import { ApiError, type FlowSessionContext } from "@/src/server/api/http";
 import { withDb } from "@/src/server/db/mongodb";
 import { FlowUser } from "@/src/server/models";
@@ -21,6 +22,8 @@ export function mapProfile(user: {
     timezone?: string | null;
     bio?: string | null;
     taskSaveMode?: string | null;
+    density?: string | null;
+    contentWidth?: string | null;
   } | null;
 }): FlowProfile {
   return {
@@ -29,6 +32,7 @@ export function mapProfile(user: {
     timezone: user.profile?.timezone?.trim() || null,
     bio: user.profile?.bio?.trim() || null,
     taskSaveMode: user.profile?.taskSaveMode === "manual" ? "manual" : "auto",
+    ...readLayout(user.profile),
   };
 }
 

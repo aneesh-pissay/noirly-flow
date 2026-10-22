@@ -87,7 +87,7 @@ export function TaskSections({ workspaceId, sections, queryKey, actions }: {
           </h2>
           <ul className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
             {section.tasks.map((task) => (
-              <li key={task.id} data-task-row={task.title} className="flex items-start gap-3 py-2.5">
+              <li key={task.id} data-task-row={task.title} data-row className="flex items-start gap-3 py-2.5">
                 <button
                   type="button"
                   aria-label={`Complete ${task.title}`}
@@ -109,7 +109,7 @@ export function TaskSections({ workspaceId, sections, queryKey, actions }: {
                   >
                     {task.title}
                   </button>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <div data-row-meta className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <PriorityBadge priority={task.priority} />
                     <TaskBlockedBadge blocked={task.blocked} />
                     <ApprovalBadge approval={task.approval} />

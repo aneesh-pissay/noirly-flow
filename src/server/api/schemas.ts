@@ -497,6 +497,8 @@ const optionalText = (max: number) =>
 export const updateMeBodySchema = z.object({
   profile: z.object({
     taskSaveMode: z.enum(["auto", "manual"]).optional(),
+    density: z.enum(["comfortable", "compact"]).optional(),
+    contentWidth: z.enum(["standard", "wide"]).optional(),
     displayName: optionalText(80),
     title: optionalText(80),
     timezone: optionalText(80),

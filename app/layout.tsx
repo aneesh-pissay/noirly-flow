@@ -4,6 +4,7 @@ import { NoirlyHead, PALETTE_STORAGE_KEY, noirlyFontClassName } from "@noirly-de
 import { REMOVED_THEME_IDS } from "@/src/components/themes";
 import { NoirlyExperience } from "@noirly-dev/ui/experience";
 import { AppProviders } from "@/src/components/AppProviders";
+import { LAYOUT_BOOT_SCRIPT } from "@/src/core/layout-prefs";
 import "./globals.css";
 
 export const viewport: Viewport = { themeColor: "#0B0B0C" };
@@ -51,6 +52,8 @@ export default async function RootLayout({
             __html: `try{var k=${JSON.stringify(PALETTE_STORAGE_KEY)};if(${JSON.stringify(REMOVED_THEME_IDS)}.indexOf(localStorage.getItem(k))!==-1)localStorage.removeItem(k)}catch(e){}`,
           }}
         />
+        {/* Density and width from the last visit, before first paint. */}
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: LAYOUT_BOOT_SCRIPT }} />
         <NoirlyHead themeId="gold" nonce={nonce} />
       </head>
       <body className={`${noirlyFontClassName} flex min-h-dvh flex-col antialiased`}>
