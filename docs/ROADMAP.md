@@ -23,7 +23,7 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 4. Productivity | 6 / 6 |
 | 5. Collaboration and automation | 8 / 8 |
 | 6. AI | 0 / 9 (on hold) |
-| 7. Platform and data | 4 / 7 |
+| 7. Platform and data | 5 / 7 |
 
 ---
 
@@ -110,7 +110,7 @@ _Build the Claude API layer once, as a shared Noirly package (prompts, rate limi
 - [x] Full data export (JSON / CSV) and scheduled backups (M) — done 2026-10-22
 - [x] Import from Todoist and CSV (M) — done 2026-10-22
 - [x] Layout and density preferences (S) — done 2026-10-22
-- [ ] Desktop app (PWA install or Tauri wrapper) (M)
+- [x] Desktop app (PWA install or Tauri wrapper) (M) — done 2026-10-22 (covered by the PWA: installs as a desktop app from Chrome, Edge and Safari; no Tauri wrapper)
 - [ ] Mobile app (`NoirlyFlow`) brought up to web parity (L)
 - [ ] Home-screen widgets in the mobile app (M)
 
