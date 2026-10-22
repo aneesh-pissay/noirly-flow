@@ -5,6 +5,7 @@ import { LogOut } from "lucide-react";
 import { Button } from "@noirly-dev/ui";
 import { signOutAction } from "@/src/features/auth/actions";
 import { FlowBusyScreen } from "@/src/components/FlowBusyScreen";
+import { clearOfflineData } from "@/src/lib/offline";
 
 /**
  * A server action, so sign-out is one request: the action clears the session
@@ -13,7 +14,8 @@ import { FlowBusyScreen } from "@/src/components/FlowBusyScreen";
  */
 export function SignOutButton() {
   return (
-    <form action={signOutAction} className="w-full">
+    // Saved offline copies are this person's; they go with the session.
+    <form action={signOutAction} onSubmit={() => void clearOfflineData()} className="w-full">
       <SignOutSubmit />
     </form>
   );

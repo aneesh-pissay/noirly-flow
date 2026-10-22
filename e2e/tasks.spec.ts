@@ -39,6 +39,8 @@ test.describe("tasks in list view", () => {
     expect(new Date(rent.dueAt as string).getHours()).toBe(9);
 
     // "Keep as typed" saves the words as they are. Creating opened the new task's drawer; close it first.
+    // Wait for it to open, or the Escape can land first and the drawer opens after.
+    await expect(page.getByRole("button", { name: "Close task" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("button", { name: "Close task" })).toBeHidden();
     await page.getByRole("button", { name: "New task", exact: true }).click();

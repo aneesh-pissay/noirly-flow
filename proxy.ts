@@ -37,7 +37,9 @@ export const proxy = auth(async (request) => {
   const isLanding = pathname === "/";
   // Readable without an account, signed in or not (Google Play links to the privacy policy).
   // Public intake forms (/f/<id>) are for people without an account.
-  const isPublicPage = pathname === "/privacy" || pathname.startsWith("/f/");
+  // The service worker, manifest and offline page load before (or without) a session.
+  const isPublicPage = pathname === "/privacy" || pathname.startsWith("/f/")
+    || pathname === "/sw.js" || pathname === "/manifest.webmanifest" || pathname === "/offline.html";
   const isLogin = pathname === "/login";
   const isLoginPopup =
     pathname === "/login/popup" || pathname === "/login/popup-complete";

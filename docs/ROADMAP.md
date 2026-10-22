@@ -22,8 +22,8 @@ AI planning) needs the Phase 1 date model first. Effort: **S** = days,
 | 3. Planning and calendar | 5 / 7 |
 | 4. Productivity | 6 / 6 |
 | 5. Collaboration and automation | 8 / 8 |
-| 6. AI | 0 / 9 |
-| 7. Platform and data | 0 / 7 |
+| 6. AI | 0 / 9 (on hold) |
+| 7. Platform and data | 1 / 7 |
 
 ---
 
@@ -90,6 +90,8 @@ _Needs Phase 1._
 
 ## Phase 6 — AI
 
+**On hold (2026-10-22):** skipped for now; Phase 7 goes first. Needs an Anthropic API key when picked up.
+
 _Build the Claude API layer once, as a shared Noirly package (prompts, rate limits, cost tracking); the features appear in Flow._
 
 - [ ] Shared AI package (S)
@@ -104,7 +106,7 @@ _Build the Claude API layer once, as a shared Noirly package (prompts, rate limi
 
 ## Phase 7 — Platform and data
 
-- [ ] Installable web app (PWA) with read-only offline (M)
+- [x] Installable web app (PWA) with read-only offline (M) — done 2026-10-22
 - [ ] Full data export (JSON / CSV) and scheduled backups (M)
 - [ ] Import from Todoist and CSV (M)
 - [ ] Layout and density preferences (S)

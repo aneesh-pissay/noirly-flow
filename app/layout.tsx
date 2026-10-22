@@ -1,13 +1,16 @@
 import { headers } from "next/headers";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { NoirlyHead, PALETTE_STORAGE_KEY, noirlyFontClassName } from "@noirly-dev/ui";
 import { REMOVED_THEME_IDS } from "@/src/components/themes";
 import { NoirlyExperience } from "@noirly-dev/ui/experience";
 import { AppProviders } from "@/src/components/AppProviders";
 import "./globals.css";
 
+export const viewport: Viewport = { themeColor: "#0B0B0C" };
+
 export const metadata: Metadata = {
   title: "Noirly Flow",
+  appleWebApp: { capable: true, title: "Flow", statusBarStyle: "black-translucent" },
   description: "Task and project management for the Noirly ecosystem",
   icons: {
     icon: [
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
         media: "(prefers-color-scheme: dark)",
       },
     ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
 

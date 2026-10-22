@@ -1,4 +1,5 @@
 import { dueRange, type DuePreset } from "@/src/features/task/dates";
+import { noteResponse, setOffline } from "@/src/lib/offline";
 import type { Template } from "@/src/core/templates";
 import type { TimeEntryView } from "@/src/core/time-tracking";
 import type { Occurrence } from "@/src/core/habits";
@@ -46,15 +47,23 @@ export class ApiRequestError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      // FormData sets its own multipart Content-Type (with the boundary).
-      ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-      "X-Noirly-CSRF": "1",
-      ...(init?.headers ?? {}),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers: {
+        // FormData sets its own multipart Content-Type (with the boundary).
+        ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        "X-Noirly-CSRF": "1",
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch {
+    // No answer at all: the network is down (writes are never queued offline).
+    setOffline(true);
+    throw new ApiRequestError(0, "You're offline. Changes can't be saved until you reconnect.");
+  }
+  noteResponse(response);
 
   const data = (await response.json().catch(() => ({}))) as T & ApiErrorBody;
   if (!response.ok) {

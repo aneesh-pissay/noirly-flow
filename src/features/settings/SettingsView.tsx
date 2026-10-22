@@ -6,6 +6,7 @@ import { Button, Input, Label, PageContainer, PageHeader, Textarea } from "@noir
 import { api } from "@/src/lib/api-client";
 import { CalendarFeedSection } from "@/src/features/settings/CalendarFeedSection";
 import { AccessTokensSection } from "@/src/features/settings/AccessTokensSection";
+import { InstallAppSection } from "@/src/features/settings/InstallAppSection";
 import type { MePayload } from "@/src/server/users/me";
 
 const TIMEZONES = [
@@ -105,6 +106,8 @@ export function SettingsView({
       </section>
 
       <CalendarFeedSection timezone={meQuery.data.user.profile.timezone} />
+
+      <InstallAppSection />
 
       <AccessTokensSection />
 
