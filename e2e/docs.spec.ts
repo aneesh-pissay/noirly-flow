@@ -132,5 +132,11 @@ base.describe("docs, signed out", () => {
     await page.goto("/docs/tasks/quick-add");
     await expect(page.getByRole("heading", { level: 1, name: "Quick add" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: "Sign in" })).toBeVisible();
+    // The site's smooth scroll mustn't swallow the wheel over the docs panes.
+    const main = page.locator("#docs-main");
+    const box = (await main.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 600);
+    await expect.poll(() => main.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   });
 });

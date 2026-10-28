@@ -31,7 +31,9 @@ export function DocsLayout({ nav, searchIndex, children }: { nav: NavCategory[];
   }, [drawer]);
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col lg:flex-row">
+    // Lenis smooth-scrolls only the document and swallows wheel events over the
+    // panes below, which scroll on their own; opt out here (also outside the app shell).
+    <div data-lenis-prevent className="flex h-full min-h-0 flex-1 flex-col lg:flex-row">
       <aside aria-label="Documentation" className="hidden shrink-0 border-r border-[var(--hairline)] bg-[var(--surface-2)]/40 lg:block lg:w-72">
         <div className="h-full overflow-y-auto px-4 py-5">
           <DocsNav nav={nav} searchIndex={searchIndex} />
