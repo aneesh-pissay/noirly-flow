@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { BrandMark } from "@/src/components/BrandMark";
 import { MarketingHeader } from "@/src/components/MarketingHeader";
 import { NoirlyLoginButton } from "@/src/features/auth/NoirlyLoginButton";
+import { ARTICLES, CATEGORIES } from "@/src/docs/registry";
 
 export const metadata: Metadata = {
   title: "Noirly Flow",
@@ -92,6 +93,25 @@ export default async function LandingPage() {
             </div>
           </div>
         </section>
+
+        <section className="section-rule relative">
+          <div className="shell section-y">
+            <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+              <p className="eyebrow justify-center">Docs</p>
+              <h2 className="display-md mt-4">Every feature, explained</h2>
+              <p className="lede mt-5 text-center">
+                {ARTICLES.length} step-by-step guides across {CATEGORIES.length} topics, with screenshots and video
+                walkthroughs. Read them before you sign up.
+              </p>
+              <Link
+                href="/docs"
+                className="focusable mt-8 inline-flex min-h-11 items-center rounded-full border border-[var(--hairline)] px-5 text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-2)]"
+              >
+                Browse the docs
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer className="section-rule relative">
@@ -104,6 +124,9 @@ export default async function LandingPage() {
           </span>
           <span className="flex flex-wrap items-center gap-4">
             <span className="meta">Boards · Workspaces · Inbox · Realtime</span>
+            <Link href="/docs" className="meta underline-offset-4 hover:text-[var(--text)] hover:underline">
+              Docs
+            </Link>
             <Link href="/privacy" className="meta underline-offset-4 hover:text-[var(--text)] hover:underline">
               Privacy policy
             </Link>

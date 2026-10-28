@@ -1,3 +1,4 @@
+import { test as base } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { ARTICLES, CATEGORIES, articleHref, mediaFor, navTree, VIDEOS_ENABLED } from "@/src/docs/registry";
 
@@ -29,7 +30,7 @@ test.describe("docs", () => {
   test("each video belongs to its article, plays, and has captions and chapters", async ({ page }) => {
     test.setTimeout(240_000);
     const withVideo = ARTICLES.filter((article) => mediaFor(article.id)?.video);
-    test.skip(!VIDEOS_ENABLED || !withVideo.length, "Videos are off without R2_ACCOUNT_ID (the e2e server has no R2)");
+    test.skip(!VIDEOS_ENABLED || !withVideo.length, "Videos are off without R2_PUBLIC_URL (the e2e server has no R2)");
     for (const article of withVideo) {
       await page.goto(articleHref(article));
       const player = page.locator("[data-video-player]");
@@ -119,5 +120,17 @@ test.describe("docs", () => {
     for (const category of CATEGORIES) {
       await expect(page.getByRole("link", { name: category.title, exact: true }).first()).toBeVisible();
     }
+  });
+});
+
+base.describe("docs, signed out", () => {
+  base("the landing page links to the docs, which open without signing in", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: "Browse the docs" }).click();
+    await expect(page).toHaveURL(/\/docs$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Flow, explained." })).toBeVisible();
+    await page.goto("/docs/tasks/quick-add");
+    await expect(page.getByRole("heading", { level: 1, name: "Quick add" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: "Sign in" })).toBeVisible();
   });
 });

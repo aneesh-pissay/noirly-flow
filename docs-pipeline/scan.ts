@@ -53,7 +53,7 @@ function walk(dir: string, match: (file: string) => boolean): string[] {
 /** Feature surfaces found in the code, independent of any docs. */
 export function discover(): Inventory["discovered"] {
   return {
-    pages: walk("app", (f) => /page\.tsx$/.test(f)).filter((f) => !f.startsWith("app/(app)/docs")).sort(),
+    pages: walk("app", (f) => /page\.tsx$/.test(f)).filter((f) => !f.startsWith("app/(docs)/")).sort(),
     apiRoutes: walk("app/api", (f) => /route\.ts$/.test(f)).sort(),
     featureModules: readdirSync("src/features").filter((name) => name !== "docs" && statSync(path.join("src/features", name)).isDirectory()).map((name) => `src/features/${name}`).sort(),
     settingsSections: walk("src/features/settings", (f) => /Section\.tsx$/.test(f)).sort(),

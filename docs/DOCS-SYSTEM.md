@@ -12,7 +12,7 @@ short tutorial video. This file is how it fits together and how to keep it curre
 | Search | `src/docs/search.ts` | Client-side index over titles, summaries, steps, options, troubleshooting and FAQs. |
 | Media manifest | `src/docs/media.json` | Written by the pipeline: screenshots, video, poster, captions, chapters, transcript, and the source fingerprint at capture time. |
 | Inventory | `src/docs/inventory.json` | Written by `docs:scan --write`: every article with its sources, fingerprint and video status, plus every page, API route, feature module, settings section and e2e spec found in the code. The reviewed baseline. |
-| UI | `app/(app)/docs/**`, `src/features/docs/*` | Pages inside the app shell (same auth, `@noirly-dev/ui`, tokens). Docs sidebar, article view, video player, "On this page" panel. |
+| UI | `app/(docs)/**`, `src/features/docs/*` | Public pages, linked from the landing page: in the app shell when signed in, under the marketing header when not (`@noirly-dev/ui`, tokens). Docs sidebar, article view, video player, "On this page" panel. |
 | Capture | `docs-pipeline/capture/`, `playwright.docs.config.ts` | One Playwright scenario per article with a video. |
 | Video | `docs-pipeline/video/` | Remotion compositions, kept as their own package so the app's dependencies don't change. |
 | Published media | `public/docs/screenshots/<id>/`, `public/docs/videos/<id>.{jpg,vtt}` | Screenshots, posters and captions, committed. The MP4s are git-ignored and hosted separately. |
@@ -20,10 +20,11 @@ short tutorial video. This file is how it fits together and how to keep it curre
 ### Video hosting
 
 The MP4s aren't committed. They live in Cloudflare R2 and play from the bucket's public URL,
-`https://pub-<R2_ACCOUNT_ID>.r2.dev/doc-videos/<article-id>.mp4` (`src/docs/video-host.ts`;
+`<R2_PUBLIC_URL>/doc-videos/<article-id>.mp4`, where `R2_PUBLIC_URL` is the bucket's Public
+Development URL (`https://pub-<id>.r2.dev`) (`src/docs/video-host.ts`;
 that origin is added to the CSP's `media-src`). After re-rendering, upload the changed
 `docs-pipeline/video/out/<id>.mp4` files to `doc-videos/` under the same names. Without
-`R2_ACCOUNT_ID` (the e2e server, setups with no R2), videos are off and recorded articles show
+`R2_PUBLIC_URL` (the e2e server, setups with no R2), videos are off and recorded articles show
 "Video coming soon". Captions (`.vtt`) and posters stay in `public/docs/videos/` and load
 from this app.
 
