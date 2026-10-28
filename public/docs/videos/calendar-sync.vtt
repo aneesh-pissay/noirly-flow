@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Two-way calendar sync. Connect Google Calendar or Outlook; tasks and events stay in step both ways.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: drag in your calendar.
+
+3
+00:00:09.500 --> 00:00:15.000
+Connect your calendar → Flow creates its own calendar → Edits sync both ways
+
+4
+00:00:15.470 --> 00:00:20.870
+(Note: A stand-in for Google approves the connection: the isolated test server never talks to real Google accounts.) Two-way calendar sync connects Google Calendar or Outlook.
+
+5
+00:00:20.870 --> 00:00:26.540
+Connect, approve access…
+
+6
+00:00:26.540 --> 00:00:31.330
+…and Flow keeps a “Noirly Flow” calendar there in step with your tasks.
+
+7
+00:00:31.330 --> 00:00:37.330
+The connect buttons are missing: The server hasn't configured that calendar's credentials and CALENDAR_TOKEN_KEY. “Couldn't connect that calendar.”: The sign-in was cancelled or didn't start in Flow. Try Connect again.
+
+8
+00:00:37.330 --> 00:00:41.830
+Google Calendar and Outlook

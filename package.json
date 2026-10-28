@@ -12,7 +12,13 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "docs:serve": "npx tsx docs-pipeline/serve.ts",
+    "docs:scan": "npx tsx docs-pipeline/scan.ts",
+    "docs:capture": "playwright test -c playwright.docs.config.ts",
+    "docs:video:install": "npm --prefix docs-pipeline/video install",
+    "docs:render": "npx tsx docs-pipeline/render.ts",
+    "docs:regen": "npx tsx docs-pipeline/regen.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1150.0",

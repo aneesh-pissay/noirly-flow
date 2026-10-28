@@ -1,0 +1,29 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Members and roles. See who's in a workspace, change their role, or remove them.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: client visibility; handing over.
+
+3
+00:00:09.970 --> 00:00:11.510
+(Note: Milo and Edie joined through invites before the recording.) Members lists everyone in the workspace with their role.
+
+4
+00:00:11.510 --> 00:00:13.100
+Change a role from its dropdown — here Milo becomes a Viewer.
+
+5
+00:00:13.100 --> 00:00:17.730
+Remove takes someone out of the workspace at once.
+
+6
+00:00:17.730 --> 00:00:23.730
+There's no Role dropdown on a row: You need Admin or Owner, and the creator's row is locked. A removed person still sees the workspace: Their next request is refused; ask them to reload.
+
+7
+00:00:23.730 --> 00:00:28.230
+Four roles enforced on every API call

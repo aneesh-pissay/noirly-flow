@@ -57,3 +57,11 @@ next-env.d.ts
 
 # Task attachments stored locally in development (no R2)
 /.attachments/
+
+# Docs pipeline: dev server build, Playwright raw captures
+/.next-docs-dev/
+/docs-pipeline/video/node_modules/
+/docs-pipeline/video/out/
+/docs-pipeline/.captures/
+# Rendered tutorial MP4s are hosted separately (NEXT_PUBLIC_DOCS_VIDEO_BASE_URL); posters and captions stay.
+/public/docs/videos/*.mp4

@@ -1,0 +1,41 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Webhooks. Send signed HTTPS events to your own systems when tasks and comments change.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: chat alerts; data sync.
+
+3
+00:00:09.500 --> 00:00:15.000
+A task or comment changes → Flow signs the event → POST to your endpoint → Retried if it fails
+
+4
+00:00:15.800 --> 00:00:21.730
+(Note: The endpoint is a local test receiver, which only this isolated test server allows; real servers accept public HTTPS addresses.) Add the URL that should receive events…
+
+5
+00:00:21.730 --> 00:00:25.220
+…and add it.
+
+6
+00:00:25.220 --> 00:00:30.180
+The signing secret is shown once (blurred here). Copy it now.
+
+7
+00:00:30.180 --> 00:00:34.940
+Send a test to check the receiver…
+
+8
+00:00:34.940 --> 00:00:42.390
+…every delivery is logged, with Redeliver.
+
+9
+00:00:42.390 --> 00:00:48.390
+The URL is refused: It must be public HTTPS; localhost and private networks aren't allowed. The webhook turned itself off: It failed 15 times in a row or returned 410. Fix the receiver and switch it back on.
+
+10
+00:00:48.390 --> 00:00:52.890
+HMAC-SHA256 signatures

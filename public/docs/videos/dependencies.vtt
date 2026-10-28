@@ -1,0 +1,37 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Dependencies. Mark what a task is waiting on; it stays blocked until those are done.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: build after design.
+
+3
+00:00:09.500 --> 00:00:15.000
+Link what it waits on → The task shows Blocked → The blocker is done → The task can be finished
+
+4
+00:00:15.800 --> 00:00:21.620
+Under Blocked by, find the task this one waits on…
+
+5
+00:00:21.620 --> 00:00:28.780
+…and pick it.
+
+6
+00:00:28.780 --> 00:00:34.320
+The task is Blocked until the sitemap is done.
+
+7
+00:00:34.320 --> 00:00:41.890
+Finishing it early is refused.
+
+8
+00:00:41.890 --> 00:00:47.890
+“… is waiting on other tasks”: Finish or unlink its blockers first.
+
+9
+00:00:47.890 --> 00:00:52.390
+Search to link blockers

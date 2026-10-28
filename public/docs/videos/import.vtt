@@ -1,0 +1,41 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Import from Todoist or CSV. Bring tasks in from a Todoist export or any CSV, with a preview before anything is created.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: moving from todoist; spreadsheet backlog.
+
+3
+00:00:09.500 --> 00:00:15.000
+Choose a CSV → Preview and map columns → Tasks, sections and tags created
+
+4
+00:00:15.580 --> 00:00:20.220
+Pick the project to import into…
+
+5
+00:00:20.220 --> 00:00:20.340
+…and a CSV. A Todoist export is recognised automatically.
+
+6
+00:00:20.340 --> 00:00:25.760
+The preview shows what will be created — before anything is.
+
+7
+00:00:25.760 --> 00:00:29.600
+Import.
+
+8
+00:00:29.600 --> 00:00:40.630
+Any other CSV gets a column mapping.
+
+9
+00:00:40.630 --> 00:00:46.630
+Some dates weren't read: The preview lists them; fix them in the CSV or set them after import.
+
+10
+00:00:46.630 --> 00:00:51.130
+Todoist structure preserved

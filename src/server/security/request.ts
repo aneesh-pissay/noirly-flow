@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { docsVideoBaseUrl } from "@/src/docs/video-host";
 
 function configuredOrigin(value: string | undefined): string {
   try { return value ? new URL(value).origin : ""; } catch { return ""; }
@@ -9,6 +10,8 @@ export function securePageResponse(request: NextRequest) {
   const isDev = process.env.NODE_ENV !== "production";
   const identity = configuredOrigin(process.env.AUTH_NOIRLY_ISSUER);
   const realtime = configuredOrigin(process.env.NEXT_PUBLIC_REALTIME_URL ?? process.env.NEXT_PUBLIC_REALTIME_WS_URL);
+  // Docs tutorial videos are hosted outside the app (see src/docs/registry.ts).
+  const docsVideos = configuredOrigin(docsVideoBaseUrl());
   const policy = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://accounts.google.com${isDev ? " 'unsafe-eval'" : ""}`,
@@ -16,6 +19,7 @@ export function securePageResponse(request: NextRequest) {
     "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
+    `media-src 'self' ${docsVideos}`.trim(),
     `connect-src 'self' https://accounts.google.com ${identity} ${realtime}${isDev ? " ws: http://localhost:*" : ""}`,
     "frame-src https://accounts.google.com",
     "object-src 'none'", "base-uri 'self'", "frame-ancestors 'none'",
