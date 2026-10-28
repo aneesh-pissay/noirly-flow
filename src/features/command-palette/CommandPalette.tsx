@@ -317,6 +317,13 @@ export function CommandPalette({ workspaces }: Props) {
               Activity
             </Command.Item>
           ) : null}
+          <Command.Item
+            value="docs documentation help guide videos tutorials"
+            onSelect={() => go("/docs")}
+            className={itemClass}
+          >
+            Docs
+          </Command.Item>
           {workspaces.map((workspace) => (
             <Command.Item
               key={workspace.id}

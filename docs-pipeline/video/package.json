@@ -1,0 +1,22 @@
+{
+  "name": "noirly-flow-docs-video",
+  "private": true,
+  "description": "Remotion compositions that turn Playwright recordings into the Docs tutorial videos. Kept out of the app's dependencies.",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "node render.mjs"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.534",
+    "@remotion/cli": "4.0.534",
+    "@remotion/renderer": "4.0.534",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "remotion": "4.0.534"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

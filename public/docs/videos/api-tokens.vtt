@@ -1,0 +1,37 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+API tokens. Personal tokens for scripts and integrations, read-only or read-and-write.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: reporting script; cli capture.
+
+3
+00:00:10.080 --> 00:00:14.990
+API tokens let scripts use Flow as you.
+
+4
+00:00:14.990 --> 00:00:19.970
+Name the token, choose its access and expiry…
+
+5
+00:00:19.970 --> 00:00:23.450
+…and create it.
+
+6
+00:00:23.450 --> 00:00:28.840
+The secret is shown once, with a curl example (blurred here).
+
+7
+00:00:28.840 --> 00:00:34.970
+Revoke stops a token at once.
+
+8
+00:00:34.970 --> 00:00:40.970
+403 read_only_token: Create a read-and-write token for writes. I lost the secret: It can't be shown again; revoke it and create a new one.
+
+9
+00:00:40.970 --> 00:00:45.470
+Read-only or read-and-write

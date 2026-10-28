@@ -1,0 +1,49 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Automations. “When → if → then” rules that update tasks for you, per project.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: bug escalation; default due date; routing.
+
+3
+00:00:09.500 --> 00:00:15.000
+A task is created or changed → The rule's conditions are checked → Its actions run → The run is logged
+
+4
+00:00:15.480 --> 00:00:17.800
+Open Automations from the project header.
+
+5
+00:00:17.800 --> 00:00:24.200
+Name the rule, then build it: when…
+
+6
+00:00:24.200 --> 00:00:30.930
+…if…
+
+7
+00:00:30.930 --> 00:00:59.110
+…then.
+
+8
+00:00:59.110 --> 00:01:15.800
+The rule reads back as a sentence.
+
+9
+00:01:15.800 --> 00:01:24.410
+Now start a bug…
+
+10
+00:01:24.410 --> 00:01:38.400
+…and the rule made it urgent and tagged it.
+
+11
+00:01:38.400 --> 00:01:44.400
+A rule didn't run: Check it's switched on and every condition matched. Changes made by other rules never trigger rules. Saving a rule fails: A rule needs at least one action, and every tag, person or section it names must still exist.
+
+12
+00:01:44.400 --> 00:01:48.900
+Readable when → if → then sentences

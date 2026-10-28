@@ -1,0 +1,41 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Board columns. Add, rename, reorder and delete a project's board columns, each tied to a status.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: code review; waiting on others.
+
+3
+00:00:10.160 --> 00:00:12.290
+Every project starts with Todo, In progress and Done.
+
+4
+00:00:12.290 --> 00:00:17.370
+Choose Add column…
+
+5
+00:00:17.370 --> 00:00:21.010
+…and say which status its cards have.
+
+6
+00:00:21.010 --> 00:00:22.600
+Edit column opens its settings…
+
+7
+00:00:22.600 --> 00:00:25.930
+…where Left and Right reorder it — Review now sits before Done.
+
+8
+00:00:25.930 --> 00:00:31.100
+Drag cards into it by their grip.
+
+9
+00:00:31.100 --> 00:00:37.100
+Delete refuses on a column: It's the last column for its status. Add another column for that status first.
+
+10
+00:00:37.100 --> 00:00:41.600
+Columns mapped to statuses

@@ -1,0 +1,37 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Custom fields. Add text, number, select, date and person fields to a project's tasks.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: agency work; sizing.
+
+3
+00:00:10.300 --> 00:00:14.000
+Open Fields from the project header.
+
+4
+00:00:14.000 --> 00:00:31.110
+Add a text field…
+
+5
+00:00:31.110 --> 00:00:58.000
+…and a select with options.
+
+6
+00:00:58.000 --> 00:01:10.150
+Set values in the drawer.
+
+7
+00:01:10.150 --> 00:01:17.910
+They show as chips on the row.
+
+8
+00:01:17.910 --> 00:01:23.910
+A value disappeared: The field or option was deleted, or the task moved to another project.
+
+9
+00:01:23.910 --> 00:01:28.410
+Five field types

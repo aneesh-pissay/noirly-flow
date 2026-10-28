@@ -1,0 +1,37 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Saved filters. Save a query like “today & p1 & #Launch” and reopen its tasks from the sidebar.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: hot list; someday.
+
+3
+00:00:09.500 --> 00:00:15.000
+Write a query → Checked as you type → Saved to your sidebar
+
+4
+00:00:15.190 --> 00:00:17.420
+Name a filter…
+
+5
+00:00:17.420 --> 00:00:21.570
+…and write a query. It's checked as you type.
+
+6
+00:00:21.570 --> 00:00:23.170
+Save it.
+
+7
+00:00:23.170 --> 00:00:27.170
+The filter lists matching open tasks, and sits in your sidebar.
+
+8
+00:00:27.170 --> 00:00:33.170
+“The query ends too early”: An operator is missing its right-hand side, e.g. a trailing `&`. “No tag called …”: Check the spelling, or create the tag first.
+
+9
+00:00:33.170 --> 00:00:37.670
+A readable query language

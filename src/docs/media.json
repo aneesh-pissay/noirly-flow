@@ -1,0 +1,5448 @@
+{
+  "activity-log": {
+    "video": {
+      "src": "/docs/videos/activity-log.mp4",
+      "poster": "/docs/videos/activity-log.jpg",
+      "captions": "/docs/videos/activity-log.vtt",
+      "duration": 26.83,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 16.33
+        },
+        {
+          "title": "Result",
+          "start": 22.33
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Activity log. Every change in the workspace, with Load more and a CSV export."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: audit; what changed?."
+        },
+        {
+          "start": 9.88,
+          "end": 11.82,
+          "text": "Activity records every change in the workspace."
+        },
+        {
+          "start": 11.82,
+          "end": 16.33,
+          "text": "Export the whole log as CSV."
+        },
+        {
+          "start": 16.33,
+          "end": 22.33,
+          "text": "Imported tasks have little activity: Imports create tasks in bulk without per-task automation runs."
+        },
+        {
+          "start": 22.33,
+          "end": 26.83,
+          "text": "Readable event sentences"
+        }
+      ]
+    },
+    "screenshots": {
+      "feed": {
+        "src": "/docs/screenshots/activity-log/feed.jpg",
+        "alt": "The workspace activity log",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "c808d26a0fdd40d5",
+    "capturedAt": "2026-10-28T09:26:27.518Z",
+    "verified": true
+  },
+  "api-tokens": {
+    "video": {
+      "src": "/docs/videos/api-tokens.mp4",
+      "poster": "/docs/videos/api-tokens.jpg",
+      "captions": "/docs/videos/api-tokens.vtt",
+      "duration": 45.47,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 34.97
+        },
+        {
+          "title": "Result",
+          "start": 40.97
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "API tokens. Personal tokens for scripts and integrations, read-only or read-and-write."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: reporting script; cli capture."
+        },
+        {
+          "start": 10.08,
+          "end": 14.99,
+          "text": "API tokens let scripts use Flow as you."
+        },
+        {
+          "start": 14.99,
+          "end": 19.97,
+          "text": "Name the token, choose its access and expiry…"
+        },
+        {
+          "start": 19.97,
+          "end": 23.45,
+          "text": "…and create it."
+        },
+        {
+          "start": 23.45,
+          "end": 28.84,
+          "text": "The secret is shown once, with a curl example (blurred here)."
+        },
+        {
+          "start": 28.84,
+          "end": 34.97,
+          "text": "Revoke stops a token at once."
+        },
+        {
+          "start": 34.97,
+          "end": 40.97,
+          "text": "403 read_only_token: Create a read-and-write token for writes. I lost the secret: It can't be shown again; revoke it and create a new one."
+        },
+        {
+          "start": 40.97,
+          "end": 45.47,
+          "text": "Read-only or read-and-write"
+        }
+      ]
+    },
+    "screenshots": {
+      "section": {
+        "src": "/docs/screenshots/api-tokens/section.jpg",
+        "alt": "The API tokens section",
+        "height": 1080,
+        "width": 1920
+      },
+      "created": {
+        "src": "/docs/screenshots/api-tokens/created.jpg",
+        "alt": "A new token, shown once",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "93e4d1727c6166a2",
+    "capturedAt": "2026-10-28T09:34:32.354Z",
+    "verified": true
+  },
+  "approvals": {
+    "video": {
+      "src": "/docs/videos/approvals.mp4",
+      "poster": "/docs/videos/approvals.jpg",
+      "captions": "/docs/videos/approvals.vtt",
+      "duration": 56.67,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 46.18
+        },
+        {
+          "title": "Result",
+          "start": 52.18
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Approvals. Ask a teammate to approve a task before it can be marked done."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: contracts; design sign-off."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Request approval → The approver is notified → Approve or request changes → The task can be finished"
+        },
+        {
+          "start": 15.8,
+          "end": 19.57,
+          "text": "(Note: Milo's decision is made from his own account, off camera.) Pick who should approve…"
+        },
+        {
+          "start": 19.57,
+          "end": 27.61,
+          "text": "…and request it."
+        },
+        {
+          "start": 27.61,
+          "end": 36.7,
+          "text": "Until it's approved, the task can't be marked done."
+        },
+        {
+          "start": 36.7,
+          "end": 46.18,
+          "text": "Milo approves — now it can be finished."
+        },
+        {
+          "start": 46.18,
+          "end": 52.18,
+          "text": "I can't mark the task done: It's awaiting approval or changes were requested. Ask the approver, or choose Withdraw request."
+        },
+        {
+          "start": 52.18,
+          "end": 56.68,
+          "text": "One approver per request"
+        }
+      ]
+    },
+    "screenshots": {
+      "requested": {
+        "src": "/docs/screenshots/approvals/requested.jpg",
+        "alt": "An approval waiting on a teammate",
+        "height": 1080,
+        "width": 1920
+      },
+      "decided": {
+        "src": "/docs/screenshots/approvals/decided.jpg",
+        "alt": "An approved task",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "f15ca98c761c4f42",
+    "capturedAt": "2026-10-28T09:28:39.165Z",
+    "verified": true
+  },
+  "attachments": {
+    "video": {
+      "src": "/docs/videos/attachments.mp4",
+      "poster": "/docs/videos/attachments.jpg",
+      "captions": "/docs/videos/attachments.vtt",
+      "duration": 26.87,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 16.37
+        },
+        {
+          "title": "Result",
+          "start": 22.37
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Attachments. Attach files to a task; they stay private to the workspace."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: design review; expense."
+        },
+        {
+          "start": 10.28,
+          "end": 12.29,
+          "text": "Drop files on the drawer or choose Attach files."
+        },
+        {
+          "start": 12.29,
+          "end": 16.37,
+          "text": "Files are private to the workspace and open from the task."
+        },
+        {
+          "start": 16.37,
+          "end": 22.37,
+          "text": "“Attachments aren't set up”: The server needs file storage (R2) configured. Upload refused: Files over 25 MB are refused."
+        },
+        {
+          "start": 22.37,
+          "end": 26.87,
+          "text": "Drag and drop"
+        }
+      ]
+    },
+    "screenshots": {
+      "attached": {
+        "src": "/docs/screenshots/attachments/attached.jpg",
+        "alt": "Two files attached to a task",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "2f10c2c1e0c5c9c2",
+    "capturedAt": "2026-10-28T09:22:34.231Z",
+    "verified": true
+  },
+  "automations": {
+    "video": {
+      "src": "/docs/videos/automations.mp4",
+      "poster": "/docs/videos/automations.jpg",
+      "captions": "/docs/videos/automations.vtt",
+      "duration": 108.9,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 98.4
+        },
+        {
+          "title": "Result",
+          "start": 104.4
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Automations. “When → if → then” rules that update tasks for you, per project."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: bug escalation; default due date; routing."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "A task is created or changed → The rule's conditions are checked → Its actions run → The run is logged"
+        },
+        {
+          "start": 15.48,
+          "end": 17.8,
+          "text": "Open Automations from the project header."
+        },
+        {
+          "start": 17.8,
+          "end": 24.2,
+          "text": "Name the rule, then build it: when…"
+        },
+        {
+          "start": 24.2,
+          "end": 30.93,
+          "text": "…if…"
+        },
+        {
+          "start": 30.93,
+          "end": 59.11,
+          "text": "…then."
+        },
+        {
+          "start": 59.11,
+          "end": 75.8,
+          "text": "The rule reads back as a sentence."
+        },
+        {
+          "start": 75.8,
+          "end": 84.41,
+          "text": "Now start a bug…"
+        },
+        {
+          "start": 84.41,
+          "end": 98.4,
+          "text": "…and the rule made it urgent and tagged it."
+        },
+        {
+          "start": 98.4,
+          "end": 104.4,
+          "text": "A rule didn't run: Check it's switched on and every condition matched. Changes made by other rules never trigger rules. Saving a rule fails: A rule needs at least one action, and every tag, person or section it names must still exist."
+        },
+        {
+          "start": 104.4,
+          "end": 108.9,
+          "text": "Readable when → if → then sentences"
+        }
+      ]
+    },
+    "screenshots": {
+      "empty": {
+        "src": "/docs/screenshots/automations/empty.jpg",
+        "alt": "The Automations dialog",
+        "height": 1080,
+        "width": 1920
+      },
+      "builder": {
+        "src": "/docs/screenshots/automations/builder.jpg",
+        "alt": "Building a when → if → then rule",
+        "height": 1080,
+        "width": 1920
+      },
+      "saved": {
+        "src": "/docs/screenshots/automations/saved.jpg",
+        "alt": "A rule with its run count",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "66f8c4a03c590475",
+    "capturedAt": "2026-10-28T09:28:00.684Z",
+    "verified": true
+  },
+  "board-columns": {
+    "video": {
+      "src": "/docs/videos/board-columns.mp4",
+      "poster": "/docs/videos/board-columns.jpg",
+      "captions": "/docs/videos/board-columns.vtt",
+      "duration": 41.6,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 31.1
+        },
+        {
+          "title": "Result",
+          "start": 37.1
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Board columns. Add, rename, reorder and delete a project's board columns, each tied to a status."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: code review; waiting on others."
+        },
+        {
+          "start": 10.16,
+          "end": 12.29,
+          "text": "Every project starts with Todo, In progress and Done."
+        },
+        {
+          "start": 12.29,
+          "end": 17.37,
+          "text": "Choose Add column…"
+        },
+        {
+          "start": 17.37,
+          "end": 21.01,
+          "text": "…and say which status its cards have."
+        },
+        {
+          "start": 21.01,
+          "end": 22.6,
+          "text": "Edit column opens its settings…"
+        },
+        {
+          "start": 22.6,
+          "end": 25.93,
+          "text": "…where Left and Right reorder it — Review now sits before Done."
+        },
+        {
+          "start": 25.93,
+          "end": 31.1,
+          "text": "Drag cards into it by their grip."
+        },
+        {
+          "start": 31.1,
+          "end": 37.1,
+          "text": "Delete refuses on a column: It's the last column for its status. Add another column for that status first."
+        },
+        {
+          "start": 37.1,
+          "end": 41.6,
+          "text": "Columns mapped to statuses"
+        }
+      ]
+    },
+    "screenshots": {
+      "board": {
+        "src": "/docs/screenshots/board-columns/board.jpg",
+        "alt": "A project's board",
+        "height": 1080,
+        "width": 1920
+      },
+      "add": {
+        "src": "/docs/screenshots/board-columns/add.jpg",
+        "alt": "Adding a Review column mapped to In progress",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "e25697cecbdad548",
+    "capturedAt": "2026-10-28T11:24:05.996Z",
+    "verified": true
+  },
+  "board-view": {
+    "video": {
+      "src": "/docs/videos/board-view.mp4",
+      "poster": "/docs/videos/board-view.jpg",
+      "captions": "/docs/videos/board-view.vtt",
+      "duration": 27.6,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 17.1
+        },
+        {
+          "title": "Result",
+          "start": 23.1
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Board view. A Kanban board: drag cards between columns to change their status."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: stand-up; finishing."
+        },
+        {
+          "start": 9.99,
+          "end": 11.33,
+          "text": "The board shows tasks as cards in their columns."
+        },
+        {
+          "start": 11.33,
+          "end": 13.65,
+          "text": "Drag a card by its grip to another column — its status follows."
+        },
+        {
+          "start": 13.65,
+          "end": 17.1,
+          "text": "It's saved: the task is now done."
+        },
+        {
+          "start": 17.1,
+          "end": 23.1,
+          "text": "Dragging opens the task: Drag by the ⋮⋮ grip, not the title."
+        },
+        {
+          "start": 23.1,
+          "end": 27.6,
+          "text": "Drag by the grip"
+        }
+      ]
+    },
+    "screenshots": {
+      "board": {
+        "src": "/docs/screenshots/board-view/board.jpg",
+        "alt": "The board view",
+        "height": 1080,
+        "width": 1920
+      },
+      "done": {
+        "src": "/docs/screenshots/board-view/done.jpg",
+        "alt": "The card moved to Done",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "732ed42e6c1a2e11",
+    "capturedAt": "2026-10-28T09:23:16.856Z",
+    "verified": true
+  },
+  "bulk-edit": {
+    "video": {
+      "src": "/docs/videos/bulk-edit.mp4",
+      "poster": "/docs/videos/bulk-edit.jpg",
+      "captions": "/docs/videos/bulk-edit.vtt",
+      "duration": 52.87,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 42.37
+        },
+        {
+          "title": "Result",
+          "start": 48.37
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Bulk edit. Select many tasks in the list and change, move or delete them at once."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: re-planning; hand-over."
+        },
+        {
+          "start": 10.3,
+          "end": 16.82,
+          "text": "Choose Select to edit many tasks at once."
+        },
+        {
+          "start": 16.82,
+          "end": 30.06,
+          "text": "Tick tasks…"
+        },
+        {
+          "start": 30.06,
+          "end": 36.28,
+          "text": "…then change them together."
+        },
+        {
+          "start": 36.28,
+          "end": 42.37,
+          "text": "Done leaves select mode."
+        },
+        {
+          "start": 42.37,
+          "end": 48.37,
+          "text": "Some tasks weren't changed: The bar lists failures per task — often blocked or awaiting approval."
+        },
+        {
+          "start": 48.37,
+          "end": 52.87,
+          "text": "Tick or click rows"
+        }
+      ]
+    },
+    "screenshots": {
+      "select": {
+        "src": "/docs/screenshots/bulk-edit/select.jpg",
+        "alt": "Select mode with the bulk edit bar",
+        "height": 1080,
+        "width": 1920
+      },
+      "picked": {
+        "src": "/docs/screenshots/bulk-edit/picked.jpg",
+        "alt": "Three tasks selected",
+        "height": 1080,
+        "width": 1920
+      },
+      "applied": {
+        "src": "/docs/screenshots/bulk-edit/applied.jpg",
+        "alt": "Three tasks updated at once",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "75932e309d9d732e",
+    "capturedAt": "2026-10-28T09:31:47.109Z",
+    "verified": true
+  },
+  "calendar-feed": {
+    "video": {
+      "src": "/docs/videos/calendar-feed.mp4",
+      "poster": "/docs/videos/calendar-feed.jpg",
+      "captions": "/docs/videos/calendar-feed.vtt",
+      "duration": 31.8,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 21.3
+        },
+        {
+          "title": "Result",
+          "start": 27.3
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Calendar feed (.ics). A private subscription link that shows your dated tasks in Google, Apple or Outlook calendars."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: one calendar."
+        },
+        {
+          "start": 9.99,
+          "end": 13.82,
+          "text": "Create a private calendar link…"
+        },
+        {
+          "start": 13.82,
+          "end": 21.3,
+          "text": "…then subscribe from Google, Apple or Outlook (the link is blurred here)."
+        },
+        {
+          "start": 21.3,
+          "end": 27.3,
+          "text": "Changes take hours to show: That's your calendar app's refresh rate. For instant two-way updates, use Two-way calendar sync."
+        },
+        {
+          "start": 27.3,
+          "end": 31.8,
+          "text": "Works with Google, Apple, Outlook"
+        }
+      ]
+    },
+    "screenshots": {
+      "created": {
+        "src": "/docs/screenshots/calendar-feed/created.jpg",
+        "alt": "A private calendar feed link",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "c2356f7619d52ceb",
+    "capturedAt": "2026-10-28T09:34:46.262Z",
+    "verified": true
+  },
+  "calendar-sync": {
+    "video": {
+      "src": "/docs/videos/calendar-sync.mp4",
+      "poster": "/docs/videos/calendar-sync.jpg",
+      "captions": "/docs/videos/calendar-sync.vtt",
+      "duration": 41.83,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 31.33
+        },
+        {
+          "title": "Result",
+          "start": 37.33
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Two-way calendar sync. Connect Google Calendar or Outlook; tasks and events stay in step both ways."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: drag in your calendar."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Connect your calendar → Flow creates its own calendar → Edits sync both ways"
+        },
+        {
+          "start": 15.47,
+          "end": 20.87,
+          "text": "(Note: A stand-in for Google approves the connection: the isolated test server never talks to real Google accounts.) Two-way calendar sync connects Google Calendar or Outlook."
+        },
+        {
+          "start": 20.87,
+          "end": 26.54,
+          "text": "Connect, approve access…"
+        },
+        {
+          "start": 26.54,
+          "end": 31.33,
+          "text": "…and Flow keeps a “Noirly Flow” calendar there in step with your tasks."
+        },
+        {
+          "start": 31.33,
+          "end": 37.33,
+          "text": "The connect buttons are missing: The server hasn't configured that calendar's credentials and CALENDAR_TOKEN_KEY. “Couldn't connect that calendar.”: The sign-in was cancelled or didn't start in Flow. Try Connect again."
+        },
+        {
+          "start": 37.33,
+          "end": 41.83,
+          "text": "Google Calendar and Outlook"
+        }
+      ]
+    },
+    "screenshots": {
+      "section": {
+        "src": "/docs/screenshots/calendar-sync/section.jpg",
+        "alt": "Two-way calendar sync in Settings",
+        "height": 1080,
+        "width": 1920
+      },
+      "connected": {
+        "src": "/docs/screenshots/calendar-sync/connected.jpg",
+        "alt": "Google Calendar connected",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "dc55a0d9b2240e62",
+    "capturedAt": "2026-10-28T09:35:06.588Z",
+    "verified": true
+  },
+  "calendar-view": {
+    "video": {
+      "src": "/docs/videos/calendar-view.mp4",
+      "poster": "/docs/videos/calendar-view.jpg",
+      "captions": "/docs/videos/calendar-view.vtt",
+      "duration": 32.23,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 21.73
+        },
+        {
+          "title": "Result",
+          "start": 27.73
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Calendar view. A month grid of tasks by due date, with undated tasks listed apart."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: month planning."
+        },
+        {
+          "start": 9.97,
+          "end": 11.9,
+          "text": "Calendar puts tasks on their due day."
+        },
+        {
+          "start": 11.9,
+          "end": 15.33,
+          "text": "Move between months…"
+        },
+        {
+          "start": 15.33,
+          "end": 17.06,
+          "text": "…and undated tasks are listed below the grid."
+        },
+        {
+          "start": 17.06,
+          "end": 21.73,
+          "text": "Click a task to open it."
+        },
+        {
+          "start": 21.73,
+          "end": 27.73,
+          "text": "A task isn't on the grid: It has no due date — look in the undated list."
+        },
+        {
+          "start": 27.73,
+          "end": 32.23,
+          "text": "Month grid by due date"
+        }
+      ]
+    },
+    "screenshots": {
+      "calendar": {
+        "src": "/docs/screenshots/calendar-view/calendar.jpg",
+        "alt": "The month calendar",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "a1762cf97d4bfed1",
+    "capturedAt": "2026-10-28T09:23:29.480Z",
+    "verified": true
+  },
+  "capacity": {
+    "video": {
+      "src": "/docs/videos/capacity.mp4",
+      "poster": "/docs/videos/capacity.jpg",
+      "captions": "/docs/videos/capacity.vtt",
+      "duration": 32.33,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 21.83
+        },
+        {
+          "title": "Result",
+          "start": 27.83
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Team capacity. A week of people × days showing scheduled work against each person's hours."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: sprint planning; part-timers."
+        },
+        {
+          "start": 9.86,
+          "end": 11.92,
+          "text": "Each cell is a person's work due that day against their hours — red when over."
+        },
+        {
+          "start": 11.92,
+          "end": 13.76,
+          "text": "Click a cell to see that day's tasks."
+        },
+        {
+          "start": 13.76,
+          "end": 18.54,
+          "text": "Set your own hours per weekday."
+        },
+        {
+          "start": 18.54,
+          "end": 21.83,
+          "text": "Now the day fits."
+        },
+        {
+          "start": 21.83,
+          "end": 27.83,
+          "text": "Someone shows 0h but has tasks: Their tasks have no duration; add estimates."
+        },
+        {
+          "start": 27.83,
+          "end": 32.33,
+          "text": "People × days grid"
+        }
+      ]
+    },
+    "screenshots": {
+      "grid": {
+        "src": "/docs/screenshots/capacity/grid.jpg",
+        "alt": "The capacity grid with an overloaded day",
+        "height": 1080,
+        "width": 1920
+      },
+      "cell": {
+        "src": "/docs/screenshots/capacity/cell.jpg",
+        "alt": "A day's tasks from the capacity grid",
+        "height": 1080,
+        "width": 1920
+      },
+      "hours": {
+        "src": "/docs/screenshots/capacity/hours.jpg",
+        "alt": "Editing working hours",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "ee8b4da32a8f7379",
+    "capturedAt": "2026-10-28T09:25:22.970Z",
+    "verified": true
+  },
+  "command-palette": {
+    "video": {
+      "src": "/docs/videos/command-palette.mp4",
+      "poster": "/docs/videos/command-palette.jpg",
+      "captions": "/docs/videos/command-palette.vtt",
+      "duration": 37.43,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 26.93
+        },
+        {
+          "title": "Result",
+          "start": 32.93
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Command palette and search. Press Ctrl K / ⌘K to create a task, find anything, or jump to any page."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: find a half-remembered task; capture mid-flow."
+        },
+        {
+          "start": 9.87,
+          "end": 11.92,
+          "text": "Open the palette from Search, or press Ctrl K."
+        },
+        {
+          "start": 11.92,
+          "end": 14.51,
+          "text": "Type to search tasks and workspaces…"
+        },
+        {
+          "start": 14.51,
+          "end": 17.47,
+          "text": "…and open a hit straight in the drawer."
+        },
+        {
+          "start": 17.47,
+          "end": 26.93,
+          "text": "It also creates tasks and jumps to pages."
+        },
+        {
+          "start": 26.93,
+          "end": 32.93,
+          "text": "No results: Type at least two characters, and check you're in the workspace that holds the task."
+        },
+        {
+          "start": 32.93,
+          "end": 37.43,
+          "text": "Search tasks and workspaces"
+        }
+      ]
+    },
+    "screenshots": {
+      "open": {
+        "src": "/docs/screenshots/command-palette/open.jpg",
+        "alt": "The command palette",
+        "height": 1080,
+        "width": 1920
+      },
+      "results": {
+        "src": "/docs/screenshots/command-palette/results.jpg",
+        "alt": "Search results in the palette",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "0306fcafa4595b02",
+    "capturedAt": "2026-10-28T09:25:40.782Z",
+    "verified": true
+  },
+  "comments-and-mentions": {
+    "video": {
+      "src": "/docs/videos/comments-and-mentions.mp4",
+      "poster": "/docs/videos/comments-and-mentions.jpg",
+      "captions": "/docs/videos/comments-and-mentions.vtt",
+      "duration": 37.03,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 26.53
+        },
+        {
+          "title": "Result",
+          "start": 32.53
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Comments and mentions. Discuss a task in its drawer and @mention teammates to notify them."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: ask for input; record a decision."
+        },
+        {
+          "start": 10.2,
+          "end": 11.74,
+          "text": "(Note: Milo joined the workspace before the recording.) Type @ to mention a teammate…"
+        },
+        {
+          "start": 11.74,
+          "end": 13.99,
+          "text": "…pick them from the suggestions…"
+        },
+        {
+          "start": 13.99,
+          "end": 16.07,
+          "text": "…and post. Milo gets a notification and an email."
+        },
+        {
+          "start": 16.07,
+          "end": 22.49,
+          "text": "Authors can edit their comments…"
+        },
+        {
+          "start": 22.49,
+          "end": 26.53,
+          "text": "…and edits are marked."
+        },
+        {
+          "start": 26.53,
+          "end": 32.53,
+          "text": "No Edit comment button: You can only edit your own comments."
+        },
+        {
+          "start": 32.53,
+          "end": 37.03,
+          "text": "@mentions with suggestions"
+        }
+      ]
+    },
+    "screenshots": {
+      "posted": {
+        "src": "/docs/screenshots/comments-and-mentions/posted.jpg",
+        "alt": "A comment mentioning a teammate",
+        "height": 1080,
+        "width": 1920
+      },
+      "edited": {
+        "src": "/docs/screenshots/comments-and-mentions/edited.jpg",
+        "alt": "An edited comment",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "34bba90c7e672693",
+    "capturedAt": "2026-10-28T09:22:27.284Z",
+    "verified": true
+  },
+  "creating-tasks": {
+    "video": {
+      "src": "/docs/videos/creating-tasks.mp4",
+      "poster": "/docs/videos/creating-tasks.jpg",
+      "captions": "/docs/videos/creating-tasks.vtt",
+      "duration": 32.03,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 21.53
+        },
+        {
+          "title": "Result",
+          "start": 27.53
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Creating tasks. The New task dialog: a title is all you need; everything else is optional."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: fast capture; structured request."
+        },
+        {
+          "start": 10.06,
+          "end": 11.78,
+          "text": "Choose New task."
+        },
+        {
+          "start": 11.78,
+          "end": 13.25,
+          "text": "Only the title is required. Create task stays off until there is one."
+        },
+        {
+          "start": 13.25,
+          "end": 15.97,
+          "text": "Type a title…"
+        },
+        {
+          "start": 15.97,
+          "end": 17.71,
+          "text": "…and create it."
+        },
+        {
+          "start": 17.71,
+          "end": 21.53,
+          "text": "The new task is in the list and open in the drawer, ready for more detail."
+        },
+        {
+          "start": 21.53,
+          "end": 27.53,
+          "text": "Create task is disabled: Type a title (spaces alone don't count), and wait for the form to finish loading. “You do not have permission to create tasks here.”: You're a Viewer in this workspace."
+        },
+        {
+          "start": 27.53,
+          "end": 32.03,
+          "text": "Only the title is required"
+        }
+      ]
+    },
+    "screenshots": {
+      "dialog": {
+        "src": "/docs/screenshots/creating-tasks/dialog.jpg",
+        "alt": "The Create task dialog",
+        "height": 1080,
+        "width": 1920
+      },
+      "filled": {
+        "src": "/docs/screenshots/creating-tasks/filled.jpg",
+        "alt": "A title typed into the dialog",
+        "height": 1080,
+        "width": 1920
+      },
+      "created": {
+        "src": "/docs/screenshots/creating-tasks/created.jpg",
+        "alt": "The new task open in the drawer",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "9f73208268a86ccb",
+    "capturedAt": "2026-10-28T09:20:09.286Z",
+    "verified": true
+  },
+  "custom-fields": {
+    "video": {
+      "src": "/docs/videos/custom-fields.mp4",
+      "poster": "/docs/videos/custom-fields.jpg",
+      "captions": "/docs/videos/custom-fields.vtt",
+      "duration": 88.4,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 77.91
+        },
+        {
+          "title": "Result",
+          "start": 83.91
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Custom fields. Add text, number, select, date and person fields to a project's tasks."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: agency work; sizing."
+        },
+        {
+          "start": 10.3,
+          "end": 14,
+          "text": "Open Fields from the project header."
+        },
+        {
+          "start": 14,
+          "end": 31.11,
+          "text": "Add a text field…"
+        },
+        {
+          "start": 31.11,
+          "end": 58,
+          "text": "…and a select with options."
+        },
+        {
+          "start": 58,
+          "end": 70.15,
+          "text": "Set values in the drawer."
+        },
+        {
+          "start": 70.15,
+          "end": 77.91,
+          "text": "They show as chips on the row."
+        },
+        {
+          "start": 77.91,
+          "end": 83.91,
+          "text": "A value disappeared: The field or option was deleted, or the task moved to another project."
+        },
+        {
+          "start": 83.91,
+          "end": 88.41,
+          "text": "Five field types"
+        }
+      ]
+    },
+    "screenshots": {
+      "dialog": {
+        "src": "/docs/screenshots/custom-fields/dialog.jpg",
+        "alt": "The custom fields dialog",
+        "height": 1080,
+        "width": 1920
+      },
+      "drawer": {
+        "src": "/docs/screenshots/custom-fields/drawer.jpg",
+        "alt": "Custom field values in the drawer",
+        "height": 1080,
+        "width": 1920
+      },
+      "row": {
+        "src": "/docs/screenshots/custom-fields/row.jpg",
+        "alt": "Custom field chips on a list row",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "653ba65c321fc068",
+    "capturedAt": "2026-10-28T09:30:28.317Z",
+    "verified": true
+  },
+  "dates-and-durations": {
+    "video": {
+      "src": "/docs/videos/dates-and-durations.mp4",
+      "poster": "/docs/videos/dates-and-durations.jpg",
+      "captions": "/docs/videos/dates-and-durations.vtt",
+      "duration": 30.4,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 19.9
+        },
+        {
+          "title": "Result",
+          "start": 25.9
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Dates and durations. Due date and time, start date, deadline and a duration estimate for every task."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: planned vs. required; time blocking."
+        },
+        {
+          "start": 10.14,
+          "end": 12.95,
+          "text": "Give the due date a time…"
+        },
+        {
+          "start": 12.95,
+          "end": 15.83,
+          "text": "…and an estimate. It powers the timeline and capacity."
+        },
+        {
+          "start": 15.83,
+          "end": 19.9,
+          "text": "The row shows the time and the estimate."
+        },
+        {
+          "start": 19.9,
+          "end": 25.9,
+          "text": "I can't set a start date: The start date can't be after the due date or the deadline. Reminder is greyed out: Reminders need a due time."
+        },
+        {
+          "start": 25.9,
+          "end": 30.4,
+          "text": "Due date with optional time"
+        }
+      ]
+    },
+    "screenshots": {
+      "due": {
+        "src": "/docs/screenshots/dates-and-durations/due.jpg",
+        "alt": "Due date with a due time",
+        "height": 1080,
+        "width": 1920
+      },
+      "duration": {
+        "src": "/docs/screenshots/dates-and-durations/duration.jpg",
+        "alt": "A 1h 30m duration estimate",
+        "height": 1080,
+        "width": 1920
+      },
+      "row": {
+        "src": "/docs/screenshots/dates-and-durations/row.jpg",
+        "alt": "The task row showing its time and duration",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "dfbb1e4737027dd0",
+    "capturedAt": "2026-10-28T09:20:47.165Z",
+    "verified": true
+  },
+  "dependencies": {
+    "video": {
+      "src": "/docs/videos/dependencies.mp4",
+      "poster": "/docs/videos/dependencies.jpg",
+      "captions": "/docs/videos/dependencies.vtt",
+      "duration": 52.4,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 41.89
+        },
+        {
+          "title": "Result",
+          "start": 47.89
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Dependencies. Mark what a task is waiting on; it stays blocked until those are done."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: build after design."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Link what it waits on → The task shows Blocked → The blocker is done → The task can be finished"
+        },
+        {
+          "start": 15.8,
+          "end": 21.62,
+          "text": "Under Blocked by, find the task this one waits on…"
+        },
+        {
+          "start": 21.62,
+          "end": 28.78,
+          "text": "…and pick it."
+        },
+        {
+          "start": 28.78,
+          "end": 34.32,
+          "text": "The task is Blocked until the sitemap is done."
+        },
+        {
+          "start": 34.32,
+          "end": 41.89,
+          "text": "Finishing it early is refused."
+        },
+        {
+          "start": 41.89,
+          "end": 47.89,
+          "text": "“… is waiting on other tasks”: Finish or unlink its blockers first."
+        },
+        {
+          "start": 47.89,
+          "end": 52.39,
+          "text": "Search to link blockers"
+        }
+      ]
+    },
+    "screenshots": {
+      "linked": {
+        "src": "/docs/screenshots/dependencies/linked.jpg",
+        "alt": "A blocker linked in the drawer",
+        "height": 1080,
+        "width": 1920
+      },
+      "blocked": {
+        "src": "/docs/screenshots/dependencies/blocked.jpg",
+        "alt": "A Blocked badge on the row",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "d3c84f2e1811d785",
+    "capturedAt": "2026-10-28T09:29:11.276Z",
+    "verified": true
+  },
+  "export-and-backups": {
+    "video": {
+      "src": "/docs/videos/export-and-backups.mp4",
+      "poster": "/docs/videos/export-and-backups.jpg",
+      "captions": "/docs/videos/export-and-backups.vtt",
+      "duration": 42.17,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 31.67
+        },
+        {
+          "title": "Result",
+          "start": 37.67
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Export and backups. Export the whole workspace as JSON or tasks as CSV, and keep scheduled backups."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: client hand-over; peace of mind."
+        },
+        {
+          "start": 10.3,
+          "end": 15.56,
+          "text": "Export everything as JSON, or tasks as CSV."
+        },
+        {
+          "start": 15.56,
+          "end": 20.03,
+          "text": "Back up now…"
+        },
+        {
+          "start": 20.03,
+          "end": 31.67,
+          "text": "…or every day or week, automatically."
+        },
+        {
+          "start": 31.67,
+          "end": 37.67,
+          "text": "“Backups need file storage”: The server has no file storage configured; exports still work."
+        },
+        {
+          "start": 37.67,
+          "end": 42.17,
+          "text": "Everything (JSON) for admins"
+        }
+      ]
+    },
+    "screenshots": {
+      "export": {
+        "src": "/docs/screenshots/export-and-backups/export.jpg",
+        "alt": "Export options",
+        "height": 1080,
+        "width": 1920
+      },
+      "backup": {
+        "src": "/docs/screenshots/export-and-backups/backup.jpg",
+        "alt": "A backup and the automatic schedule",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "952c812316a6b845",
+    "capturedAt": "2026-10-28T09:36:03.536Z",
+    "verified": true
+  },
+  "focus-timer": {
+    "video": {
+      "src": "/docs/videos/focus-timer.mp4",
+      "poster": "/docs/videos/focus-timer.jpg",
+      "captions": "/docs/videos/focus-timer.vtt",
+      "duration": 34.83,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 24.33
+        },
+        {
+          "title": "Result",
+          "start": 30.33
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Focus timer. Start a 15, 25 or 50-minute focus session on a task, with breaks."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: pomodoro; deep work."
+        },
+        {
+          "start": 10.29,
+          "end": 11.99,
+          "text": "(Note: Time is fast-forwarded in this video so a whole session fits in a few seconds.) Pick a focus length…"
+        },
+        {
+          "start": 11.99,
+          "end": 14.03,
+          "text": "…and start. A floating timer follows you around Flow."
+        },
+        {
+          "start": 14.03,
+          "end": 15.92,
+          "text": "Pause when you're interrupted…"
+        },
+        {
+          "start": 15.92,
+          "end": 17.65,
+          "text": "…and resume."
+        },
+        {
+          "start": 17.65,
+          "end": 24.33,
+          "text": "At the end, take a five-minute break — or log the time."
+        },
+        {
+          "start": 24.33,
+          "end": 30.33,
+          "text": "No notification at the end: Allow notifications for Flow in your browser."
+        },
+        {
+          "start": 30.33,
+          "end": 34.83,
+          "text": "15, 25 or 50 minutes"
+        }
+      ]
+    },
+    "screenshots": {
+      "start": {
+        "src": "/docs/screenshots/focus-timer/start.jpg",
+        "alt": "A focus session started from the drawer",
+        "height": 1080,
+        "width": 1920
+      },
+      "timer": {
+        "src": "/docs/screenshots/focus-timer/timer.jpg",
+        "alt": "The floating focus timer, paused",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "7a01dee68aa4f494",
+    "capturedAt": "2026-10-28T09:25:56.241Z",
+    "verified": true
+  },
+  "gantt-view": {
+    "video": {
+      "src": "/docs/videos/gantt-view.mp4",
+      "poster": "/docs/videos/gantt-view.jpg",
+      "captions": "/docs/videos/gantt-view.vtt",
+      "duration": 31.67,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 21.17
+        },
+        {
+          "title": "Result",
+          "start": 27.17
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Gantt view. Bars from start to due date with dependency arrows; drag to reschedule."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: launch plan."
+        },
+        {
+          "start": 9.91,
+          "end": 11.64,
+          "text": "Gantt draws each task from its start to its due date."
+        },
+        {
+          "start": 11.64,
+          "end": 13.58,
+          "text": "Arrows show what's blocking what."
+        },
+        {
+          "start": 13.58,
+          "end": 16.05,
+          "text": "Drag a bar's end to change that date…"
+        },
+        {
+          "start": 16.05,
+          "end": 21.17,
+          "text": "…or drag the whole bar to move both dates."
+        },
+        {
+          "start": 21.17,
+          "end": 27.17,
+          "text": "A task has no bar: Give it a due date (and optionally a start date)."
+        },
+        {
+          "start": 27.17,
+          "end": 31.67,
+          "text": "Start-to-due bars"
+        }
+      ]
+    },
+    "screenshots": {
+      "gantt": {
+        "src": "/docs/screenshots/gantt-view/gantt.jpg",
+        "alt": "The Gantt chart with a dependency arrow",
+        "height": 1080,
+        "width": 1920
+      },
+      "resized": {
+        "src": "/docs/screenshots/gantt-view/resized.jpg",
+        "alt": "A bar stretched by two days",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "917819346c5dce2e",
+    "capturedAt": "2026-10-28T09:23:41.578Z",
+    "verified": true
+  },
+  "goals": {
+    "video": {
+      "src": "/docs/videos/goals.mp4",
+      "poster": "/docs/videos/goals.jpg",
+      "captions": "/docs/videos/goals.vtt",
+      "duration": 45.57,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 35.07
+        },
+        {
+          "title": "Result",
+          "start": 41.07
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Goals and milestones. Workspace goals with target dates and milestones that roll up linked tasks' progress."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: quarterly okr; launch."
+        },
+        {
+          "start": 9.69,
+          "end": 12.21,
+          "text": "Create a goal…"
+        },
+        {
+          "start": 12.21,
+          "end": 15.18,
+          "text": "…with a target date."
+        },
+        {
+          "start": 15.18,
+          "end": 20.34,
+          "text": "Open it to add milestones and tasks."
+        },
+        {
+          "start": 20.34,
+          "end": 31.15,
+          "text": "Add tasks straight onto the goal…"
+        },
+        {
+          "start": 31.15,
+          "end": 35.07,
+          "text": "…and progress fills in as they're done."
+        },
+        {
+          "start": 35.07,
+          "end": 41.07,
+          "text": "Progress looks low: Only tasks linked to the goal count, and canceled ones are left out. Link more tasks from the drawer's Goal picker."
+        },
+        {
+          "start": 41.07,
+          "end": 45.57,
+          "text": "Progress from linked tasks"
+        }
+      ]
+    },
+    "screenshots": {
+      "list": {
+        "src": "/docs/screenshots/goals/list.jpg",
+        "alt": "A goal with its target date",
+        "height": 1080,
+        "width": 1920
+      },
+      "detail": {
+        "src": "/docs/screenshots/goals/detail.jpg",
+        "alt": "A goal's milestones and progress",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "9a173ce1435620d7",
+    "capturedAt": "2026-10-28T09:24:42.844Z",
+    "verified": true
+  },
+  "habits": {
+    "video": {
+      "src": "/docs/videos/habits.mp4",
+      "poster": "/docs/videos/habits.jpg",
+      "captions": "/docs/videos/habits.vtt",
+      "duration": 29.23,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 18.73
+        },
+        {
+          "title": "Result",
+          "start": 24.73
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Habits. Track repeating tasks as habits with current and best streaks."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: daily walk; weekly review."
+        },
+        {
+          "start": 10.25,
+          "end": 13.08,
+          "text": "On a repeating task, tick Track as a habit."
+        },
+        {
+          "start": 13.08,
+          "end": 14.91,
+          "text": "Habits shows each one with its streak."
+        },
+        {
+          "start": 14.91,
+          "end": 18.73,
+          "text": "Done on time keeps the streak going."
+        },
+        {
+          "start": 18.73,
+          "end": 24.73,
+          "text": "My streak reset: An occurrence was done after its due day or left overdue."
+        },
+        {
+          "start": 24.73,
+          "end": 29.23,
+          "text": "Current and best streaks"
+        }
+      ]
+    },
+    "screenshots": {
+      "track": {
+        "src": "/docs/screenshots/habits/track.jpg",
+        "alt": "Track as a habit under Repeat",
+        "height": 1080,
+        "width": 1920
+      },
+      "habits": {
+        "src": "/docs/screenshots/habits/habits.jpg",
+        "alt": "The Habits page",
+        "height": 1080,
+        "width": 1920
+      },
+      "streak": {
+        "src": "/docs/screenshots/habits/streak.jpg",
+        "alt": "A habit with a one-day streak",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "e454f1c4f01982af",
+    "capturedAt": "2026-10-28T09:24:52.435Z",
+    "verified": true
+  },
+  "import": {
+    "video": {
+      "src": "/docs/videos/import.mp4",
+      "poster": "/docs/videos/import.jpg",
+      "captions": "/docs/videos/import.vtt",
+      "duration": 51.13,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 40.63
+        },
+        {
+          "title": "Result",
+          "start": 46.63
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Import from Todoist or CSV. Bring tasks in from a Todoist export or any CSV, with a preview before anything is created."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: moving from todoist; spreadsheet backlog."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Choose a CSV → Preview and map columns → Tasks, sections and tags created"
+        },
+        {
+          "start": 15.58,
+          "end": 20.22,
+          "text": "Pick the project to import into…"
+        },
+        {
+          "start": 20.22,
+          "end": 20.34,
+          "text": "…and a CSV. A Todoist export is recognised automatically."
+        },
+        {
+          "start": 20.34,
+          "end": 25.76,
+          "text": "The preview shows what will be created — before anything is."
+        },
+        {
+          "start": 25.76,
+          "end": 29.6,
+          "text": "Import."
+        },
+        {
+          "start": 29.6,
+          "end": 40.63,
+          "text": "Any other CSV gets a column mapping."
+        },
+        {
+          "start": 40.63,
+          "end": 46.63,
+          "text": "Some dates weren't read: The preview lists them; fix them in the CSV or set them after import."
+        },
+        {
+          "start": 46.63,
+          "end": 51.13,
+          "text": "Todoist structure preserved"
+        }
+      ]
+    },
+    "screenshots": {
+      "preview": {
+        "src": "/docs/screenshots/import/preview.jpg",
+        "alt": "The import preview for a Todoist export",
+        "height": 1080,
+        "width": 1920
+      },
+      "mapping": {
+        "src": "/docs/screenshots/import/mapping.jpg",
+        "alt": "Mapping CSV columns to task fields",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "6af4056a096fba45",
+    "capturedAt": "2026-10-28T09:35:37.140Z",
+    "verified": true
+  },
+  "install-and-offline": {
+    "video": {
+      "src": "/docs/videos/install-and-offline.mp4",
+      "poster": "/docs/videos/install-and-offline.jpg",
+      "captions": "/docs/videos/install-and-offline.vtt",
+      "duration": 56.07,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 45.57
+        },
+        {
+          "title": "Result",
+          "start": 51.57
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Install and offline. Install Flow as an app, and read pages you've opened even when you're offline."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: desk app; commute."
+        },
+        {
+          "start": 9.99,
+          "end": 28.07,
+          "text": "Install Flow from Settings, and it opens in its own window."
+        },
+        {
+          "start": 28.07,
+          "end": 33.68,
+          "text": "Offline, pages you've opened before still load…"
+        },
+        {
+          "start": 33.68,
+          "end": 45.57,
+          "text": "…but changes need a connection, and say so straight away."
+        },
+        {
+          "start": 45.57,
+          "end": 51.57,
+          "text": "No install option: Some browsers hide it; use the browser menu's “Install” or “Add to Home Screen”. A change failed with “You're offline”: Reconnect and try again; nothing was queued."
+        },
+        {
+          "start": 51.57,
+          "end": 56.07,
+          "text": "Installable on desktop and mobile"
+        }
+      ]
+    },
+    "screenshots": {
+      "install": {
+        "src": "/docs/screenshots/install-and-offline/install.jpg",
+        "alt": "Install Flow in Settings",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "e081d74fd40082e7",
+    "capturedAt": "2026-10-28T09:38:24.284Z",
+    "verified": true
+  },
+  "intake-forms": {
+    "video": {
+      "src": "/docs/videos/intake-forms.mp4",
+      "poster": "/docs/videos/intake-forms.jpg",
+      "captions": "/docs/videos/intake-forms.vtt",
+      "duration": 117.23,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 106.73
+        },
+        {
+          "title": "Result",
+          "start": 112.73
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Intake forms. Public forms anyone can fill in without an account; each response becomes a task."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: bug reports; design requests."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Someone fills in the public form → Answers are checked → A task is created with your defaults → Automations and webhooks run"
+        },
+        {
+          "start": 15.8,
+          "end": 22.5,
+          "text": "Open Forms from the project header."
+        },
+        {
+          "start": 22.5,
+          "end": 35.32,
+          "text": "Create a form…"
+        },
+        {
+          "start": 35.32,
+          "end": 41.88,
+          "text": "Its first question becomes the task title."
+        },
+        {
+          "start": 41.88,
+          "end": 66.18,
+          "text": "Add more questions…"
+        },
+        {
+          "start": 66.18,
+          "end": 82.88,
+          "text": "…and defaults for the tasks it creates."
+        },
+        {
+          "start": 82.88,
+          "end": 93.23,
+          "text": "Anyone with the link can respond — no account needed."
+        },
+        {
+          "start": 93.23,
+          "end": 100.78,
+          "text": "Send…"
+        },
+        {
+          "start": 100.78,
+          "end": 106.73,
+          "text": "…and the response is a task in the project, high priority."
+        },
+        {
+          "start": 106.73,
+          "end": 112.73,
+          "text": "The link says Not found: The form was closed or deleted. “Too many tries”: The per-address limit was reached; try again in an hour."
+        },
+        {
+          "start": 112.73,
+          "end": 117.23,
+          "text": "No account needed to respond"
+        }
+      ]
+    },
+    "screenshots": {
+      "empty": {
+        "src": "/docs/screenshots/intake-forms/empty.jpg",
+        "alt": "The intake forms dialog",
+        "height": 1080,
+        "width": 1920
+      },
+      "builder": {
+        "src": "/docs/screenshots/intake-forms/builder.jpg",
+        "alt": "Building an intake form",
+        "height": 1080,
+        "width": 1920
+      },
+      "public": {
+        "src": "/docs/screenshots/intake-forms/public.jpg",
+        "alt": "The public form a requester fills in",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "2ffd9d6f4a673ea6",
+    "capturedAt": "2026-10-28T09:33:30.771Z",
+    "verified": true
+  },
+  "invites": {
+    "video": {
+      "src": "/docs/videos/invites.mp4",
+      "poster": "/docs/videos/invites.jpg",
+      "captions": "/docs/videos/invites.vtt",
+      "duration": 34.67,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 24.17
+        },
+        {
+          "title": "Result",
+          "start": 30.17
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Invites. Invite people with a one-time link or by email, and revoke invites that haven't been used."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: onboarding a new hire; sharing in a chat."
+        },
+        {
+          "start": 9.71,
+          "end": 11.93,
+          "text": "Invite by email: type their address…"
+        },
+        {
+          "start": 11.93,
+          "end": 13.43,
+          "text": "…pick the role they'll join with…"
+        },
+        {
+          "start": 13.43,
+          "end": 15.21,
+          "text": "…and send it. Only that address can accept it."
+        },
+        {
+          "start": 15.21,
+          "end": 18.61,
+          "text": "Or make a one-time link to share yourself."
+        },
+        {
+          "start": 18.61,
+          "end": 20.53,
+          "text": "Unused invites are listed under Pending invites."
+        },
+        {
+          "start": 20.53,
+          "end": 24.17,
+          "text": "Revoke kills a link immediately."
+        },
+        {
+          "start": 24.17,
+          "end": 30.17,
+          "text": "“Invite failed” when opening a link: The link was already used, revoked, expired, or was emailed to a different address. Ask for a new one. “… is already a member”: That person is in the workspace already; change their role instead."
+        },
+        {
+          "start": 30.17,
+          "end": 34.67,
+          "text": "One-time links that expire in 7 days"
+        }
+      ]
+    },
+    "screenshots": {
+      "email": {
+        "src": "/docs/screenshots/invites/email.jpg",
+        "alt": "An emailed invite sent from the Members page",
+        "height": 1080,
+        "width": 1920
+      },
+      "link": {
+        "src": "/docs/screenshots/invites/link.jpg",
+        "alt": "A one-time invite link (blurred here)",
+        "height": 1080,
+        "width": 1920
+      },
+      "pending": {
+        "src": "/docs/screenshots/invites/pending.jpg",
+        "alt": "Pending invites with Revoke",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "e5604ce8ff1b45e6",
+    "capturedAt": "2026-10-28T09:17:38.880Z",
+    "verified": true
+  },
+  "keyboard-shortcuts": {
+    "video": {
+      "src": "/docs/videos/keyboard-shortcuts.mp4",
+      "poster": "/docs/videos/keyboard-shortcuts.jpg",
+      "captions": "/docs/videos/keyboard-shortcuts.vtt",
+      "duration": 30.77,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 20.27
+        },
+        {
+          "title": "Result",
+          "start": 26.27
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Keyboard shortcuts. Open the palette, search a list and switch views without the mouse."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: triage at speed; capture without clicking."
+        },
+        {
+          "start": 9.99,
+          "end": 10.93,
+          "text": "Press 1 for the list…"
+        },
+        {
+          "start": 10.93,
+          "end": 13.15,
+          "text": "/ jumps to the task search."
+        },
+        {
+          "start": 13.15,
+          "end": 14.07,
+          "text": "2 for the board…"
+        },
+        {
+          "start": 14.07,
+          "end": 14.99,
+          "text": "3 for the calendar…"
+        },
+        {
+          "start": 14.99,
+          "end": 16.06,
+          "text": "4 for the Gantt chart."
+        },
+        {
+          "start": 16.06,
+          "end": 17.33,
+          "text": "C (or Ctrl K) opens the command palette."
+        },
+        {
+          "start": 17.33,
+          "end": 20.27,
+          "text": "Escape closes it."
+        },
+        {
+          "start": 20.27,
+          "end": 26.27,
+          "text": "Pressing 2 does nothing: Board and Gantt exist only on projects; the Inbox has list and calendar. A shortcut typed a character instead: Click outside the text field first, or press Escape."
+        },
+        {
+          "start": 26.27,
+          "end": 30.77,
+          "text": "Ctrl K / ⌘K or C for the palette"
+        }
+      ]
+    },
+    "screenshots": {
+      "views": {
+        "src": "/docs/screenshots/keyboard-shortcuts/views.jpg",
+        "alt": "The Gantt view, reached with the 4 key",
+        "height": 1080,
+        "width": 1920
+      },
+      "palette": {
+        "src": "/docs/screenshots/keyboard-shortcuts/palette.jpg",
+        "alt": "The command palette",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "791f785649394a00",
+    "capturedAt": "2026-10-28T09:16:57.233Z",
+    "verified": true
+  },
+  "layout-and-themes": {
+    "video": {
+      "src": "/docs/videos/layout-and-themes.mp4",
+      "poster": "/docs/videos/layout-and-themes.jpg",
+      "captions": "/docs/videos/layout-and-themes.vtt",
+      "duration": 58.57,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 48.07
+        },
+        {
+          "title": "Result",
+          "start": 54.07
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Layout and themes. Density, page width, colour palette and light or dark mode."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: big monitor; late night."
+        },
+        {
+          "start": 9.95,
+          "end": 14.9,
+          "text": "Layout: how dense and how wide."
+        },
+        {
+          "start": 14.9,
+          "end": 19.37,
+          "text": "Compact fits more tasks…"
+        },
+        {
+          "start": 19.37,
+          "end": 29.69,
+          "text": "…Wide uses the whole window."
+        },
+        {
+          "start": 29.69,
+          "end": 39.47,
+          "text": "Pick a colour palette…"
+        },
+        {
+          "start": 39.47,
+          "end": 48.07,
+          "text": "…and switch light or dark."
+        },
+        {
+          "start": 48.07,
+          "end": 54.07,
+          "text": "The layout flickers on load: Visit Settings once on that device so the choice is cached locally."
+        },
+        {
+          "start": 54.07,
+          "end": 58.57,
+          "text": "Comfortable or compact"
+        }
+      ]
+    },
+    "screenshots": {
+      "layout": {
+        "src": "/docs/screenshots/layout-and-themes/layout.jpg",
+        "alt": "Layout settings",
+        "height": 1080,
+        "width": 1920
+      },
+      "compact": {
+        "src": "/docs/screenshots/layout-and-themes/compact.jpg",
+        "alt": "A compact, wide list",
+        "height": 1080,
+        "width": 1920
+      },
+      "theme": {
+        "src": "/docs/screenshots/layout-and-themes/theme.jpg",
+        "alt": "A different palette and mode",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "8d0a0962d048c24f",
+    "capturedAt": "2026-10-28T09:37:43.549Z",
+    "verified": true
+  },
+  "list-view": {
+    "video": {
+      "src": "/docs/videos/list-view.mp4",
+      "poster": "/docs/videos/list-view.jpg",
+      "captions": "/docs/videos/list-view.vtt",
+      "duration": 33.07,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 22.57
+        },
+        {
+          "title": "Result",
+          "start": 28.57
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "List view. A dense, filterable list with inline status, priority, due date and delete."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: weekly triage; finding one task."
+        },
+        {
+          "start": 9.87,
+          "end": 11.84,
+          "text": "Switch to the list."
+        },
+        {
+          "start": 11.84,
+          "end": 13.61,
+          "text": "Search narrows it as you type…"
+        },
+        {
+          "start": 13.61,
+          "end": 15.3,
+          "text": "Clear resets everything."
+        },
+        {
+          "start": 15.3,
+          "end": 18.91,
+          "text": "Filters combine: here, high priority only."
+        },
+        {
+          "start": 18.91,
+          "end": 22.57,
+          "text": "Change status and priority right on the row."
+        },
+        {
+          "start": 22.57,
+          "end": 28.57,
+          "text": "Tasks seem missing: A filter is on; choose Clear."
+        },
+        {
+          "start": 28.57,
+          "end": 33.07,
+          "text": "Inline status and priority"
+        }
+      ]
+    },
+    "screenshots": {
+      "list": {
+        "src": "/docs/screenshots/list-view/list.jpg",
+        "alt": "A project's list view",
+        "height": 1080,
+        "width": 1920
+      },
+      "search": {
+        "src": "/docs/screenshots/list-view/search.jpg",
+        "alt": "The list narrowed by search",
+        "height": 1080,
+        "width": 1920
+      },
+      "filter": {
+        "src": "/docs/screenshots/list-view/filter.jpg",
+        "alt": "The list filtered by priority",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "585901554ba084ed",
+    "capturedAt": "2026-10-28T09:23:09.160Z",
+    "verified": true
+  },
+  "members-and-roles": {
+    "video": {
+      "src": "/docs/videos/members-and-roles.mp4",
+      "poster": "/docs/videos/members-and-roles.jpg",
+      "captions": "/docs/videos/members-and-roles.vtt",
+      "duration": 28.23,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 17.73
+        },
+        {
+          "title": "Result",
+          "start": 23.73
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Members and roles. See who's in a workspace, change their role, or remove them."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: client visibility; handing over."
+        },
+        {
+          "start": 9.97,
+          "end": 11.51,
+          "text": "(Note: Milo and Edie joined through invites before the recording.) Members lists everyone in the workspace with their role."
+        },
+        {
+          "start": 11.51,
+          "end": 13.1,
+          "text": "Change a role from its dropdown — here Milo becomes a Viewer."
+        },
+        {
+          "start": 13.1,
+          "end": 17.73,
+          "text": "Remove takes someone out of the workspace at once."
+        },
+        {
+          "start": 17.73,
+          "end": 23.73,
+          "text": "There's no Role dropdown on a row: You need Admin or Owner, and the creator's row is locked. A removed person still sees the workspace: Their next request is refused; ask them to reload."
+        },
+        {
+          "start": 23.73,
+          "end": 28.23,
+          "text": "Four roles enforced on every API call"
+        }
+      ]
+    },
+    "screenshots": {
+      "table": {
+        "src": "/docs/screenshots/members-and-roles/table.jpg",
+        "alt": "The Members table with roles",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "592836c69905da52",
+    "capturedAt": "2026-10-28T09:17:23.386Z",
+    "verified": true
+  },
+  "navigating-flow": {
+    "video": {
+      "src": "/docs/videos/navigating-flow.mp4",
+      "poster": "/docs/videos/navigating-flow.jpg",
+      "captions": "/docs/videos/navigating-flow.vtt",
+      "duration": 36.43,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 25.93
+        },
+        {
+          "title": "Result",
+          "start": 31.93
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Finding your way around. The main sidebar, the workspace sidebar, and the header controls."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: morning check-in; switching teams."
+        },
+        {
+          "start": 9.98,
+          "end": 12.19,
+          "text": "The main sidebar lists your workspaces."
+        },
+        {
+          "start": 12.19,
+          "end": 14.03,
+          "text": "The workspace sidebar has planning pages: Today…"
+        },
+        {
+          "start": 14.03,
+          "end": 15.63,
+          "text": "…Upcoming…"
+        },
+        {
+          "start": 15.63,
+          "end": 17.21,
+          "text": "…Timeline, Capacity, Habits, Stats, Review and Goals."
+        },
+        {
+          "start": 17.21,
+          "end": 18.98,
+          "text": "In the header: notifications…"
+        },
+        {
+          "start": 18.98,
+          "end": 20.97,
+          "text": "…and theme controls."
+        },
+        {
+          "start": 20.97,
+          "end": 25.93,
+          "text": "And these Docs are always one click away."
+        },
+        {
+          "start": 25.93,
+          "end": 31.93,
+          "text": "I can't see the sidebars on my phone: Open the menu button in the header for the main sidebar; the workspace sidebar sits at the top of the page on small screens. A workspace is missing: You only see workspaces you belong to. Ask an admin for an invite."
+        },
+        {
+          "start": 31.93,
+          "end": 36.43,
+          "text": "Every workspace page one click away"
+        }
+      ]
+    },
+    "screenshots": {
+      "workspaces": {
+        "src": "/docs/screenshots/navigating-flow/workspaces.jpg",
+        "alt": "Workspaces in the main sidebar",
+        "height": 1080,
+        "width": 1920
+      },
+      "workspace-nav": {
+        "src": "/docs/screenshots/navigating-flow/workspace-nav.jpg",
+        "alt": "The workspace sidebar with Today open",
+        "height": 1080,
+        "width": 1920
+      },
+      "header": {
+        "src": "/docs/screenshots/navigating-flow/header.jpg",
+        "alt": "Header controls: notifications, app switcher and theme",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "afa9dac4d1fdbca4",
+    "capturedAt": "2026-10-28T09:16:46.107Z",
+    "verified": true
+  },
+  "notifications": {
+    "video": {
+      "src": "/docs/videos/notifications.mp4",
+      "poster": "/docs/videos/notifications.jpg",
+      "captions": "/docs/videos/notifications.vtt",
+      "duration": 27.37,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 16.87
+        },
+        {
+          "title": "Result",
+          "start": 22.87
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Notifications. The header bell collects mentions, assignments, comments, reminders and approvals."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: catch-up."
+        },
+        {
+          "start": 9.91,
+          "end": 11.84,
+          "text": "(Note: Olive assigned and mentioned Milo from her own account before the recording; this video is Milo's view.) The bell shows what's waiting for you."
+        },
+        {
+          "start": 11.84,
+          "end": 13.59,
+          "text": "Click one to open its task."
+        },
+        {
+          "start": 13.59,
+          "end": 16.87,
+          "text": "It's marked read; the count drops."
+        },
+        {
+          "start": 16.87,
+          "end": 22.87,
+          "text": "The count doesn't update: It refreshes every 60 seconds; reload to check now."
+        },
+        {
+          "start": 22.87,
+          "end": 27.37,
+          "text": "Unread count"
+        }
+      ]
+    },
+    "screenshots": {
+      "panel": {
+        "src": "/docs/screenshots/notifications/panel.jpg",
+        "alt": "The notifications panel",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "b10b8c2e79bfbab9",
+    "capturedAt": "2026-10-28T09:26:20.597Z",
+    "verified": true
+  },
+  "overview": {
+    "video": {
+      "src": "/docs/videos/overview.mp4",
+      "poster": "/docs/videos/overview.jpg",
+      "captions": "/docs/videos/overview.vtt",
+      "duration": 27.23,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Result",
+          "start": 22.73
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Application overview. What Noirly Flow is, who it's for, and how its pieces fit together."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: personal planning; running a team project; client intake."
+        },
+        {
+          "start": 10.3,
+          "end": 12.42,
+          "text": "Work lives in workspaces: your private Personal one, plus shared teams."
+        },
+        {
+          "start": 12.42,
+          "end": 14.51,
+          "text": "Inside a workspace: planning pages, the Inbox and your projects."
+        },
+        {
+          "start": 14.51,
+          "end": 17.86,
+          "text": "Click any task to edit it in the drawer, without leaving the board."
+        },
+        {
+          "start": 17.86,
+          "end": 18.79,
+          "text": "Escape closes it."
+        },
+        {
+          "start": 18.79,
+          "end": 22.73,
+          "text": "Ctrl K opens the command palette: create, search or jump anywhere."
+        },
+        {
+          "start": 22.73,
+          "end": 27.23,
+          "text": "Personal and team workspaces with role-based access"
+        }
+      ]
+    },
+    "screenshots": {
+      "shell": {
+        "src": "/docs/screenshots/overview/shell.jpg",
+        "alt": "The main sidebar with Search, workspaces and navigation",
+        "height": 1080,
+        "width": 1920
+      },
+      "project": {
+        "src": "/docs/screenshots/overview/project.jpg",
+        "alt": "A project open on its board",
+        "height": 1080,
+        "width": 1920
+      },
+      "drawer": {
+        "src": "/docs/screenshots/overview/drawer.jpg",
+        "alt": "The task drawer open beside the board",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "4d199aadcf27743e",
+    "capturedAt": "2026-10-28T09:16:19.181Z",
+    "verified": true
+  },
+  "profile-settings": {
+    "video": {
+      "src": "/docs/videos/profile-settings.mp4",
+      "poster": "/docs/videos/profile-settings.jpg",
+      "captions": "/docs/videos/profile-settings.vtt",
+      "duration": 36.73,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 26.23
+        },
+        {
+          "title": "Result",
+          "start": 32.23
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Profile settings. Your display name, title, time zone and bio in Flow, plus a link to your Noirly account."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: new team; moving abroad."
+        },
+        {
+          "start": 10.2,
+          "end": 11.94,
+          "text": "Settings: your Noirly account, then your Flow profile."
+        },
+        {
+          "start": 11.94,
+          "end": 15.66,
+          "text": "Add a title…"
+        },
+        {
+          "start": 15.66,
+          "end": 18.6,
+          "text": "…a bio, and your time zone."
+        },
+        {
+          "start": 18.6,
+          "end": 26.23,
+          "text": "Save."
+        },
+        {
+          "start": 26.23,
+          "end": 32.23,
+          "text": "I can't change my email here: Email and sign-in details live in Noirly Identity; use the Identity account link."
+        },
+        {
+          "start": 32.23,
+          "end": 36.73,
+          "text": "Display name, title and bio"
+        }
+      ]
+    },
+    "screenshots": {
+      "page": {
+        "src": "/docs/screenshots/profile-settings/page.jpg",
+        "alt": "Settings with the Flow profile",
+        "height": 1080,
+        "width": 1920
+      },
+      "edited": {
+        "src": "/docs/screenshots/profile-settings/edited.jpg",
+        "alt": "A saved Flow profile",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "cfe8ea34b259d59c",
+    "capturedAt": "2026-10-28T09:36:23.514Z",
+    "verified": true
+  },
+  "project-chat": {
+    "video": {
+      "src": "/docs/videos/project-chat.mp4",
+      "poster": "/docs/videos/project-chat.jpg",
+      "captions": "/docs/videos/project-chat.vtt",
+      "duration": 29.27,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 18.77
+        },
+        {
+          "title": "Result",
+          "start": 24.77
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Project chat. A chat room per project, so conversation sits next to the work."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: kickoff notes; quick questions."
+        },
+        {
+          "start": 9.98,
+          "end": 11.89,
+          "text": "(Note: Milo's message was posted from his own account before the recording.) Each project has its own chat — open it from the header."
+        },
+        {
+          "start": 11.89,
+          "end": 15.81,
+          "text": "Type a message…"
+        },
+        {
+          "start": 15.81,
+          "end": 18.77,
+          "text": "…and press Enter to send."
+        },
+        {
+          "start": 18.77,
+          "end": 24.77,
+          "text": "There's no message box: You're a Viewer in this workspace. Teammates' messages appear late: The server may not have realtime configured; messages still arrive on refresh."
+        },
+        {
+          "start": 24.77,
+          "end": 29.27,
+          "text": "One chat per project"
+        }
+      ]
+    },
+    "screenshots": {
+      "open": {
+        "src": "/docs/screenshots/project-chat/open.jpg",
+        "alt": "A project's chat",
+        "height": 1080,
+        "width": 1920
+      },
+      "sent": {
+        "src": "/docs/screenshots/project-chat/sent.jpg",
+        "alt": "A message sent in project chat",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "329522904bc876ad",
+    "capturedAt": "2026-10-28T09:19:56.879Z",
+    "verified": true
+  },
+  "projects": {
+    "video": {
+      "src": "/docs/videos/projects.mp4",
+      "poster": "/docs/videos/projects.jpg",
+      "captions": "/docs/videos/projects.vtt",
+      "duration": 46.57,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 36.07
+        },
+        {
+          "title": "Result",
+          "start": 42.07
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Projects. Create projects, then rename, colour, favourite, archive or delete them from the sidebar."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: quarterly initiative; repeatable projects."
+        },
+        {
+          "start": 9.99,
+          "end": 11.7,
+          "text": "Choose New in the workspace sidebar."
+        },
+        {
+          "start": 11.7,
+          "end": 13.87,
+          "text": "Name the project…"
+        },
+        {
+          "start": 13.87,
+          "end": 17.38,
+          "text": "…and add it."
+        },
+        {
+          "start": 17.38,
+          "end": 21.05,
+          "text": "Star it to pin it under Favourites."
+        },
+        {
+          "start": 21.05,
+          "end": 22.66,
+          "text": "The pencil edits a project: name, colour, archive, delete."
+        },
+        {
+          "start": 22.66,
+          "end": 28.07,
+          "text": "Pick a colour…"
+        },
+        {
+          "start": 28.07,
+          "end": 31.36,
+          "text": "Archive hides a finished project and its tasks everywhere."
+        },
+        {
+          "start": 31.36,
+          "end": 36.07,
+          "text": "Archived projects wait under Archived."
+        },
+        {
+          "start": 36.07,
+          "end": 42.07,
+          "text": "There's no Delete in the edit menu: Deleting projects needs Admin or Owner. A project's tasks vanished from Today: The project is archived. Unarchive it to bring its tasks back."
+        },
+        {
+          "start": 42.07,
+          "end": 46.57,
+          "text": "Create a project in one line"
+        }
+      ]
+    },
+    "screenshots": {
+      "create": {
+        "src": "/docs/screenshots/projects/create.jpg",
+        "alt": "Creating a project",
+        "height": 1080,
+        "width": 1920
+      },
+      "favourite": {
+        "src": "/docs/screenshots/projects/favourite.jpg",
+        "alt": "A starred project under Favourites",
+        "height": 1080,
+        "width": 1920
+      },
+      "edit": {
+        "src": "/docs/screenshots/projects/edit.jpg",
+        "alt": "Editing a project: name, colour, archive and delete",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "4fe6c5b2a079c8a5",
+    "capturedAt": "2026-10-28T11:16:46.187Z",
+    "verified": true
+  },
+  "quick-add": {
+    "video": {
+      "src": "/docs/videos/quick-add.mp4",
+      "poster": "/docs/videos/quick-add.jpg",
+      "captions": "/docs/videos/quick-add.vtt",
+      "duration": 34.17,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 23.67
+        },
+        {
+          "title": "Result",
+          "start": 29.67
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Quick add. Type a sentence like “Pay rent every 1st 9am p1 #Home” and Flow fills in the details."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: bills; errands."
+        },
+        {
+          "start": 9.99,
+          "end": 15.77,
+          "text": "Open New task and just type a sentence."
+        },
+        {
+          "start": 15.77,
+          "end": 18.46,
+          "text": "The preview shows what Flow understood: a monthly repeat at 9:00, P1, the project and a new tag."
+        },
+        {
+          "start": 18.46,
+          "end": 23.67,
+          "text": "Create it — the saved title is just “Pay the hosting invoice”."
+        },
+        {
+          "start": 23.67,
+          "end": 29.67,
+          "text": "A word was taken as a date: Choose Keep as typed, then set the date in the form. #name didn't pick my project: The project name must match; check the preview before creating."
+        },
+        {
+          "start": 29.67,
+          "end": 34.17,
+          "text": "Dates, times and repeats from words"
+        }
+      ]
+    },
+    "screenshots": {
+      "typed": {
+        "src": "/docs/screenshots/quick-add/typed.jpg",
+        "alt": "A quick-add sentence in the title",
+        "height": 1080,
+        "width": 1920
+      },
+      "preview": {
+        "src": "/docs/screenshots/quick-add/preview.jpg",
+        "alt": "The quick-add preview of recognised details",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "4041297fe10fef21",
+    "capturedAt": "2026-10-28T09:20:23.861Z",
+    "verified": true
+  },
+  "recurrence": {
+    "video": {
+      "src": "/docs/videos/recurrence.mp4",
+      "poster": "/docs/videos/recurrence.jpg",
+      "captions": "/docs/videos/recurrence.vtt",
+      "duration": 40.17,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 29.67
+        },
+        {
+          "title": "Result",
+          "start": 35.67
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Recurring tasks. Repeat a task daily, on weekdays, weekly, monthly, yearly or on a custom rule."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: fortnightly 1:1s; plant care."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "You complete the task → The rule picks the next date → A new copy appears"
+        },
+        {
+          "start": 15.69,
+          "end": 17.62,
+          "text": "Under Repeat, choose a preset or Custom…"
+        },
+        {
+          "start": 17.62,
+          "end": 19.38,
+          "text": "…pick the weekdays…"
+        },
+        {
+          "start": 19.38,
+          "end": 20.91,
+          "text": "…and how often."
+        },
+        {
+          "start": 20.91,
+          "end": 23.78,
+          "text": "Flow reads the rule back: every 2 weeks on Monday and Thursday."
+        },
+        {
+          "start": 23.78,
+          "end": 25.84,
+          "text": "Complete it, and the next occurrence appears."
+        },
+        {
+          "start": 25.84,
+          "end": 29.67,
+          "text": "Here it is, due Thursday."
+        },
+        {
+          "start": 29.67,
+          "end": 35.67,
+          "text": "No next copy appeared: Only completing (Done) spawns the next one; canceling doesn't. The next date looks off by a day: Check the rule was set in the right time zone; edit and re-save it from this browser."
+        },
+        {
+          "start": 35.67,
+          "end": 40.17,
+          "text": "Presets and custom rules"
+        }
+      ]
+    },
+    "screenshots": {
+      "custom": {
+        "src": "/docs/screenshots/recurrence/custom.jpg",
+        "alt": "The custom repeat editor",
+        "height": 1080,
+        "width": 1920
+      },
+      "rule": {
+        "src": "/docs/screenshots/recurrence/rule.jpg",
+        "alt": "A custom repeat rule read back in words",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "e0f0f3948bd706a0",
+    "capturedAt": "2026-10-28T09:21:02.664Z",
+    "verified": true
+  },
+  "reminders": {
+    "video": {
+      "src": "/docs/videos/reminders.mp4",
+      "poster": "/docs/videos/reminders.jpg",
+      "captions": "/docs/videos/reminders.vtt",
+      "duration": 39.9,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 29.4
+        },
+        {
+          "title": "Result",
+          "start": 35.4
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Reminders. Get a bell notification and an email before a timed task is due."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: meetings; bills."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Set a due time → Choose a lead time → Bell and email when it's due"
+        },
+        {
+          "start": 15.79,
+          "end": 17.92,
+          "text": "(Note: The reminder sweep was run through the scheduler route instead of waiting for the clock.) Reminders need a due time."
+        },
+        {
+          "start": 17.92,
+          "end": 19.6,
+          "text": "Add one…"
+        },
+        {
+          "start": 19.6,
+          "end": 22.68,
+          "text": "…then choose when to be reminded."
+        },
+        {
+          "start": 22.68,
+          "end": 29.4,
+          "text": "When it's due, the reminder lands in the bell (and by email)."
+        },
+        {
+          "start": 29.4,
+          "end": 35.4,
+          "text": "“Add a due time to set a reminder.”: Set a time under Due time (optional) first. No email arrived: The server needs SMTP for emails; the bell notification still appears."
+        },
+        {
+          "start": 35.4,
+          "end": 39.9,
+          "text": "Bell and email"
+        }
+      ]
+    },
+    "screenshots": {
+      "disabled": {
+        "src": "/docs/screenshots/reminders/disabled.jpg",
+        "alt": "Reminder waits for a due time",
+        "height": 1080,
+        "width": 1920
+      },
+      "set": {
+        "src": "/docs/screenshots/reminders/set.jpg",
+        "alt": "A reminder 15 minutes before",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "b410e999752162aa",
+    "capturedAt": "2026-10-28T09:21:21.752Z",
+    "verified": true
+  },
+  "review": {
+    "video": {
+      "src": "/docs/videos/review.mp4",
+      "poster": "/docs/videos/review.jpg",
+      "captions": "/docs/videos/review.vtt",
+      "duration": 28.87,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 18.37
+        },
+        {
+          "title": "Result",
+          "start": 24.37
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Daily and weekly review. A guided pass over your own tasks: what's done, what's late, and where the rest goes."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: end of day; friday wrap-up."
+        },
+        {
+          "start": 9.88,
+          "end": 11.43,
+          "text": "Review walks through your day: done, overdue, still open, tomorrow."
+        },
+        {
+          "start": 11.43,
+          "end": 12.98,
+          "text": "Push what's left to tomorrow in one click."
+        },
+        {
+          "start": 12.98,
+          "end": 14.56,
+          "text": "Then mark the review done."
+        },
+        {
+          "start": 14.56,
+          "end": 18.37,
+          "text": "Weekly looks across the week and next week."
+        },
+        {
+          "start": 18.37,
+          "end": 24.37,
+          "text": "Last reviewed is gone: It's stored in this browser only."
+        },
+        {
+          "start": 24.37,
+          "end": 28.87,
+          "text": "Daily and weekly modes"
+        }
+      ]
+    },
+    "screenshots": {
+      "daily": {
+        "src": "/docs/screenshots/review/daily.jpg",
+        "alt": "The daily review",
+        "height": 1080,
+        "width": 1920
+      },
+      "weekly": {
+        "src": "/docs/screenshots/review/weekly.jpg",
+        "alt": "The weekly review",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "545a8d5ccc35e46f",
+    "capturedAt": "2026-10-28T09:25:01.713Z",
+    "verified": true
+  },
+  "saved-filters": {
+    "video": {
+      "src": "/docs/videos/saved-filters.mp4",
+      "poster": "/docs/videos/saved-filters.jpg",
+      "captions": "/docs/videos/saved-filters.vtt",
+      "duration": 37.67,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 27.17
+        },
+        {
+          "title": "Result",
+          "start": 33.17
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Saved filters. Save a query like “today & p1 & #Launch” and reopen its tasks from the sidebar."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: hot list; someday."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Write a query → Checked as you type → Saved to your sidebar"
+        },
+        {
+          "start": 15.19,
+          "end": 17.42,
+          "text": "Name a filter…"
+        },
+        {
+          "start": 17.42,
+          "end": 21.57,
+          "text": "…and write a query. It's checked as you type."
+        },
+        {
+          "start": 21.57,
+          "end": 23.17,
+          "text": "Save it."
+        },
+        {
+          "start": 23.17,
+          "end": 27.17,
+          "text": "The filter lists matching open tasks, and sits in your sidebar."
+        },
+        {
+          "start": 27.17,
+          "end": 33.17,
+          "text": "“The query ends too early”: An operator is missing its right-hand side, e.g. a trailing `&`. “No tag called …”: Check the spelling, or create the tag first."
+        },
+        {
+          "start": 33.17,
+          "end": 37.67,
+          "text": "A readable query language"
+        }
+      ]
+    },
+    "screenshots": {
+      "form": {
+        "src": "/docs/screenshots/saved-filters/form.jpg",
+        "alt": "The new filter form",
+        "height": 1080,
+        "width": 1920
+      },
+      "error": {
+        "src": "/docs/screenshots/saved-filters/error.jpg",
+        "alt": "A query error explained in words",
+        "height": 1080,
+        "width": 1920
+      },
+      "saved": {
+        "src": "/docs/screenshots/saved-filters/saved.jpg",
+        "alt": "A saved filter's matching tasks",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "f81d7b4effc75616",
+    "capturedAt": "2026-10-28T09:24:15.545Z",
+    "verified": true
+  },
+  "sections": {
+    "video": {
+      "src": "/docs/videos/sections.mp4",
+      "poster": "/docs/videos/sections.jpg",
+      "captions": "/docs/videos/sections.vtt",
+      "duration": 32.53,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 22.03
+        },
+        {
+          "title": "Result",
+          "start": 28.03
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Sections. Group a project's list into named sections, separate from board columns."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: phased launch; imported structure."
+        },
+        {
+          "start": 10.13,
+          "end": 10.59,
+          "text": "Sections group the list view by phase or area."
+        },
+        {
+          "start": 10.59,
+          "end": 13.97,
+          "text": "Choose + Add section…"
+        },
+        {
+          "start": 13.97,
+          "end": 15.96,
+          "text": "…name it and add it."
+        },
+        {
+          "start": 15.96,
+          "end": 18.53,
+          "text": "Put a task in a section from its drawer."
+        },
+        {
+          "start": 18.53,
+          "end": 22.03,
+          "text": "The list now groups by section; everything else sits under No section."
+        },
+        {
+          "start": 22.03,
+          "end": 28.03,
+          "text": "I can't see sections on the board: Sections belong to the list view; the board groups by column."
+        },
+        {
+          "start": 28.03,
+          "end": 32.53,
+          "text": "Independent of board columns"
+        }
+      ]
+    },
+    "screenshots": {
+      "list": {
+        "src": "/docs/screenshots/sections/list.jpg",
+        "alt": "A project's list view",
+        "height": 1080,
+        "width": 1920
+      },
+      "add": {
+        "src": "/docs/screenshots/sections/add.jpg",
+        "alt": "A new, empty section",
+        "height": 1080,
+        "width": 1920
+      },
+      "grouped": {
+        "src": "/docs/screenshots/sections/grouped.jpg",
+        "alt": "Tasks grouped by section",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "17745b42096f6627",
+    "capturedAt": "2026-10-28T09:18:55.269Z",
+    "verified": true
+  },
+  "signing-in": {
+    "video": {
+      "src": "/docs/videos/signing-in.mp4",
+      "poster": "/docs/videos/signing-in.jpg",
+      "captions": "/docs/videos/signing-in.vtt",
+      "duration": 35.33,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 24.83
+        },
+        {
+          "title": "Result",
+          "start": 30.83
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Signing in and out. One Noirly account for Flow and every other Noirly app, through a secure popup."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: joining from an invite; shared computer."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Choose Noirly Login → Sign in with Noirly Identity → Your Personal workspace is ready"
+        },
+        {
+          "start": 15.49,
+          "end": 17.15,
+          "text": "(Note: The Noirly Identity popup isn't recorded: the isolated test server signs in with a test session instead of a live account.) Signed in, Flow opens your Personal workspace — created for you on your first visit."
+        },
+        {
+          "start": 17.15,
+          "end": 20.89,
+          "text": "Sign out sits at the bottom of the main sidebar."
+        },
+        {
+          "start": 20.89,
+          "end": 24.83,
+          "text": "You're back on the sign-in page. Noirly Login opens Identity in a secure popup."
+        },
+        {
+          "start": 24.83,
+          "end": 30.83,
+          "text": "The popup doesn't open: Allow popups for Flow's address in your browser, then choose Noirly Login again. I'm sent to /login from an invite link: That's expected when you're signed out; after signing in you return to the invite."
+        },
+        {
+          "start": 30.83,
+          "end": 35.33,
+          "text": "Sign in with Noirly Identity in a secure popup"
+        }
+      ]
+    },
+    "screenshots": {
+      "personal": {
+        "src": "/docs/screenshots/signing-in/personal.jpg",
+        "alt": "The Personal workspace after signing in",
+        "height": 1080,
+        "width": 1920
+      },
+      "signout": {
+        "src": "/docs/screenshots/signing-in/signout.jpg",
+        "alt": "Sign out at the bottom of the main sidebar",
+        "height": 1080,
+        "width": 1920
+      },
+      "login": {
+        "src": "/docs/screenshots/signing-in/login.jpg",
+        "alt": "The sign-in page with Noirly Login",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "4fb08be90a794cbc",
+    "capturedAt": "2026-10-28T09:16:28.850Z",
+    "verified": true
+  },
+  "stats": {
+    "video": {
+      "src": "/docs/videos/stats.mp4",
+      "poster": "/docs/videos/stats.jpg",
+      "captions": "/docs/videos/stats.vtt",
+      "duration": 28.13,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 17.63
+        },
+        {
+          "title": "Result",
+          "start": 23.63
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Your stats. Completed this week, on-time rate, overdue now and time tracked, with daily and weekly charts."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: retro."
+        },
+        {
+          "start": 9.95,
+          "end": 12.02,
+          "text": "Stats counts your own work: done this week, on-time rate, overdue and time tracked."
+        },
+        {
+          "start": 12.02,
+          "end": 13.82,
+          "text": "Hover a column for its value…"
+        },
+        {
+          "start": 13.82,
+          "end": 17.63,
+          "text": "…or show the chart as a table."
+        },
+        {
+          "start": 17.63,
+          "end": 23.63,
+          "text": "Numbers look low: Tasks assigned only to others aren't counted."
+        },
+        {
+          "start": 23.63,
+          "end": 28.13,
+          "text": "Four headline tiles"
+        }
+      ]
+    },
+    "screenshots": {
+      "stats": {
+        "src": "/docs/screenshots/stats/stats.jpg",
+        "alt": "Your stats tiles and charts",
+        "height": 1080,
+        "width": 1920
+      },
+      "table": {
+        "src": "/docs/screenshots/stats/table.jpg",
+        "alt": "A chart shown as a table",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "60a044bb0b00828f",
+    "capturedAt": "2026-10-28T09:25:10.164Z",
+    "verified": true
+  },
+  "subtasks": {
+    "video": {
+      "src": "/docs/videos/subtasks.mp4",
+      "poster": "/docs/videos/subtasks.jpg",
+      "captions": "/docs/videos/subtasks.vtt",
+      "duration": 52.47,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 41.98
+        },
+        {
+          "title": "Result",
+          "start": 47.98
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Subtasks. Break a task into smaller tasks, up to four levels deep."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: onboarding; launch plan."
+        },
+        {
+          "start": 10.3,
+          "end": 27.85,
+          "text": "Break a task down: type a subtask and press Enter."
+        },
+        {
+          "start": 27.85,
+          "end": 31.49,
+          "text": "Each subtask is a full task — open it…"
+        },
+        {
+          "start": 31.49,
+          "end": 36.38,
+          "text": "…and the breadcrumb leads back up."
+        },
+        {
+          "start": 36.38,
+          "end": 41.98,
+          "text": "Rows show progress as done/total."
+        },
+        {
+          "start": 41.98,
+          "end": 47.98,
+          "text": "Add subtask is refused: The task is already four levels deep."
+        },
+        {
+          "start": 47.98,
+          "end": 52.48,
+          "text": "Real tasks, not checkboxes"
+        }
+      ]
+    },
+    "screenshots": {
+      "added": {
+        "src": "/docs/screenshots/subtasks/added.jpg",
+        "alt": "Two subtasks under a task",
+        "height": 1080,
+        "width": 1920
+      },
+      "child": {
+        "src": "/docs/screenshots/subtasks/child.jpg",
+        "alt": "A subtask with its breadcrumb",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "278ba0487061e10a",
+    "capturedAt": "2026-10-28T09:21:58.208Z",
+    "verified": true
+  },
+  "tags": {
+    "video": {
+      "src": "/docs/videos/tags.mp4",
+      "poster": "/docs/videos/tags.jpg",
+      "captions": "/docs/videos/tags.vtt",
+      "duration": 30.8,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 20.3
+        },
+        {
+          "title": "Result",
+          "start": 26.3
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Tags. Coloured labels that cut across projects, added in the drawer or with @tag."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: context lists; escalations."
+        },
+        {
+          "start": 10.18,
+          "end": 13.36,
+          "text": "Type a new tag and press Enter — it's created and added."
+        },
+        {
+          "start": 13.36,
+          "end": 16.13,
+          "text": "Filter the list by tag."
+        },
+        {
+          "start": 16.13,
+          "end": 20.3,
+          "text": "Rename, recolour or delete tags in Workspace settings."
+        },
+        {
+          "start": 20.3,
+          "end": 26.3,
+          "text": "A tag disappeared from tasks: Someone deleted it in Workspace settings → Tags; deleting removes it everywhere."
+        },
+        {
+          "start": 26.3,
+          "end": 30.8,
+          "text": "Create tags inline"
+        }
+      ]
+    },
+    "screenshots": {
+      "drawer": {
+        "src": "/docs/screenshots/tags/drawer.jpg",
+        "alt": "Tags toggled in the drawer",
+        "height": 1080,
+        "width": 1920
+      },
+      "filter": {
+        "src": "/docs/screenshots/tags/filter.jpg",
+        "alt": "The list filtered to one tag",
+        "height": 1080,
+        "width": 1920
+      },
+      "manage": {
+        "src": "/docs/screenshots/tags/manage.jpg",
+        "alt": "Managing tags in Workspace settings",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "46f95a00f993c909",
+    "capturedAt": "2026-10-28T09:22:09.453Z",
+    "verified": true
+  },
+  "task-drawer": {
+    "video": {
+      "src": "/docs/videos/task-drawer.mp4",
+      "poster": "/docs/videos/task-drawer.jpg",
+      "captions": "/docs/videos/task-drawer.vtt",
+      "duration": 32.07,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 21.57
+        },
+        {
+          "title": "Result",
+          "start": 27.57
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "The task drawer. Open any task in a side panel to edit every field without leaving the page."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: triage; sharing."
+        },
+        {
+          "start": 9.95,
+          "end": 12.05,
+          "text": "Click a task to open the drawer."
+        },
+        {
+          "start": 12.05,
+          "end": 13.71,
+          "text": "Edit any field — it saves as you go."
+        },
+        {
+          "start": 13.71,
+          "end": 18.63,
+          "text": "Comments live on the task too."
+        },
+        {
+          "start": 18.63,
+          "end": 21.57,
+          "text": "Escape closes the drawer."
+        },
+        {
+          "start": 21.57,
+          "end": 27.57,
+          "text": "My typing was replaced as the drawer opened: Wait for the task to finish loading before typing; the drawer fills its fields when the task arrives. Fields are read-only: You're a Viewer in this workspace."
+        },
+        {
+          "start": 27.57,
+          "end": 32.07,
+          "text": "Every field in one panel"
+        }
+      ]
+    },
+    "screenshots": {
+      "open": {
+        "src": "/docs/screenshots/task-drawer/open.jpg",
+        "alt": "The task drawer open beside the list",
+        "height": 1080,
+        "width": 1920
+      },
+      "edit": {
+        "src": "/docs/screenshots/task-drawer/edit.jpg",
+        "alt": "Editing a task's description in the drawer",
+        "height": 1080,
+        "width": 1920
+      },
+      "comment": {
+        "src": "/docs/screenshots/task-drawer/comment.jpg",
+        "alt": "A comment posted on the task",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "69494048646a1ee2",
+    "capturedAt": "2026-10-28T09:20:36.388Z",
+    "verified": true
+  },
+  "task-links": {
+    "video": {
+      "src": "/docs/videos/task-links.mp4",
+      "poster": "/docs/videos/task-links.jpg",
+      "captions": "/docs/videos/task-links.vtt",
+      "duration": 27.93,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 17.43
+        },
+        {
+          "title": "Result",
+          "start": 23.43
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Task links. A lasting link to a task that finds it wherever it moves."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: hand-off."
+        },
+        {
+          "start": 10.2,
+          "end": 13.09,
+          "text": "Copy link gives a task's lasting address."
+        },
+        {
+          "start": 13.09,
+          "end": 17.43,
+          "text": "Opening it finds the task wherever it lives now, and opens it."
+        },
+        {
+          "start": 17.43,
+          "end": 23.43,
+          "text": "The link shows Not found: The task was deleted, or you're not in that workspace."
+        },
+        {
+          "start": 23.43,
+          "end": 27.93,
+          "text": "Survives moves between projects"
+        }
+      ]
+    },
+    "screenshots": {
+      "copy": {
+        "src": "/docs/screenshots/task-links/copy.jpg",
+        "alt": "Copy link in the drawer",
+        "height": 1080,
+        "width": 1920
+      },
+      "opened": {
+        "src": "/docs/screenshots/task-links/opened.jpg",
+        "alt": "A task link opening the task",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "f10df81d519ce794",
+    "capturedAt": "2026-10-28T09:22:55.334Z",
+    "verified": true
+  },
+  "task-saving": {
+    "video": {
+      "src": "/docs/videos/task-saving.mp4",
+      "poster": "/docs/videos/task-saving.jpg",
+      "captions": "/docs/videos/task-saving.vtt",
+      "duration": 49.73,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 39.23
+        },
+        {
+          "title": "Result",
+          "start": 45.23
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Task saving. Choose whether the task drawer saves as you edit or waits for Save changes."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: careful edits."
+        },
+        {
+          "start": 9.96,
+          "end": 21.18,
+          "text": "Choose how the task drawer saves: here, Manual."
+        },
+        {
+          "start": 21.18,
+          "end": 28.86,
+          "text": "Edits now wait…"
+        },
+        {
+          "start": 28.86,
+          "end": 39.23,
+          "text": "…until you choose Save changes."
+        },
+        {
+          "start": 39.23,
+          "end": 45.23,
+          "text": "My edits didn't stick: In manual mode, choose Save changes before closing the drawer."
+        },
+        {
+          "start": 45.23,
+          "end": 49.73,
+          "text": "Automatic or manual"
+        }
+      ]
+    },
+    "screenshots": {
+      "mode": {
+        "src": "/docs/screenshots/task-saving/mode.jpg",
+        "alt": "The task saving preference",
+        "height": 1080,
+        "width": 1920
+      },
+      "manual": {
+        "src": "/docs/screenshots/task-saving/manual.jpg",
+        "alt": "Save changes in manual mode",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "de6b180b4612270e",
+    "capturedAt": "2026-10-28T09:36:59.470Z",
+    "verified": true
+  },
+  "templates": {
+    "video": {
+      "src": "/docs/videos/templates.mp4",
+      "poster": "/docs/videos/templates.jpg",
+      "captions": "/docs/videos/templates.vtt",
+      "duration": 57.47,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 46.95
+        },
+        {
+          "title": "Result",
+          "start": 52.95
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Templates. Save a task or a whole project as a template and reuse it."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: onboarding; sprints."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "Save a task or project → Shared with the workspace → Start new work from it"
+        },
+        {
+          "start": 15.8,
+          "end": 23.09,
+          "text": "Save a task — with its subtasks — as a template."
+        },
+        {
+          "start": 23.09,
+          "end": 31.83,
+          "text": "Next time, start from it."
+        },
+        {
+          "start": 31.83,
+          "end": 38.95,
+          "text": "Adjust the title — your edits win…"
+        },
+        {
+          "start": 38.95,
+          "end": 46.95,
+          "text": "…and the subtasks come along."
+        },
+        {
+          "start": 46.95,
+          "end": 52.95,
+          "text": "Finished subtasks weren't saved: Templates keep open subtasks only."
+        },
+        {
+          "start": 52.95,
+          "end": 57.45,
+          "text": "Task and project templates"
+        }
+      ]
+    },
+    "screenshots": {
+      "saved": {
+        "src": "/docs/screenshots/templates/saved.jpg",
+        "alt": "A task saved as a template",
+        "height": 1080,
+        "width": 1920
+      },
+      "use": {
+        "src": "/docs/screenshots/templates/use.jpg",
+        "alt": "Starting a task from a template",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "113a7f6cc8c20df8",
+    "capturedAt": "2026-10-28T09:31:07.466Z",
+    "verified": true
+  },
+  "time-tracking": {
+    "video": {
+      "src": "/docs/videos/time-tracking.mp4",
+      "poster": "/docs/videos/time-tracking.jpg",
+      "captions": "/docs/videos/time-tracking.vtt",
+      "duration": 36.23,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 25.73
+        },
+        {
+          "title": "Result",
+          "start": 31.73
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Time tracking. Run a timer on a task or add time by hand, and see everyone's entries."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: client billing; estimate check."
+        },
+        {
+          "start": 10.22,
+          "end": 11.93,
+          "text": "Start a timer on the task…"
+        },
+        {
+          "start": 11.93,
+          "end": 14.89,
+          "text": "…and it shows in the header wherever you go."
+        },
+        {
+          "start": 14.89,
+          "end": 16.63,
+          "text": "Stop it from the header."
+        },
+        {
+          "start": 16.63,
+          "end": 21.67,
+          "text": "Or add time by hand…"
+        },
+        {
+          "start": 21.67,
+          "end": 25.73,
+          "text": "Everyone's entries add up to the task's total."
+        },
+        {
+          "start": 25.73,
+          "end": 31.73,
+          "text": "Add time is disabled: The text isn't a time Flow understands — try “45m” or “1:30”."
+        },
+        {
+          "start": 31.73,
+          "end": 36.23,
+          "text": "Start/stop timer"
+        }
+      ]
+    },
+    "screenshots": {
+      "running": {
+        "src": "/docs/screenshots/time-tracking/running.jpg",
+        "alt": "A running timer with the header chip",
+        "height": 1080,
+        "width": 1920
+      },
+      "added": {
+        "src": "/docs/screenshots/time-tracking/added.jpg",
+        "alt": "Time entries on a task",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "ef50af85377449ec",
+    "capturedAt": "2026-10-28T09:26:13.295Z",
+    "verified": true
+  },
+  "timeline": {
+    "video": {
+      "src": "/docs/videos/timeline.mp4",
+      "poster": "/docs/videos/timeline.jpg",
+      "captions": "/docs/videos/timeline.vtt",
+      "duration": 32.63,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 22.13
+        },
+        {
+          "title": "Result",
+          "start": 28.13
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Timeline and time blocking. An hour-by-hour day or week across all projects; drag tasks to plan your time."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: plan tomorrow; rebalance."
+        },
+        {
+          "start": 9.79,
+          "end": 11.33,
+          "text": "Timeline: your week hour by hour, across every project."
+        },
+        {
+          "start": 11.33,
+          "end": 13.15,
+          "text": "Switch to a single day."
+        },
+        {
+          "start": 13.15,
+          "end": 15.36,
+          "text": "Drag a block to a new time…"
+        },
+        {
+          "start": 15.36,
+          "end": 17.56,
+          "text": "…stretch it to change its length…"
+        },
+        {
+          "start": 17.56,
+          "end": 22.13,
+          "text": "…or drag an unscheduled task onto the grid."
+        },
+        {
+          "start": 22.13,
+          "end": 28.13,
+          "text": "A task isn't on the grid: It has no due time; it's in To schedule (or the all-day strip if it has a date)."
+        },
+        {
+          "start": 28.13,
+          "end": 32.63,
+          "text": "Day and week grids"
+        }
+      ]
+    },
+    "screenshots": {
+      "week": {
+        "src": "/docs/screenshots/timeline/week.jpg",
+        "alt": "The week timeline",
+        "height": 1080,
+        "width": 1920
+      },
+      "day": {
+        "src": "/docs/screenshots/timeline/day.jpg",
+        "alt": "The day timeline with timed blocks",
+        "height": 1080,
+        "width": 1920
+      },
+      "scheduled": {
+        "src": "/docs/screenshots/timeline/scheduled.jpg",
+        "alt": "A task dragged in from To schedule",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "16042a14f00896c9",
+    "capturedAt": "2026-10-28T09:23:54.829Z",
+    "verified": true
+  },
+  "today-and-upcoming": {
+    "video": {
+      "src": "/docs/videos/today-and-upcoming.mp4",
+      "poster": "/docs/videos/today-and-upcoming.jpg",
+      "captions": "/docs/videos/today-and-upcoming.vtt",
+      "duration": 27.87,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 17.37
+        },
+        {
+          "title": "Result",
+          "start": 23.37
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Today and Upcoming. Overdue and due-today tasks across the workspace, and the next 14 days by day."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: daily driver; look-ahead."
+        },
+        {
+          "start": 9.85,
+          "end": 11.83,
+          "text": "Today gathers what's overdue and due today, from every project and the Inbox."
+        },
+        {
+          "start": 11.83,
+          "end": 13.5,
+          "text": "Tick to complete."
+        },
+        {
+          "start": 13.5,
+          "end": 17.37,
+          "text": "Upcoming shows the next 14 days, by day."
+        },
+        {
+          "start": 17.37,
+          "end": 23.37,
+          "text": "A due task isn't on Today: It's done, canceled, in an archived project, or due later."
+        },
+        {
+          "start": 23.37,
+          "end": 27.87,
+          "text": "Across every project and the Inbox"
+        }
+      ]
+    },
+    "screenshots": {
+      "today": {
+        "src": "/docs/screenshots/today-and-upcoming/today.jpg",
+        "alt": "Today with overdue and due-today tasks",
+        "height": 1080,
+        "width": 1920
+      },
+      "upcoming": {
+        "src": "/docs/screenshots/today-and-upcoming/upcoming.jpg",
+        "alt": "Upcoming grouped by day",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "d8896918edf77604",
+    "capturedAt": "2026-10-28T09:24:02.878Z",
+    "verified": true
+  },
+  "trash-and-undo": {
+    "video": {
+      "src": "/docs/videos/trash-and-undo.mp4",
+      "poster": "/docs/videos/trash-and-undo.jpg",
+      "captions": "/docs/videos/trash-and-undo.vtt",
+      "duration": 32.53,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 22.03
+        },
+        {
+          "title": "Result",
+          "start": 28.03
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Trash and undo. Undo a delete instantly, or restore deleted tasks from the Trash."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: oops; second thoughts."
+        },
+        {
+          "start": 9.94,
+          "end": 11.89,
+          "text": "Delete a task…"
+        },
+        {
+          "start": 11.89,
+          "end": 13.55,
+          "text": "…and Undo brings it straight back."
+        },
+        {
+          "start": 13.55,
+          "end": 15.2,
+          "text": "Deleted for real?"
+        },
+        {
+          "start": 15.2,
+          "end": 17.08,
+          "text": "It waits in Trash."
+        },
+        {
+          "start": 17.08,
+          "end": 22.03,
+          "text": "Restore puts it back where it was."
+        },
+        {
+          "start": 22.03,
+          "end": 28.03,
+          "text": "A subtask isn't in Trash: Trash lists the parent; restoring it brings the subtasks back."
+        },
+        {
+          "start": 28.03,
+          "end": 32.53,
+          "text": "Instant Undo"
+        }
+      ]
+    },
+    "screenshots": {
+      "deleted": {
+        "src": "/docs/screenshots/trash-and-undo/deleted.jpg",
+        "alt": "Undo offered right after deleting",
+        "height": 1080,
+        "width": 1920
+      },
+      "trash": {
+        "src": "/docs/screenshots/trash-and-undo/trash.jpg",
+        "alt": "Deleted tasks in Trash",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "cc05996efe2fa716",
+    "capturedAt": "2026-10-28T09:22:47.321Z",
+    "verified": true
+  },
+  "webhooks": {
+    "video": {
+      "src": "/docs/videos/webhooks.mp4",
+      "poster": "/docs/videos/webhooks.jpg",
+      "captions": "/docs/videos/webhooks.vtt",
+      "duration": 52.9,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "How it works",
+          "start": 9.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 15
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 42.39
+        },
+        {
+          "title": "Result",
+          "start": 48.39
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Webhooks. Send signed HTTPS events to your own systems when tasks and comments change."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: chat alerts; data sync."
+        },
+        {
+          "start": 9.5,
+          "end": 15,
+          "text": "A task or comment changes → Flow signs the event → POST to your endpoint → Retried if it fails"
+        },
+        {
+          "start": 15.8,
+          "end": 21.73,
+          "text": "(Note: The endpoint is a local test receiver, which only this isolated test server allows; real servers accept public HTTPS addresses.) Add the URL that should receive events…"
+        },
+        {
+          "start": 21.73,
+          "end": 25.22,
+          "text": "…and add it."
+        },
+        {
+          "start": 25.22,
+          "end": 30.18,
+          "text": "The signing secret is shown once (blurred here). Copy it now."
+        },
+        {
+          "start": 30.18,
+          "end": 34.94,
+          "text": "Send a test to check the receiver…"
+        },
+        {
+          "start": 34.94,
+          "end": 42.39,
+          "text": "…every delivery is logged, with Redeliver."
+        },
+        {
+          "start": 42.39,
+          "end": 48.39,
+          "text": "The URL is refused: It must be public HTTPS; localhost and private networks aren't allowed. The webhook turned itself off: It failed 15 times in a row or returned 410. Fix the receiver and switch it back on."
+        },
+        {
+          "start": 48.39,
+          "end": 52.89,
+          "text": "HMAC-SHA256 signatures"
+        }
+      ]
+    },
+    "screenshots": {
+      "empty": {
+        "src": "/docs/screenshots/webhooks/empty.jpg",
+        "alt": "Webhooks in Workspace settings",
+        "height": 1080,
+        "width": 1920
+      },
+      "secret": {
+        "src": "/docs/screenshots/webhooks/secret.jpg",
+        "alt": "A new webhook with its one-time secret",
+        "height": 1080,
+        "width": 1920
+      },
+      "log": {
+        "src": "/docs/screenshots/webhooks/log.jpg",
+        "alt": "The delivery log",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "2f6175a99417eb8d",
+    "capturedAt": "2026-10-28T09:34:04.496Z",
+    "verified": true
+  },
+  "workspace-settings": {
+    "video": {
+      "src": "/docs/videos/workspace-settings.mp4",
+      "poster": "/docs/videos/workspace-settings.jpg",
+      "captions": "/docs/videos/workspace-settings.vtt",
+      "duration": 33.23,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 22.72
+        },
+        {
+          "title": "Result",
+          "start": 28.72
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Workspace settings. Name, icon and colour, default view, status names, tags, templates, data, webhooks and the danger zone."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: make it yours; match your process."
+        },
+        {
+          "start": 10.3,
+          "end": 11.71,
+          "text": "Workspace settings: jump links to every section."
+        },
+        {
+          "start": 11.71,
+          "end": 13.33,
+          "text": "Give the workspace an icon…"
+        },
+        {
+          "start": 13.33,
+          "end": 15.17,
+          "text": "…on a colour. It shows in the sidebar."
+        },
+        {
+          "start": 15.17,
+          "end": 16.75,
+          "text": "Choose the view new projects open in."
+        },
+        {
+          "start": 16.75,
+          "end": 19.99,
+          "text": "Rename statuses to match how your team talks…"
+        },
+        {
+          "start": 19.99,
+          "end": 22.72,
+          "text": "…and save. The names apply everywhere."
+        },
+        {
+          "start": 22.72,
+          "end": 28.72,
+          "text": "Save names is disabled: Two statuses have the same name (case doesn't matter). Make them different. I don't see Space or Danger zone: They're for team workspaces, and Danger zone is for owners."
+        },
+        {
+          "start": 28.72,
+          "end": 33.22,
+          "text": "Emoji icon on a colour"
+        }
+      ]
+    },
+    "screenshots": {
+      "page": {
+        "src": "/docs/screenshots/workspace-settings/page.jpg",
+        "alt": "Workspace settings with section links",
+        "height": 1080,
+        "width": 1920
+      },
+      "appearance": {
+        "src": "/docs/screenshots/workspace-settings/appearance.jpg",
+        "alt": "An emoji icon on a colour",
+        "height": 1080,
+        "width": 1920
+      },
+      "statuses": {
+        "src": "/docs/screenshots/workspace-settings/statuses.jpg",
+        "alt": "Custom status names",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "2f93bf742df34cff",
+    "capturedAt": "2026-10-28T11:16:17.817Z",
+    "verified": true
+  },
+  "workspaces": {
+    "video": {
+      "src": "/docs/videos/workspaces.mp4",
+      "poster": "/docs/videos/workspaces.jpg",
+      "captions": "/docs/videos/workspaces.vtt",
+      "duration": 37.03,
+      "chapters": [
+        {
+          "title": "Introduction",
+          "start": 0
+        },
+        {
+          "title": "When to use it",
+          "start": 4.5
+        },
+        {
+          "title": "Walkthrough",
+          "start": 9.5
+        },
+        {
+          "title": "Troubleshooting",
+          "start": 26.53
+        },
+        {
+          "title": "Result",
+          "start": 32.53
+        }
+      ],
+      "transcript": [
+        {
+          "start": 0,
+          "end": 4.5,
+          "text": "Workspaces. Your private Personal workspace and shared team workspaces, each with its own projects and people."
+        },
+        {
+          "start": 4.5,
+          "end": 9.5,
+          "text": "Use it for: side project with a friend; agency with several clients."
+        },
+        {
+          "start": 9.7,
+          "end": 11.78,
+          "text": "Choose New team workspace."
+        },
+        {
+          "start": 11.78,
+          "end": 13.74,
+          "text": "Name the team…"
+        },
+        {
+          "start": 13.74,
+          "end": 15.4,
+          "text": "…and create it. You're its owner."
+        },
+        {
+          "start": 15.4,
+          "end": 17.24,
+          "text": "Open it: Flow lands on its starter project, General."
+        },
+        {
+          "start": 17.24,
+          "end": 22.73,
+          "text": "Rename it in Workspace settings."
+        },
+        {
+          "start": 22.73,
+          "end": 26.53,
+          "text": "Owners can delete a team in the Danger zone, after typing its name."
+        },
+        {
+          "start": 26.53,
+          "end": 32.53,
+          "text": "Delete workspace is greyed out: Type the workspace's exact name in the confirmation box first. Only owners see the button. I can't rename Personal: That's by design: Personal is private and fixed. Its look and defaults can still be changed in Workspace settings."
+        },
+        {
+          "start": 32.53,
+          "end": 37.03,
+          "text": "A Personal workspace created on first sign-in"
+        }
+      ]
+    },
+    "screenshots": {
+      "create": {
+        "src": "/docs/screenshots/workspaces/create.jpg",
+        "alt": "Creating a team workspace from the sidebar",
+        "height": 1080,
+        "width": 1920
+      },
+      "general": {
+        "src": "/docs/screenshots/workspaces/general.jpg",
+        "alt": "A new team workspace with its General project",
+        "height": 1080,
+        "width": 1920
+      }
+    },
+    "fingerprint": "d99b4095c615e49d",
+    "capturedAt": "2026-10-28T09:17:14.888Z",
+    "verified": true
+  }
+}

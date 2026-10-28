@@ -1,0 +1,53 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Intake forms. Public forms anyone can fill in without an account; each response becomes a task.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: bug reports; design requests.
+
+3
+00:00:09.500 --> 00:00:15.000
+Someone fills in the public form → Answers are checked → A task is created with your defaults → Automations and webhooks run
+
+4
+00:00:15.800 --> 00:00:22.500
+Open Forms from the project header.
+
+5
+00:00:22.500 --> 00:00:35.320
+Create a form…
+
+6
+00:00:35.320 --> 00:00:41.880
+Its first question becomes the task title.
+
+7
+00:00:41.880 --> 00:01:06.180
+Add more questions…
+
+8
+00:01:06.180 --> 00:01:22.880
+…and defaults for the tasks it creates.
+
+9
+00:01:22.880 --> 00:01:33.230
+Anyone with the link can respond — no account needed.
+
+10
+00:01:33.230 --> 00:01:40.780
+Send…
+
+11
+00:01:40.780 --> 00:01:46.730
+…and the response is a task in the project, high priority.
+
+12
+00:01:46.730 --> 00:01:52.730
+The link says Not found: The form was closed or deleted. “Too many tries”: The per-address limit was reached; try again in an hour.
+
+13
+00:01:52.730 --> 00:01:57.230
+No account needed to respond

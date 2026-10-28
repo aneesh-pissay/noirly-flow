@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Signing in and out. One Noirly account for Flow and every other Noirly app, through a secure popup.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: joining from an invite; shared computer.
+
+3
+00:00:09.500 --> 00:00:15.000
+Choose Noirly Login → Sign in with Noirly Identity → Your Personal workspace is ready
+
+4
+00:00:15.490 --> 00:00:17.150
+(Note: The Noirly Identity popup isn't recorded: the isolated test server signs in with a test session instead of a live account.) Signed in, Flow opens your Personal workspace — created for you on your first visit.
+
+5
+00:00:17.150 --> 00:00:20.890
+Sign out sits at the bottom of the main sidebar.
+
+6
+00:00:20.890 --> 00:00:24.830
+You're back on the sign-in page. Noirly Login opens Identity in a secure popup.
+
+7
+00:00:24.830 --> 00:00:30.830
+The popup doesn't open: Allow popups for Flow's address in your browser, then choose Noirly Login again. I'm sent to /login from an invite link: That's expected when you're signed out; after signing in you return to the invite.
+
+8
+00:00:30.830 --> 00:00:35.330
+Sign in with Noirly Identity in a secure popup

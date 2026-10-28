@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import {
   Activity,
+  BookOpen,
   Search,
   Settings,
   SlidersHorizontal,
@@ -133,6 +134,12 @@ export function AppShell({ user, initialWorkspaces, children }: Props) {
           },
         ]
       : []),
+    {
+      href: "/docs",
+      label: "Docs",
+      icon: BookOpen,
+      match: "prefix",
+    },
   ];
 
   return (

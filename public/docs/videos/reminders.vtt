@@ -1,0 +1,37 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Reminders. Get a bell notification and an email before a timed task is due.
+
+2
+00:00:04.500 --> 00:00:09.500
+Use it for: meetings; bills.
+
+3
+00:00:09.500 --> 00:00:15.000
+Set a due time → Choose a lead time → Bell and email when it's due
+
+4
+00:00:15.790 --> 00:00:17.920
+(Note: The reminder sweep was run through the scheduler route instead of waiting for the clock.) Reminders need a due time.
+
+5
+00:00:17.920 --> 00:00:19.600
+Add one…
+
+6
+00:00:19.600 --> 00:00:22.680
+…then choose when to be reminded.
+
+7
+00:00:22.680 --> 00:00:29.400
+When it's due, the reminder lands in the bell (and by email).
+
+8
+00:00:29.400 --> 00:00:35.400
+“Add a due time to set a reminder.”: Set a time under Due time (optional) first. No email arrived: The server needs SMTP for emails; the bell notification still appears.
+
+9
+00:00:35.400 --> 00:00:39.900
+Bell and email
