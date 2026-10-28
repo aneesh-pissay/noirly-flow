@@ -67,6 +67,7 @@ export const E2E_ENV: Record<string, string> = {
   R2_ACCESS_KEY_ID: "",
   R2_SECRET_ACCESS_KEY: "",
   R2_BUCKET_NAME: "",
+  R2_PUBLIC_URL: "",
 };
 
 /** Auth.js cookie name under `next start` over http (no __Secure- prefix). */

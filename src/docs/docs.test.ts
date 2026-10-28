@@ -100,9 +100,11 @@ describe("docs search", () => {
 });
 
 describe("docs video host", () => {
-  it("plays from the R2 bucket's public URL, and is off without an account", async () => {
+  it("plays from the R2 bucket's Public Development URL, and is off without one", async () => {
     const { docsVideoBaseUrl } = await import("@/src/docs/video-host");
-    expect(docsVideoBaseUrl("abc123")).toBe("https://pub-abc123.r2.dev/doc-videos");
+    expect(docsVideoBaseUrl("https://pub-abc123.r2.dev")).toBe("https://pub-abc123.r2.dev/doc-videos");
+    expect(docsVideoBaseUrl(" https://pub-abc123.r2.dev/ ")).toBe("https://pub-abc123.r2.dev/doc-videos");
     expect(docsVideoBaseUrl("")).toBe("");
+    expect(docsVideoBaseUrl("not a url")).toBe("");
   });
 });
